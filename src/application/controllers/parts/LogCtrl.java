@@ -16,8 +16,12 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class LogCtrl {
+	private Logger logger = LogManager.getLogger(LogCtrl.class);
+
 	private AnchorPane logLoad;
 	private double minSize = 30;
 	private double defaultSize = 242.4;
@@ -76,6 +80,7 @@ public class LogCtrl {
 	}
 
 	public void mouseClickedOnLogTitledPane(MouseEvent mouseEvent) {
+		logger.info("Updating size of LogTitledPane");
 		MainWindowCtrl.updateHeightLogPane(
 				logTitledPane.isExpanded() ?
 						MainWindowCtrl.getHeightOfCenterSplitPane() / 2
