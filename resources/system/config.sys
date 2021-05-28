@@ -1,0 +1,6 @@
+port=3306
+pass=12345
+name=db_server
+login=root
+host=localhost
+language=uk
