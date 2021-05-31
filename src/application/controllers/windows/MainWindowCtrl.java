@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import application.MainLog;
 import application.controllers.MainCtrl;
 import application.controllers.parts.ContentCtrl;
 import application.controllers.parts.FooterCtrl;

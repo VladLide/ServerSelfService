@@ -29,7 +29,7 @@ public class SidebarCtrl {
 	private ScaleCtrl scaleWindow = null;
 	private AnchorPane sidebar;
 	private NodeTree tempEdit = null;
-	
+
     @FXML
     private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"),"part","Sidebar");
     @FXML
@@ -74,17 +74,27 @@ public class SidebarCtrl {
 	}
 
 	public void loadMenu(ObservableList<ScaleItemMenu> scales) {
-		if(menu.getRoot()!=null)menu.getRoot().getChildren().clear();
-		TreeItem<NodeTree> root = new TreeItem<NodeTree>(new NodeTree(SidebarInfo.root,"root",0,"root"));
-		root.setExpanded(true); 
-		SidebarInfo.menu.forEach((mainNode)->{
-			TreeItem<NodeTree> main = new TreeItem<NodeTree> (new NodeTree(mainNode[1],mainNode[0],1,mainNode[0],root.getValue()));
-			main.setExpanded(true); 
+		if(menu.getRoot() != null)
+			menu.getRoot().getChildren().clear();
+
+		TreeItem<NodeTree> root = new TreeItem<>(new NodeTree(SidebarInfo.root,"root",0,"root"));
+		root.setExpanded(true);
+		SidebarInfo.menu.forEach(mainNode -> {
+			TreeItem<NodeTree> main = new TreeItem<>(new NodeTree(mainNode[1],mainNode[0],1,mainNode[0],root.getValue()));
+			main.setExpanded(true);
 			switch(mainNode[0]) {
 				case "scales":{
-					if(scales.size()>0) {
-						scales.forEach((scale)->{
-							TreeItem<NodeTree> scaleNode = new TreeItem<NodeTree>(new NodeTree(scale.getName()+"-"+scale.getId(),"ScaleInfo",2,scale, main.getValue()), scale.getImg());
+					if(!scales.isEmpty()) {
+						scales.forEach(scale->{
+							TreeItem<NodeTree> scaleNode = new TreeItem<NodeTree>(
+									new NodeTree(
+											scale.getName() + "-" + scale.getId(),
+											"ScaleInfo",
+											2,
+											scale,
+											main.getValue()),
+									scale.getImg()
+							);
 							//scaleNode.setExpanded(true);
 							SidebarInfo.menuScale.forEach((value)->{
 								TreeItem<NodeTree> node = new TreeItem<NodeTree>(new NodeTree(value[1],value[0],3,value[0],scaleNode.getValue()));
@@ -145,7 +155,7 @@ public class SidebarCtrl {
 			break;
 		}
 	}
-	
+
     @FXML
     void initialize() {
         assert filter != null : "fx:id=\"filter\" was not injected: check your FXML file 'Sidebar.fxml'.";

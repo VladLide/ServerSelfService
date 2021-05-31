@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import application.MainLog;
 import application.controllers.MainCtrl;
 import application.controllers.windows.MainWindowCtrl;
 import application.models.Configs;
@@ -20,11 +19,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class LogCtrl {
-	private Logger logger = LogManager.getLogger(LogCtrl.class);
-
 	private AnchorPane logLoad;
+	private Logger logger = LogManager.getLogger(LogCtrl.class);
 	private double minSize = 30;
-	private double defaultSize = 242.4;
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Log");
@@ -76,11 +73,11 @@ public class LogCtrl {
 
 	public void setLog(String line) {
 		this.log.setText(getLog() + line + System.lineSeparator());
-		MainLog.logInfo(line, getClass().getName());
+
+		logger.info(line);
 	}
 
 	public void mouseClickedOnLogTitledPane(MouseEvent mouseEvent) {
-		logger.info("Updating size of LogTitledPane");
 		MainWindowCtrl.updateHeightLogPane(
 				logTitledPane.isExpanded() ?
 						MainWindowCtrl.getHeightOfCenterSplitPane() / 2

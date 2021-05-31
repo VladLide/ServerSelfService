@@ -13,6 +13,7 @@ public class Main extends Application {
 	}
 	
 	public static void main(String[] args) {
+		//configure location of log4j2 configuration file
 		Configurator.initialize(null, "resources/log4j2.xml");
 		launch(args);
 	}

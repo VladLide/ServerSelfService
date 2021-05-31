@@ -133,16 +133,14 @@ public class MainCtrl {
 	}
 	public static ObservableList<ScaleItemMenu> getScales() {
 		MainCtrl me = getInstance();
-		if(me.scales.size()<1) {
+		if(me.scales.isEmpty()) {
 			me.scales=ScaleItemMenu.get();
 		}
 		return me.scales;
 	}
 	public static ObservableList<ScaleItemMenu> refreshScales() {
 		MainCtrl me = getInstance();
-		me.scales.forEach(v->{
-			v.getConnect().cancel();
-		});
+		me.scales.forEach(scale-> scale.getConnect().cancel());
 		me.scales.clear();
 		return getScales();
 	}

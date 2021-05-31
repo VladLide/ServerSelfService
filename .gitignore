@@ -3,4 +3,5 @@
 *.iml
 .idea
 .settings
-log
+logs
+/bin/

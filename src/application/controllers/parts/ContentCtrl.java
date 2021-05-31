@@ -166,7 +166,7 @@ public class ContentCtrl {
 		dataTable.getItems().setAll(ItemContent.get(items));
 	}
 	public void operationsData(ItemContent item, Boolean del) {
-		MainWindowCtrl mw = MainWindowCtrl.getInstance();
+		MainWindowCtrl mainWindowCtrl = MainWindowCtrl.getInstance();
 		MySQL db = null;
 		String source = "";
 		if(node.getLevel()==2) {
@@ -179,11 +179,14 @@ public class ContentCtrl {
 		}
 		switch (node.getType()) {
 			case "products":{
-				if(del!=null&&item!=null){
+				if(del != null && item != null){
 					if(del)
 						((Goods)item.getObject()).delete(db);
 				}else {
-					mw.openPlu((item!=null)?(Goods)item.getObject():null, source, db);
+					mainWindowCtrl.openPlu(
+							(item!=null) ? (Goods) item.getObject() : null,
+							source,
+							db);
 				}
 				break;
 			}
@@ -192,7 +195,7 @@ public class ContentCtrl {
 					if(del)
 						((Sections)item.getObject()).delete(false,db);
 				}else {
-					mw.openSection((item!=null)?(Sections)item.getObject():null, source, db);
+					mainWindowCtrl.openSection((item!=null)?(Sections)item.getObject():null, source, db);
 				}
 				break;
 			}
@@ -201,7 +204,7 @@ public class ContentCtrl {
 					if(del)
 						((Templates)item.getObject()).delete(db);
 				}else {
-					mw.openTemplate((item!=null)?(Templates)item.getObject():null, db);
+					mainWindowCtrl.openTemplate((item!=null)?(Templates)item.getObject():null, db);
 				}
 				break;
 			}
@@ -210,7 +213,7 @@ public class ContentCtrl {
 					if(del)
 						((Codes)item.getObject()).delete(db);
 				}else {
-					mw.openCode((item!=null)?(Codes)item.getObject():null, source, db);
+					mainWindowCtrl.openCode((item!=null)?(Codes)item.getObject():null, source, db);
 				}
 				break;
 			}
@@ -307,18 +310,11 @@ public class ContentCtrl {
     			connectCM.setDisable(true);
         	}
         });
-        send.setOnAction(event->{
-        	//MainWindowCtrl.getFooterCtrl().startTask(event);
-        	addSend();
-        });
-        check.setOnAction(event->{
-        	dataTable.getItems().forEach((v)->{
-        		v.setCheckBox(check.isSelected());
-        	});
-        });
-        create.setOnAction(event->{
-        	operationsData(null,null);
-        });
+        send.setOnAction(event-> addSend());
+        check.setOnAction(event->
+		        dataTable.getItems().forEach(item->
+				        item.setCheckBox(check.isSelected())));
+        create.setOnAction(event-> operationsData(null,null));
         edit.setOnAction(event->{
         	ItemContent item = dataTable.getSelectionModel().getSelectedItem();
         	operationsData(item,null);
@@ -329,9 +325,7 @@ public class ContentCtrl {
         	dataTable.getItems().remove(item);
         	dataTable.refresh();
         });
-        createCM.setOnAction(event->{
-        	operationsData(null,null);
-        });
+        createCM.setOnAction(event-> operationsData(null,null));
         editCM.setOnAction(event->{
         	ItemContent item = dataTable.getSelectionModel().getSelectedItem();
         	operationsData(item,null);

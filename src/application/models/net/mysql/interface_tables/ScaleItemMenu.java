@@ -49,12 +49,12 @@ public class ScaleItemMenu {
 	}
 
 	public static ObservableList<ScaleItemMenu> get() {
-    	ResultSet resul = MainCtrl.getDB().getSelect(Scales.getSql(0,""));
+    	ResultSet result = MainCtrl.getDB().getSelect(Scales.getSql(0,""));
     	ObservableList<ScaleItemMenu> row = FXCollections.observableArrayList();
     	try {
     		//int index = 0;
-    		while(resul.next()) {
-    			ScaleItemMenu item = new ScaleItemMenu(new Scales(resul));
+    		while(result.next()) {
+    			ScaleItemMenu item = new ScaleItemMenu(new Scales(result));
 				row.add(item);
 			}
 		} catch (NullPointerException e) {
@@ -62,6 +62,7 @@ public class ScaleItemMenu {
 		} catch (SQLException e) {
 			System.out.println("ScaleInfo: error db " + e.getMessage());
 		}
+
 		return row;
 	}
 	private Image status(int statusServer, int statusScale) {

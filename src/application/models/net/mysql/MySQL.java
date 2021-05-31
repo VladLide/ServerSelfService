@@ -363,7 +363,8 @@ public class MySQL {
 		ResultSet result = null;
 		try {
 			//System.out.println(sql);
-			if(dbConnection!=null)result = getStatement().executeQuery(sql);
+			if(dbConnection != null)
+				result = getStatement().executeQuery(sql);
 		} catch (SQLException e) {
 			System.out.println(sql+System.getProperty("line.separator")+e.getMessage());
 		}

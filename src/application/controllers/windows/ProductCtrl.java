@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import application.Main;
+import application.controllers.parts.LogCtrl;
 import application.models.Configs;
 import application.models.TextBox;
 import application.models.Utils;
@@ -41,12 +43,12 @@ import javafx.stage.Stage;
 
 public class ProductCtrl {
     private Stage stage;
-	private Goods item = null;
-	private boolean newItem=true;
-	private File file = null;
+    private Goods item = null;
+    private boolean newItem = true;
+    private File file = null;
     private MySQL db = null;
 
-	@FXML
+    @FXML
     private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Product");
     @FXML
     private URL location = getClass().getResource(Utils.getView("window", "Product"));
@@ -90,253 +92,272 @@ public class ProductCtrl {
     private Button delete;
 
     public ProductCtrl(MySQL db) {
-    	this.db = db;
+        this.db = db;
         this.stage = new Stage();
         this.stage.initModality(Modality.WINDOW_MODAL);
         this.stage.initOwner(MainWindowCtrl.getMainStage());
         try {
-        	FXMLLoader loader = new FXMLLoader(location,resources);
+            FXMLLoader loader = new FXMLLoader(location, resources);
             loader.setController(this);
             this.stage.setScene(new Scene(loader.load()));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
     public void show() {
-    	load();
-    	this.stage.showAndWait();
+        load();
+        this.stage.showAndWait();
     }
+
     public void close() {
-    	this.stage.close();
+        this.stage.close();
     }
-	public ObservableList<TableColumn<Goods, ?>> loadDataTable(ObservableList<String[]> colInfo) {
-    	ObservableList<TableColumn<Goods, ?>> col = FXCollections.observableArrayList();
-		colInfo.forEach((v)->{
-    		switch(v[0]) {
-	    		case "Integer":{
-	    			TableColumn<Goods, Integer> item = new TableColumn<Goods, Integer>(v[1]);
-	    			item.setCellValueFactory(new PropertyValueFactory<Goods, Integer>(v[2]));
-	    	    	col.add(item);
-	    	    	break;
-	    		}
-	    		case "String":{
-	    			TableColumn<Goods, String> item = new TableColumn<Goods, String>(v[1]);
-	    	    	item.setCellValueFactory(new PropertyValueFactory<Goods, String>(v[2]));
-	    	    	col.add(item);
-	    	    	break;
-	    		}
-    		}
-    	});
-		return col;
-	}
-	private void loadImage(AnchorPane imgpanel, String str) {
-		imgpanel.getChildren().clear();
-		if( str.compareToIgnoreCase("img")==0 ) {
-			try {
-	    		imgpanel.setBackground(new Background(new BackgroundImage(this.item.getImage(imgpanel), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, 
-							BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
-    		}catch (Exception e) {
-    			imgpanel.setBackground(null);
-				System.out.println("ButtonWithImage: no image - "+e);
-			}
-		}else {
-			try {
-	    		imgpanel.setBackground(new Background(new BackgroundImage(template.getSelectionModel().getSelectedItem().getImage(imgpanel,0), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, 
-							BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
-    		}catch (Exception e) {
-    			imgpanel.setBackground(null);
-				System.out.println("ButtonWithImage: no image - "+e);
-			}
-		}
-	}
+
+    public ObservableList<TableColumn<Goods, ?>> loadDataTable(ObservableList<String[]> colInfo) {
+        ObservableList<TableColumn<Goods, ?>> col = FXCollections.observableArrayList();
+        colInfo.forEach(v -> {
+            switch (v[0]) {
+                case "Integer": {
+                    TableColumn<Goods, Integer> item = new TableColumn<Goods, Integer>(v[1]);
+                    item.setCellValueFactory(new PropertyValueFactory<Goods, Integer>(v[2]));
+                    col.add(item);
+                    break;
+                }
+                case "String": {
+                    TableColumn<Goods, String> item = new TableColumn<Goods, String>(v[1]);
+                    item.setCellValueFactory(new PropertyValueFactory<Goods, String>(v[2]));
+                    col.add(item);
+                    break;
+                }
+            }
+        });
+        return col;
+    }
+
+    private void loadImage(AnchorPane imgpanel, String str) {
+        imgpanel.getChildren().clear();
+        if (str.compareToIgnoreCase("img") == 0) {
+            try {
+                imgpanel.setBackground(new Background(new BackgroundImage(this.item.getImage(imgpanel), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+                        BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
+            } catch (Exception e) {
+                imgpanel.setBackground(null);
+                System.out.println("ButtonWithImage: no image - " + e);
+            }
+        } else {
+            try {
+                imgpanel.setBackground(new Background(new BackgroundImage(template.getSelectionModel().getSelectedItem().getImage(imgpanel, 0), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+                        BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
+            } catch (Exception e) {
+                imgpanel.setBackground(null);
+                System.out.println("ButtonWithImage: no image - " + e);
+            }
+        }
+    }
 
     private void continion() {
-    	try {
-			if(section.getSelectionModel().getSelectedItem() == null || template.getSelectionModel().getSelectedItem() == null ||
-	    			code.getSelectionModel().getSelectedItem()==null || unit.getSelectionModel().getSelectedItem()==null ||
-	    			pre_code.getText().length()<=0)
-				TextBox.alertOpenDialog(AlertType.ERROR, "editGoodsNo");
-    		else {
-    			Goods plu = new Goods();
-    			int preCode = Integer.parseInt(pre_code.getText());
-    			plu.setId_sections(section.getSelectionModel().getSelectedItem().getId());
-    			plu.setId_templates(template.getSelectionModel().getSelectedItem().getId());
-    			plu.setId_barcodes(code.getSelectionModel().getSelectedItem().getId());
-    			plu.setName(name.getText());
-    			plu.setFull_name(name.getText());
-    			plu.setPrice(Float.parseFloat(price.getText().replace(",", ".")));
-    			plu.setType(unit.getSelectionModel().getSelectedItem());
-    			plu.setBefore_validity((expirationDate.getText().length()>0)?Integer.parseInt(expirationDate.getText()):0);
-    			plu.setIngredients(ingredients.getText());
-    			plu.setMin_type((float)0.04);
-    			try {
-    				plu.setNumber(Integer.parseInt(number.getText()));
-    			}catch (Exception e) {
-					if(item!=null) {
-						plu.setNumber(item.getNumber());
-					}
-				}
-    			
-    			if(this.file!=null)plu.setData(this.file);
-    			if(newItem) {
-	    			plu.setPre_code(preCode);
-	    			if(this.file==null)plu.setDataBlob(null);
-    				if(plu.save(db)>0) {
-    					TextBox.alertOpenDialog(AlertType.INFORMATION, "addGoodsYes");
-    					load();
-		        	}else{
-		        		TextBox.alertOpenDialog(AlertType.WARNING, "addGoodsNot");
-		        	}
-    			}else {
-	    			plu.setPre_code(this.item.getPre_code());
-    				plu.setDataBlob(this.item.getData());
-    				if(this.item.getPre_code()!=preCode)plu.updatePre_code(preCode, db);
-    				if(plu.save(db)>0) {
-    					TextBox.alertOpenDialog(AlertType.INFORMATION, "editGoodsYes");
-		        	}else{
-		        		TextBox.alertOpenDialog(AlertType.WARNING, "editGoodsNo");
-		        	}
-    			}
-    		}
-		}catch( Exception e ) {
-			TextBox.alertOpenDialog(AlertType.ERROR, "saveGoodsNo",e.getMessage());
-		}
+        try {
+            Goods plu = new Goods();
+            int preCode = Integer.parseInt(pre_code.getText());
+            plu.setId_sections(section.getSelectionModel().getSelectedItem().getId());
+            plu.setId_templates(template.getSelectionModel().getSelectedItem().getId());
+            plu.setId_barcodes(code.getSelectionModel().getSelectedItem().getId());
+            plu.setName(name.getText());
+            plu.setFull_name(name.getText());
+            plu.setPrice(Float.parseFloat(price.getText().replace(",", ".")));
+            plu.setType(unit.getSelectionModel().getSelectedItem());
+            plu.setBefore_validity((expirationDate.getText().length() > 0) ? Integer.parseInt(expirationDate.getText()) : 0);
+            plu.setIngredients(ingredients.getText());
+            plu.setMin_type((float) 0.04);
+            try {
+                plu.setNumber(Integer.parseInt(number.getText()));
+            } catch (NumberFormatException e) {
+                if (item != null) {
+                    plu.setNumber(item.getNumber());
+                }
+            }
+
+            if (this.file != null) plu.setData(this.file);
+            if (newItem) {
+                plu.setPre_code(preCode);
+                if (this.file == null) plu.setDataBlob(null);
+                if (plu.save(db) > 0) {
+                    TextBox.alertOpenDialog(AlertType.INFORMATION, "addGoodsYes");
+                    load();
+
+                    MainWindowCtrl.setLog("Товар успішно створений");
+                } else {
+                    TextBox.alertOpenDialog(AlertType.WARNING, "addGoodsNot");
+
+                    MainWindowCtrl.setLog("Товар не був доданий до бази данних");
+                }
+            } else {
+                //todo item.getPre_code can throw nullPointer exception
+                plu.setPre_code(this.item.getPre_code());
+                plu.setDataBlob(this.item.getData());
+                if (this.item.getPre_code() != preCode) plu.updatePre_code(preCode, db);
+                if (plu.save(db) > 0) {
+                    TextBox.alertOpenDialog(AlertType.INFORMATION, "editGoodsYes");
+
+                    MainWindowCtrl.setLog("Товар успішно оновлений");
+                } else {
+                    TextBox.alertOpenDialog(AlertType.WARNING, "editGoodsNo");
+
+                    MainWindowCtrl.setLog("Товар не був оновлений, невірні данні");
+                }
+            }
+        } catch (Exception e) {
+            TextBox.alertOpenDialog(AlertType.ERROR, "saveGoodsNo", e.getMessage());
+        }
     }
+
     public void clearLoad() {
-    	name.setText("");
-    	number.setText("");
-    	pre_code.setText("");
-		section.setValue(null);
-		ingredients.setText("");
-		price.setText("");
-		unit.setValue(null);
-		expirationDate.setText("");
-		template.setValue(null);
-		code.setValue(null);
-		img.setBackground(null);
-		imgTemplate.setBackground(null);
-	    this.item = new Goods();
-	    this.file = null;
-	    save.setDisable(true);
-	    newItem = true;
+        name.setText("");
+        number.setText("");
+        pre_code.setText("");
+        section.setValue(null);
+        ingredients.setText("");
+        price.setText("");
+        unit.setValue(null);
+        expirationDate.setText("");
+        template.setValue(null);
+        code.setValue(null);
+        img.setBackground(null);
+        imgTemplate.setBackground(null);
+        this.item = new Goods();
+        this.file = null;
+        save.setDisable(true);
+        newItem = true;
     }
+
     public void load() {
-    	clearLoad();
-	    dataTable.getColumns().addAll(loadDataTable(ProductInfo.dataTableColums));
-	    dataTable.setItems(Goods.getList(0, 0, "", 0, 0, db));
+        clearLoad();
+        dataTable.getColumns().addAll(loadDataTable(ProductInfo.dataTableColums));
+        dataTable.setItems(Goods.getList(0, 0, "", 0, 0, db));
         template.setItems(Templates.getList(0, "", true, db));
-    	code.setItems(Codes.getList(0,"",db));
-	    section.setItems(Sections.getList(0, 0, -1, "", false, db));
-	    
-	    name.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-    	number.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-    	pre_code.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-		section.setOnAction(event->{
-			save.setDisable(false);
-		});
-		ingredients.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-		price.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-		unit.setOnAction(event->{
-			save.setDisable(false);
-		});
-		expirationDate.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-		code.setOnAction(event->{
-			save.setDisable(false);
-		});
+        code.setItems(Codes.getList(0, "", db));
+        section.setItems(Sections.getList(0, 0, -1, "", false, db));
+
+        name.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+        number.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+        pre_code.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+        section.setOnAction(event -> {
+            save.setDisable(false);
+        });
+        ingredients.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+        price.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+        unit.setOnAction(event -> {
+            save.setDisable(false);
+        });
+        expirationDate.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+        code.setOnAction(event -> {
+            save.setDisable(false);
+        });
     }
-    
+
     @FXML
     void initialize() {
-    	clear.setOnAction(event->{
-    		clearLoad();
-    	});
-    	delete.setOnAction(event ->{
-    		Goods item = dataTable.getSelectionModel().getSelectedItem();
+        clear.setOnAction(event -> {
+            clearLoad();
+        });
+        delete.setOnAction(event -> {
+            Goods item = dataTable.getSelectionModel().getSelectedItem();
+            //todo fix optional.get() without checking if present
             if (TextBox.alertOpenDialog(AlertType.CONFIRMATION, "deleteBarcode?", item.getName()).get() == ButtonType.OK) {
-	    		if(item!=null) {
-	    			if(Goods.delete(item.getPre_code(),db)) {
-	    				TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteBarcodeYes");
-		        	    item = null;
-		    			clearLoad();
-	            	}else{
-	            		TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");
-	            	}
-	    		}
+                if (item != null) {
+                    if (Goods.delete(item.getPre_code(), db)) {
+                        TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteBarcodeYes");
+
+                        MainWindowCtrl.setLog("Шаблон штрихкоду був успішно видалений");
+
+                        item = null;
+                        clearLoad();
+                    } else {
+                        TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");
+
+                        MainWindowCtrl.setLog("Шаблон штрихкоду не був видалений");
+                    }
+                }
             }
-    	});
-    	save.setOnAction(event ->{
-    		try {
-    			if(section.getSelectionModel().getSelectedItem() == null || template.getSelectionModel().getSelectedItem() == null||
-    					code.getSelectionModel().getSelectedItem()==null || unit.getSelectionModel().getSelectedItem()==null||
-	    				pre_code.getText().length()<=0)	
-	    			TextBox.alertOpenDialog(AlertType.ERROR, "editGoodsNo");
-	    		else {
-	    			continion();
-	    		}
-    		}catch( Exception e ) {
-    			TextBox.alertOpenDialog(AlertType.WARNING, "saveGoodsNo");
-    		}
-    	});
-    	addImg.setOnAction(event -> {
-    		FileChooser fileChooser = new FileChooser();
-    		fileChooser.setTitle("Select Image");
-    		fileChooser.getExtensionFilters().addAll(
-    				new FileChooser.ExtensionFilter("JPG", "*.jpeg","*.jpg"),  
-    				new FileChooser.ExtensionFilter("PNG", "*.png"));
-    			file = fileChooser.showOpenDialog(stage);
+        });
+        save.setOnAction(event -> {
+            try {
+                if (section.getSelectionModel().getSelectedItem() == null
+                        || template.getSelectionModel().getSelectedItem() == null
+                        || code.getSelectionModel().getSelectedItem() == null
+                        || unit.getSelectionModel().getSelectedItem() == null
+                        || pre_code.getText().length() <= 0) {
+                    TextBox.alertOpenDialog(AlertType.ERROR, "editGoodsNo");
+                } else {
+                    continion();
+                }
+            } catch (Exception e) {
+                TextBox.alertOpenDialog(AlertType.WARNING, "saveGoodsNo");
+            }
+        });
+        addImg.setOnAction(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Image");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("JPG", "*.jpeg", "*.jpg"),
+                    new FileChooser.ExtensionFilter("PNG", "*.png"));
+            file = fileChooser.showOpenDialog(stage);
             if (file == null) {
-        		TextBox.alertOpenDialog(AlertType.WARNING, "chooseImageNo");
-            }else {
-				item.setData(file);
-                this.loadImage(img,"img");
-        		save.setDisable(false);
+                TextBox.alertOpenDialog(AlertType.WARNING, "chooseImageNo");
+            } else {
+                item.setData(file);
+                this.loadImage(img, "img");
+                save.setDisable(false);
             }
-    	});
-    	delImg.setOnAction(event->{
-    		img.setBackground(null);
-    		item.setDataBlob(null);
-    		save.setDisable(false);
-    	});
-    	template.setOnAction(event->{
-    		Templates selection = template.getSelectionModel().getSelectedItem();
-			if(selection!=null) {
-				item.setId_templates(selection.getId());
-				save.setDisable(false);
-			}
-    		loadImage(imgTemplate,"tpl");
-    	});
-    	dataTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-    		if (newSelection != null) {
-			    setItem(newSelection);
-    		}
-		} );
+        });
+        delImg.setOnAction(event -> {
+            img.setBackground(null);
+            item.setDataBlob(null);
+            save.setDisable(false);
+        });
+        template.setOnAction(event -> {
+            Templates selection = template.getSelectionModel().getSelectedItem();
+            if (selection != null) {
+                item.setId_templates(selection.getId());
+                save.setDisable(false);
+            }
+            loadImage(imgTemplate, "tpl");
+        });
+        dataTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                setItem(newSelection);
+            }
+        });
     }
+
     public void setItem(Goods product) {
-		item = (product!=null)?product:new Goods();
-    	unit.setItems(ProductInfo.unit);
-    	if(product!=null) {
-			//this.image = this.item.getImages();
-			name.setText(item.getName());
-			section.setValue((item.getId_sections()>0)?Sections.get(item.getId_sections(), 0, -1, "", false, db):null);
-			number.setText(item.getNumber()+"");
-			pre_code.setText(item.getPre_code()+"");
-			ingredients.setText(item.getIngredients());
-			price.setText(Float.toString(item.getPrice()));
-			unit.setValue(ProductInfo.unit.get(item.getType()));
-			expirationDate.setText(Integer.toString(item.getBefore_validity()));
-			template.setValue((item.getId_templates()>0)?Templates.get(item.getId_templates(), "", false, db):null);
-			code.setValue(Codes.get(item.getId_barcodes(), "", db));
-	    	loadImage(img, "img");
-	    	loadImage(imgTemplate, "tpl");
-    	}
-	    save.setDisable(true);
-    	if(item!=null)dataTable.getSelectionModel().select(item);
-	}
-    
+        item = (product != null) ? product : new Goods();
+        unit.setItems(ProductInfo.unit);
+        if (product != null) {
+            //this.image = this.item.getImages();
+            name.setText(item.getName());
+            section.setValue((item.getId_sections() > 0) ? Sections.get(item.getId_sections(), 0, -1, "", false, db) : null);
+            number.setText(item.getNumber() + "");
+            pre_code.setText(item.getPre_code() + "");
+            ingredients.setText(item.getIngredients());
+            price.setText(Float.toString(item.getPrice()));
+            unit.setValue(ProductInfo.unit.get(item.getType()));
+            expirationDate.setText(Integer.toString(item.getBefore_validity()));
+            template.setValue((item.getId_templates() > 0) ? Templates.get(item.getId_templates(), "", false, db) : null);
+            code.setValue(Codes.get(item.getId_barcodes(), "", db));
+            loadImage(img, "img");
+            loadImage(imgTemplate, "tpl");
+        }
+        save.setDisable(true);
+        if (item != null) dataTable.getSelectionModel().select(item);
+    }
+
     public Goods getItem() {
-		return item;
-	}
-	public void setSource(String source) {
-		this.source.setText(source);
-	}
+        return item;
+    }
+
+    public void setSource(String source) {
+        this.source.setText(source);
+    }
 }
