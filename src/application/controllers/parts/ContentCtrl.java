@@ -180,8 +180,11 @@ public class ContentCtrl {
 		switch (node.getType()) {
 			case "products":{
 				if(del != null && item != null){
-					if(del)
-						((Goods)item.getObject()).delete(db);
+					if(del) {
+						((Goods) item.getObject()).delete(db);
+
+						MainWindowCtrl.setLog("Продукт успішно видалений");
+					}
 				}else {
 					mainWindowCtrl.openPlu(
 							(item!=null) ? (Goods) item.getObject() : null,

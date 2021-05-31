@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import application.Main;
 import application.models.Configs;
 import application.models.TextBox;
 import application.models.Utils;
@@ -129,7 +130,14 @@ public class SectionCtrl {
 		TreeItem<NodeTree> root = new TreeItem<NodeTree>(new NodeTree(SectionInfo.root,"root",-1,"root"));
 		root.setExpanded(true);
 		Sections.getList(0, 0, 0, "",true, db).forEach(value->{
-			TreeItem<NodeTree> main = new TreeItem<NodeTree> (new NodeTree(value.getId(),value.getName(),Utils.getTypeObj(value),value.getLevel(),value,root.getValue()));
+			TreeItem<NodeTree> main = new TreeItem<NodeTree> (
+					new NodeTree(
+							value.getId(),
+							value.getName(),
+							Utils.getTypeObj(value),
+							value.getLevel(),
+							value,
+							root.getValue()));
 			main.setExpanded(true); 
 			loadNode(value.getId(),main);
 			root.getChildren().add(main);
@@ -183,16 +191,24 @@ public class SectionCtrl {
 			        		TextBox.alertOpenDialog(AlertType.INFORMATION, "addSectionYes");
 			        		if(id!=0)item.updateId(id,db);
 			    			load();
+
+			    			MainWindowCtrl.setLog("Нова категорія успішно створена");
 			        	}else{
 			        		TextBox.alertOpenDialog(AlertType.WARNING, "addSectionNo");
+
+						    MainWindowCtrl.setLog("До бази даних не вдалося добати категорію, невірні данні");
 			        	}
 		    		}else {
 		    			if(item.getId()!=id)this.item.updateId(id,db);
 		    			if(item.getName().compareToIgnoreCase(nameNew)!=0)this.item.updateName(nameNew,db);
 			    		if(item.save(db)>-1) {
 			    			TextBox.alertOpenDialog(AlertType.INFORMATION, "editSectionYes");
+
+						    MainWindowCtrl.setLog("Категорія успішно оновлена");
 			        	}else{
 			        		TextBox.alertOpenDialog(AlertType.WARNING, "editSectionNo");
+
+						    MainWindowCtrl.setLog("Не вдалося оновити категорію, невірні данні");
 			        	}
 		    		}
 				}catch( Exception e ) {
@@ -229,7 +245,9 @@ public class SectionCtrl {
     	name.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
     	with.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
     	to.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-    	up.getSelectionModel().selectedIndexProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
+    	up.getSelectionModel()
+			    .selectedIndexProperty()
+			    .addListener((obs, oldText, newText) ->save.setDisable(false));
     	addImg.setOnAction(event -> {
     		FileChooser fileChooser = new FileChooser();
     		fileChooser.setTitle("Select Image");
@@ -256,32 +274,28 @@ public class SectionCtrl {
     		Boolean option = TextBox.alertOpenDialog(AlertType.CONFIRMATION, "deleteSection?", item.getName()).get()==ButtonType.OK;
             if(option!=null) {
             	if(index>-1) {
-		    		if(option) {
-		    			this.item.setImg_data(null);
-		    			if(this.item.delete(true,db)) {
-		    				TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteSectionYes");
-		    				this.item = null;
-		    				this.load();
-		    			}else{
-		    				TextBox.alertOpenDialog(AlertType.WARNING, "deleteSectionNo");
-		    			}
-		    		}else {
-		    			this.item.setImg_data(null);
-		    			if(this.item.delete(false,db)) {
-		    				TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteSectionYes");
-			        	    this.item = null;
-			    			this.load();
-		            	}else{
-		    				TextBox.alertOpenDialog(AlertType.WARNING, "deleteSectionNo");
-		            	}
-		    		}
+					 this.item.setImg_data(null);
+					 if(this.item.delete(option,db)) {
+						  TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteSectionYes");
+						  this.item = null;
+						  this.load();
+
+						 MainWindowCtrl.setLog("Категорія успішно видалена");
+					 }else{
+						 TextBox.alertOpenDialog(AlertType.WARNING, "deleteSectionNo");
+
+						 MainWindowCtrl.setLog("Не вдалось видалити категорію, невірні данні");
+					 }
             	}
             }
     	});
     	clear.setOnAction(event ->{
     		clearLoad();
     	});
-    	dataTreeTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+    	dataTreeTable
+			    .getSelectionModel()
+			    .selectedItemProperty()
+			    .addListener((obs, oldSelection, newSelection) -> {
     	    if (newSelection != null) {
 				this.item = (Sections)newSelection.getValue().getObject();
 	    		number.setText(item.getId()+"");
