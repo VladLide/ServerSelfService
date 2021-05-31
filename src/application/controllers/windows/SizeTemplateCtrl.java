@@ -59,7 +59,7 @@ public class SizeTemplateCtrl{
         this.thisStage.initOwner(stage.getStage());
         this.templates = FXCollections.observableArrayList();
         try {
-        	FXMLLoader loader = new FXMLLoader(location);
+            FXMLLoader loader = new FXMLLoader(location,resources);
             loader.setController(this);
             this.thisStage.setScene(new Scene(loader.load()));
             this.thisStage.initStyle(StageStyle.UNDECORATED);

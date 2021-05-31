@@ -798,13 +798,16 @@ public class TemplateCtrl {
     		objTemplate.setId(0);
     		objTemplate.setName(paneSave.getName());
     		objTemplate.writeObjBlob(paneSave,db);
-    		if(paneSave.getId()!=objTemplate.getId())
-				if(Templates.get(paneSave.getId(), "",false, db)==null) {
-					objTemplate.updateId(paneSave.getId(), db);
-				}
+    		if(paneSave.getId()!=objTemplate.getId()) {
+			    if (Templates.get(paneSave.getId(), "", false, db) == null) {
+				    objTemplate.updateId(paneSave.getId(), db);
+			    }
+		    }
     		paneSave.setId(0);
     		paneSave.setName("");
     		close();
+
+    		MainWindowCtrl.setLog("Етикетка успішно збережена");
     	});
     	testPrint.setOnAction(event->{
     		/*try {
