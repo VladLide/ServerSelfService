@@ -24,7 +24,10 @@ public final class Helper {
                                       String name,
                                       String date,
                                       Status status)
-            throws NoSuchElementException {
+            throws NoSuchElementException, NullPointerException {
+        if (operation == null)
+            throw new NullPointerException("Operation can not be null");
+
         String baseString;
         boolean operationOrPlaceChanged = lastExecutedOperation == null
                 || !lastExecutedOperation.equals(operation)
@@ -73,16 +76,6 @@ public final class Helper {
             default:
                 throw new NoSuchElementException("No place type found");
         }
-    }
-
-    public static String formatOutput(Operation operation, PlaceType place, String ip, Status status, Throwable throwable) {
-        return String.format(
-                "%s в %s:%s-%s помилка-%s",
-                operation.getName(),
-                place.getName(),
-                ip,
-                status.getName(),
-                throwable.getMessage());
     }
 
     private static String capitalizeFirstLetter(String s) {

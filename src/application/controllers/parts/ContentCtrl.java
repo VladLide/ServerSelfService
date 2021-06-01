@@ -197,7 +197,6 @@ public class ContentCtrl {
                         Goods goods = (Goods) item.getObject();
                         goods.delete(db);
 
-                        //todo add logging for deleting product from context menu
                         MainWindowCtrl.setLog(
                                 Helper.formatOutput(
                                         Operation.DELETE,
@@ -223,9 +222,19 @@ public class ContentCtrl {
             case "sections": {
                 if (del != null && item != null) {
                     if (del) {
-                        ((Sections) item.getObject()).delete(false, db);
+                        Sections sections = (Sections) item.getObject();
+                        sections.delete(false, db);
 
-                        //todo add logging for deleting section from context menu
+                        MainWindowCtrl.setLog(
+                                Helper.formatOutput(
+                                        Operation.DELETE,
+                                        placeType,
+                                        ipAddress,
+                                        SectionType.SECTION,
+                                        sections.getName(),
+                                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                                        Status.SUCCESS)
+                        );
                     }
                 } else {
                     mainWindowCtrl.openSection(

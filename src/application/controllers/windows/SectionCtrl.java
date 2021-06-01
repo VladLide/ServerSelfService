@@ -3,9 +3,12 @@ package application.controllers.windows;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.NoSuchElementException;
 import java.util.ResourceBundle;
 
-import application.Main;
+import application.*;
 import application.models.Configs;
 import application.models.TextBox;
 import application.models.Utils;
@@ -37,13 +40,18 @@ import javafx.scene.layout.BackgroundSize;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class SectionCtrl {
+    private Logger logger = LogManager.getLogger();
     private Stage stage;
     private Sections item = null;
     private boolean newItem = true;
     private File file = null;
     private MySQL db = null;
+    private String ipAddress;
+    private PlaceType placeType;
 
     @FXML
     private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Section");
@@ -196,15 +204,33 @@ public class SectionCtrl {
                         item.setName(nameNew);
                         item.setId(id);
                         if (item.save(db) > 0) {
+                            MainWindowCtrl.setLog(
+                                    Helper.formatOutput(
+                                            Operation.CREATE,
+                                            placeType,
+                                            ipAddress,
+                                            SectionType.SECTION,
+                                            item.getName(),
+                                            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                                            Status.SUCCESS)
+                            );
+
                             TextBox.alertOpenDialog(AlertType.INFORMATION, "addSectionYes");
                             if (id != 0) item.updateId(id, db);
                             load();
-
-                            MainWindowCtrl.setLog("Нова категорія успішно створена");
                         } else {
-                            TextBox.alertOpenDialog(AlertType.WARNING, "addSectionNo");
+                            MainWindowCtrl.setLog(
+                                    Helper.formatOutput(
+                                            Operation.CREATE,
+                                            placeType,
+                                            ipAddress,
+                                            SectionType.SECTION,
+                                            item.getName(),
+                                            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                                            Status.FAILURE)
+                            );
 
-                            MainWindowCtrl.setLog("До бази даних не вдалося додати категорію, невірні данні");
+                            TextBox.alertOpenDialog(AlertType.WARNING, "addSectionNo");
                         }
                     } else {
                         if (item.getId() != id) this.item.updateId(id, db);
@@ -212,18 +238,37 @@ public class SectionCtrl {
                         if (item.save(db) > -1) {
                             TextBox.alertOpenDialog(AlertType.INFORMATION, "editSectionYes");
 
-                            MainWindowCtrl.setLog("Категорія успішно оновлена");
+                            MainWindowCtrl.setLog(
+                                    Helper.formatOutput(
+                                            Operation.UPDATE,
+                                            placeType,
+                                            ipAddress,
+                                            SectionType.SECTION,
+                                            item.getName(),
+                                            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                                            Status.SUCCESS)
+                            );
                         } else {
-                            TextBox.alertOpenDialog(AlertType.WARNING, "editSectionNo");
+                            MainWindowCtrl.setLog(
+                                    Helper.formatOutput(
+                                            Operation.UPDATE,
+                                            placeType,
+                                            ipAddress,
+                                            SectionType.SECTION,
+                                            item.getName(),
+                                            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                                            Status.FAILURE)
+                            );
 
-                            MainWindowCtrl.setLog("Не вдалося оновити категорію, невірні данні");
+                            TextBox.alertOpenDialog(AlertType.WARNING, "editSectionNo");
                         }
                     }
                 } catch (Exception e) {
-                    System.out.println(e);
+                    logger.error(e.getMessage(), e);
                 }
             } else TextBox.alertOpenDialog(AlertType.WARNING, "warningName");
         } else TextBox.alertOpenDialog(AlertType.ERROR, "editSectionNo");
+
         this.load();
     }
 
@@ -287,14 +332,33 @@ public class SectionCtrl {
                     this.item.setImg_data(null);
                     if (this.item.delete(option, db)) {
                         TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteSectionYes");
+
+                        MainWindowCtrl.setLog(
+                                Helper.formatOutput(
+                                        Operation.DELETE,
+                                        placeType,
+                                        ipAddress,
+                                        SectionType.SECTION,
+                                        item.getName(),
+                                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                                        Status.SUCCESS)
+                        );
+
                         this.item = null;
                         this.load();
-
-                        MainWindowCtrl.setLog("Категорія успішно видалена");
                     } else {
-                        TextBox.alertOpenDialog(AlertType.WARNING, "deleteSectionNo");
+                        MainWindowCtrl.setLog(
+                                Helper.formatOutput(
+                                        Operation.DELETE,
+                                        placeType,
+                                        ipAddress,
+                                        SectionType.SECTION,
+                                        item.getName(),
+                                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                                        Status.FAILURE)
+                        );
 
-                        MainWindowCtrl.setLog("Не вдалось видалити категорію, невірні данні");
+                        TextBox.alertOpenDialog(AlertType.WARNING, "deleteSectionNo");
                     }
                 }
             }
@@ -322,9 +386,9 @@ public class SectionCtrl {
                             System.out.println("ButtonWithImage: no image - " + e);
                         }
                         save.setDisable(true);
-                    }
 
-                    newItem = false;
+                        newItem = false;
+                    }
                 });
     }
 
@@ -338,5 +402,13 @@ public class SectionCtrl {
 
     public void setSource(String source) {
         this.source.setText(source);
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public void setPlaceType(PlaceType placeType) {
+        this.placeType = placeType;
     }
 }

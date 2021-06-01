@@ -157,6 +157,8 @@ public class MainWindowCtrl {
 		SectionCtrl section = new SectionCtrl(db);
 		section.setItem(item);
 		section.setSource(source);
+		section.setIpAddress(ipAddress);
+		section.setPlaceType(placeType);
 		section.show();
 		return section;
 	}
