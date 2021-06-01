@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import application.PlaceType;
 import application.controllers.MainCtrl;
 import application.controllers.parts.ContentCtrl;
 import application.controllers.parts.FooterCtrl;
@@ -121,10 +122,16 @@ public class MainWindowCtrl {
 		template.show();
 		return template;
 	}
-	public ProductCtrl openPlu(Goods item, String source, MySQL db) {
+	public ProductCtrl openPlu(Goods item,
+	                           String source,
+	                           MySQL db,
+	                           String ipAddress,
+	                           PlaceType placeType) {
 		ProductCtrl plu = new ProductCtrl(db);
 		plu.setItem(item);
 		plu.setSource(source);
+		plu.setIpAddress(ipAddress);
+		plu.setPlaceType(placeType);
 		plu.show();
 		return plu;
 	}

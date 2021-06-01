@@ -97,7 +97,13 @@ public class SidebarCtrl {
 							);
 							//scaleNode.setExpanded(true);
 							SidebarInfo.menuScale.forEach((value)->{
-								TreeItem<NodeTree> node = new TreeItem<NodeTree>(new NodeTree(value[1],value[0],3,value[0],scaleNode.getValue()));
+								TreeItem<NodeTree> node = new TreeItem<NodeTree>(
+										new NodeTree(
+												value[1],
+												value[0],
+												3,
+												value[0],
+												scaleNode.getValue()));
 								scaleNode.getChildren().add(node);
 							});
 							main.getChildren().add(scaleNode);
@@ -121,7 +127,13 @@ public class SidebarCtrl {
 	}
 	public void addItemMenu(ScaleItemMenu scale) {
 		TreeItem<NodeTree> main = menu.getRoot().getChildren().get(0);
-		TreeItem<NodeTree> scaleNode = new TreeItem<NodeTree>(new NodeTree(scale.getName()+"-"+scale.getId(),"ScaleInfo",2,scale), scale.getImg());
+		TreeItem<NodeTree> scaleNode = new TreeItem<NodeTree>(
+				new NodeTree(
+						scale.getName()+"-"+scale.getId(),
+						"ScaleInfo",
+						2,
+						scale),
+				scale.getImg());
 		SidebarInfo.menuScale.forEach((value)->{
 			TreeItem<NodeTree> node = new TreeItem<NodeTree> (new NodeTree(value[1],"String",3,value[0]));
 			scaleNode.getChildren().add(node);

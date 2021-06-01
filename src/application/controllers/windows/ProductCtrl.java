@@ -3,9 +3,10 @@ package application.controllers.windows;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
 import java.util.ResourceBundle;
 
-import application.Main;
+import application.*;
 import application.controllers.parts.LogCtrl;
 import application.models.Configs;
 import application.models.TextBox;
@@ -47,6 +48,8 @@ public class ProductCtrl {
     private boolean newItem = true;
     private File file = null;
     private MySQL db = null;
+    private String ipAddress;
+    private PlaceType placeType;
 
     @FXML
     private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Product");
@@ -186,11 +189,29 @@ public class ProductCtrl {
                     TextBox.alertOpenDialog(AlertType.INFORMATION, "addGoodsYes");
                     load();
 
-                    MainWindowCtrl.setLog("Товар успішно створений");
+                    MainWindowCtrl.setLog(
+                            Helper.formatOutput(
+                                    Operation.CREATE,
+                                    placeType,
+                                    ipAddress,
+                                    SectionType.PRODUCT,
+                                    plu.getName(),
+                                    new Date().toString(),
+                                    Status.SUCCESS)
+                    );
                 } else {
                     TextBox.alertOpenDialog(AlertType.WARNING, "addGoodsNot");
 
-                    MainWindowCtrl.setLog("Товар не був доданий до бази данних");
+                    MainWindowCtrl.setLog(
+                            Helper.formatOutput(
+                                    Operation.CREATE,
+                                    placeType,
+                                    ipAddress,
+                                    SectionType.PRODUCT,
+                                    plu.getName(),
+                                    new Date().toString(),
+                                    Status.FAILURE)
+                    );
                 }
             } else {
                 //todo item.getPre_code can throw nullPointer exception
@@ -200,11 +221,29 @@ public class ProductCtrl {
                 if (plu.save(db) > 0) {
                     TextBox.alertOpenDialog(AlertType.INFORMATION, "editGoodsYes");
 
-                    MainWindowCtrl.setLog("Товар успішно оновлений");
+                    MainWindowCtrl.setLog(
+                            Helper.formatOutput(
+                                    Operation.UPDATE,
+                                    placeType,
+                                    ipAddress,
+                                    SectionType.PRODUCT,
+                                    plu.getName(),
+                                    new Date().toString(),
+                                    Status.SUCCESS)
+                    );
                 } else {
                     TextBox.alertOpenDialog(AlertType.WARNING, "editGoodsNo");
 
-                    MainWindowCtrl.setLog("Товар не був оновлений, невірні данні");
+                    MainWindowCtrl.setLog(
+                            Helper.formatOutput(
+                                    Operation.UPDATE,
+                                    placeType,
+                                    ipAddress,
+                                    SectionType.PRODUCT,
+                                    plu.getName(),
+                                    new Date().toString(),
+                                    Status.FAILURE)
+                    );
                 }
             }
         } catch (Exception e) {
@@ -269,14 +308,32 @@ public class ProductCtrl {
                     if (Goods.delete(item.getPre_code(), db)) {
                         TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteBarcodeYes");
 
-                        MainWindowCtrl.setLog("Шаблон штрихкоду був успішно видалений");
+                        MainWindowCtrl.setLog(
+                                Helper.formatOutput(
+                                        Operation.DELETE,
+                                        placeType,
+                                        ipAddress,
+                                        SectionType.PRODUCT,
+                                        item.getName(),
+                                        new Date().toString(),
+                                        Status.SUCCESS)
+                        );
 
                         item = null;
                         clearLoad();
                     } else {
                         TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");
 
-                        MainWindowCtrl.setLog("Шаблон штрихкоду не був видалений");
+                        MainWindowCtrl.setLog(
+                                Helper.formatOutput(
+                                        Operation.DELETE,
+                                        placeType,
+                                        ipAddress,
+                                        SectionType.PRODUCT,
+                                        item.getName(),
+                                        new Date().toString(),
+                                        Status.FAILURE)
+                        );
                     }
                 }
             }
@@ -324,9 +381,13 @@ public class ProductCtrl {
             }
             loadImage(imgTemplate, "tpl");
         });
-        dataTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+        dataTable
+                .getSelectionModel()
+                .selectedItemProperty()
+                .addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
                 setItem(newSelection);
+                newItem = false;
             }
         });
     }
@@ -348,8 +409,9 @@ public class ProductCtrl {
             code.setValue(Codes.get(item.getId_barcodes(), "", db));
             loadImage(img, "img");
             loadImage(imgTemplate, "tpl");
+
+            save.setDisable(true);
         }
-        save.setDisable(true);
         if (item != null) dataTable.getSelectionModel().select(item);
     }
 
@@ -359,5 +421,13 @@ public class ProductCtrl {
 
     public void setSource(String source) {
         this.source.setText(source);
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public void setPlaceType(PlaceType placeType) {
+        this.placeType = placeType;
     }
 }

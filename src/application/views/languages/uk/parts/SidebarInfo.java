@@ -19,8 +19,13 @@ public class SidebarInfo {
 			new String[]{"users", "Користувачі"},
 			new String[]{"settings", "Налаштування"}
 	);
-	public static ObservableList<String[]> menuEditors = FXCollections.observableArrayList(new String[]{"products", "Товари"}, new String[]{"stocks", "Знижки"}, new String[]{"sections", "Категорії"},
-			new String[]{"templates", "Шаблони етикетки"}, new String[]{"templateCodes", "Шаблони кодів"});
+	public static ObservableList<String[]> menuEditors = FXCollections.observableArrayList(
+			new String[]{"products", "Товари"},
+			new String[]{"stocks", "Знижки"},
+			new String[]{"sections", "Категорії"},
+			new String[]{"templates", "Шаблони етикетки"},
+			new String[]{"templateCodes", "Шаблони кодів"}
+	);
 
 	public SidebarInfo() {
 		// TODO Auto-generated constructor stub

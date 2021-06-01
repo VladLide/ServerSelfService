@@ -161,8 +161,12 @@ public class CodeCtrl {
 		    			if(temp.save(db)>0) {
 		    				TextBox.alertOpenDialog(AlertType.INFORMATION,"addBarcodeYes");
 			        		//close.onActionProperty();
+
+						    MainWindowCtrl.setLog("Шаблон штрихкоду упішно створений");
 			        	}else{
 			        		TextBox.alertOpenDialog(AlertType.WARNING,"addBarcodeNot");
+
+						    MainWindowCtrl.setLog("Невдалось створити шаблон штрихкоду");
 			        	}
 		    		}else {
 						temp.setId(this.item.getId());
@@ -171,8 +175,12 @@ public class CodeCtrl {
 		    			if(this.item.getName().compareToIgnoreCase(name.getText())!=0)temp.updateName(name.getText(),db);
 			    		if(temp.save(db)>-1) {
 			    			TextBox.alertOpenDialog(AlertType.INFORMATION,"editBarcodeYes");
+
+						    MainWindowCtrl.setLog("Шаблон штрихкоду упішно оновлений");
 			        	}else{
 			        		TextBox.alertOpenDialog(AlertType.WARNING, "editBarcodeNo");
+
+						    MainWindowCtrl.setLog("Невдалось оновити шаблон штрихкоду");
 			        	}
 		    		}
 				}catch( Exception e ) {
@@ -226,8 +234,12 @@ public class CodeCtrl {
 	    				TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteBarcodeYes");
 		        	    this.item = null;
 		    			this.load();
+
+		    			MainWindowCtrl.setLog("Шаблон штрихкоду успішно видалений");
 	            	}else{
 	            		TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");
+
+					    MainWindowCtrl.setLog("Невдалось видалити шаблон штрихкоду");
 	            	}
 	    		}
             }

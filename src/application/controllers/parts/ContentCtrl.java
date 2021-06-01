@@ -5,6 +5,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 
+import application.PlaceType;
 import application.controllers.MainCtrl;
 import application.controllers.windows.CheckSendCtrl;
 import application.controllers.windows.MainWindowCtrl;
@@ -169,14 +170,17 @@ public class ContentCtrl {
 		MainWindowCtrl mainWindowCtrl = MainWindowCtrl.getInstance();
 		MySQL db = null;
 		String source = "";
+		ScaleItemMenu sim = null;
+
 		if(node.getLevel()==2) {
 			db = MainCtrl.getDB();
 			source = "Server (localhost)";
 		}else {
-			ScaleItemMenu sim = (ScaleItemMenu)node.getUpObject().getObject();
+			sim = (ScaleItemMenu)node.getUpObject().getObject();
 			db = sim.getDB();
 			source = sim.getName()+" - "+sim.getId()+" ("+sim.getScaleServer().getIp_address()+")";
 		}
+
 		switch (node.getType()) {
 			case "products":{
 				if(del != null && item != null){
@@ -189,14 +193,19 @@ public class ContentCtrl {
 					mainWindowCtrl.openPlu(
 							(item!=null) ? (Goods) item.getObject() : null,
 							source,
-							db);
+							db,
+							sim != null ? sim.getScaleServer().getIp_address() : "localhost",
+							sim != null ? PlaceType.SCALE : PlaceType.SERVER);
 				}
 				break;
 			}
 			case "sections":{
 				if(del!=null&&item!=null){
-					if(del)
-						((Sections)item.getObject()).delete(false,db);
+					if(del) {
+						((Sections) item.getObject()).delete(false, db);
+
+						MainWindowCtrl.setLog("Категорія успішно видалена");
+					}
 				}else {
 					mainWindowCtrl.openSection((item!=null)?(Sections)item.getObject():null, source, db);
 				}
@@ -204,8 +213,11 @@ public class ContentCtrl {
 			}
 			case "templates":{
 				if(del!=null&&item!=null){
-					if(del)
-						((Templates)item.getObject()).delete(db);
+					if(del) {
+						((Templates) item.getObject()).delete(db);
+
+						MainWindowCtrl.setLog("Шаблон етикетки успішно видалений");
+					}
 				}else {
 					mainWindowCtrl.openTemplate((item!=null)?(Templates)item.getObject():null, db);
 				}
@@ -213,15 +225,18 @@ public class ContentCtrl {
 			}
 			case "templateCodes":{
 				if(del!=null&&item!=null){
-					if(del)
-						((Codes)item.getObject()).delete(db);
+					if(del) {
+						((Codes) item.getObject()).delete(db);
+
+						MainWindowCtrl.setLog("Шаблон коду успішно видалений");
+					}
 				}else {
 					mainWindowCtrl.openCode((item!=null)?(Codes)item.getObject():null, source, db);
 				}
 				break;
 			}
 			case "settings":{
-				
+				//todo fix empty settings
 				break;
 			}
 			default:
