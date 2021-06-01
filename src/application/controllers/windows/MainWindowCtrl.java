@@ -122,6 +122,8 @@ public class MainWindowCtrl {
 	                                 String ipAddress,
 	                                 PlaceType placeType) {
 		TemplateCtrl template = new TemplateCtrl(item, db);
+		template.setIpAddress(ipAddress);
+		template.setPlaceType(placeType);
 		template.show();
 		return template;
 	}

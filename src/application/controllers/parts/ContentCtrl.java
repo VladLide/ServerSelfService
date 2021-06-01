@@ -197,6 +197,7 @@ public class ContentCtrl {
                         Goods goods = (Goods) item.getObject();
                         goods.delete(db);
 
+                        //logging context menu deletion of goods
                         MainWindowCtrl.setLog(
                                 Helper.formatOutput(
                                         Operation.DELETE,
@@ -225,6 +226,7 @@ public class ContentCtrl {
                         Sections sections = (Sections) item.getObject();
                         sections.delete(false, db);
 
+                        //logging context menu deletion of section
                         MainWindowCtrl.setLog(
                                 Helper.formatOutput(
                                         Operation.DELETE,
@@ -250,10 +252,20 @@ public class ContentCtrl {
             case "templates": {
                 if (del != null && item != null) {
                     if (del) {
-                        ((Templates) item.getObject()).delete(db);
+                        Templates templates = (Templates) item.getObject();
+                        templates.delete(db);
 
-                        //todo special case of outputting log to "Журнал подій"
-                        MainWindowCtrl.setLog("Шаблон етикетки успішно видалений");
+                        //logging context menu deletion of template
+                        MainWindowCtrl.setLog(
+                                Helper.formatOutput(
+                                        Operation.DELETE,
+                                        placeType,
+                                        ipAddress,
+                                        SectionType.TEMPLATE,
+                                        templates.getName(),
+                                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                                        Status.SUCCESS)
+                        );
                     }
                 } else {
                     mainWindowCtrl.openTemplate(
