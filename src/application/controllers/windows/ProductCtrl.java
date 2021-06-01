@@ -3,6 +3,8 @@ package application.controllers.windows;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.ResourceBundle;
 
@@ -196,7 +198,7 @@ public class ProductCtrl {
                                     ipAddress,
                                     SectionType.PRODUCT,
                                     plu.getName(),
-                                    new Date().toString(),
+                                    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                                     Status.SUCCESS)
                     );
                 } else {
@@ -209,7 +211,7 @@ public class ProductCtrl {
                                     ipAddress,
                                     SectionType.PRODUCT,
                                     plu.getName(),
-                                    new Date().toString(),
+                                    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                                     Status.FAILURE)
                     );
                 }
@@ -228,7 +230,7 @@ public class ProductCtrl {
                                     ipAddress,
                                     SectionType.PRODUCT,
                                     plu.getName(),
-                                    new Date().toString(),
+                                    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                                     Status.SUCCESS)
                     );
                 } else {
@@ -241,7 +243,7 @@ public class ProductCtrl {
                                     ipAddress,
                                     SectionType.PRODUCT,
                                     plu.getName(),
-                                    new Date().toString(),
+                                    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                                     Status.FAILURE)
                     );
                 }
@@ -315,7 +317,7 @@ public class ProductCtrl {
                                         ipAddress,
                                         SectionType.PRODUCT,
                                         item.getName(),
-                                        new Date().toString(),
+                                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                                         Status.SUCCESS)
                         );
 
@@ -331,7 +333,7 @@ public class ProductCtrl {
                                         ipAddress,
                                         SectionType.PRODUCT,
                                         item.getName(),
-                                        new Date().toString(),
+                                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                                         Status.FAILURE)
                         );
                     }

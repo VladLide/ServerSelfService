@@ -117,7 +117,10 @@ public class MainWindowCtrl {
 			mw.footerCtrl.loadFooter(mw.footer);
 		}
 	}
-	public TemplateCtrl openTemplate(Templates item, MySQL db) {
+	public TemplateCtrl openTemplate(Templates item,
+	                                 MySQL db,
+	                                 String ipAddress,
+	                                 PlaceType placeType) {
 		TemplateCtrl template = new TemplateCtrl(item, db);
 		template.show();
 		return template;
@@ -135,14 +138,22 @@ public class MainWindowCtrl {
 		plu.show();
 		return plu;
 	}
-	public CodeCtrl openCode(Codes item, String source, MySQL db) {
+	public CodeCtrl openCode(Codes item,
+	                         String source,
+	                         MySQL db,
+	                         String ipAddress,
+	                         PlaceType placeType) {
 		CodeCtrl code = new CodeCtrl(db);
 		code.setItem(item);
 		code.setSource(source);
 		code.show();
 		return code;
 	}
-	public SectionCtrl openSection(Sections item, String source, MySQL db) {
+	public SectionCtrl openSection(Sections item,
+	                               String source,
+	                               MySQL db,
+	                               String ipAddress,
+	                               PlaceType placeType) {
 		SectionCtrl section = new SectionCtrl(db);
 		section.setItem(item);
 		section.setSource(source);
