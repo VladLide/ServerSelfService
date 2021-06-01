@@ -279,10 +279,20 @@ public class ContentCtrl {
             case "templateCodes": {
                 if (del != null && item != null) {
                     if (del) {
-                        ((Codes) item.getObject()).delete(db);
+                        Codes codes = (Codes) item.getObject();
+                        codes.delete(db);
 
-                        //todo change logging for code
-                        MainWindowCtrl.setLog("Шаблон коду успішно видалений");
+                        //logging context menu deletion of templateCodes
+                        MainWindowCtrl.setLog(
+                                Helper.formatOutput(
+                                        Operation.DELETE,
+                                        placeType,
+                                        ipAddress,
+                                        SectionType.CODE,
+                                        codes.getName(),
+                                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                                        Status.SUCCESS)
+                        );
                     }
                 } else {
                     mainWindowCtrl.openCode(

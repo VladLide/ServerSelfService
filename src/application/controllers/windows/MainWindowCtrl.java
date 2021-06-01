@@ -148,6 +148,8 @@ public class MainWindowCtrl {
 		CodeCtrl code = new CodeCtrl(db);
 		code.setItem(item);
 		code.setSource(source);
+		code.setIpAddress(ipAddress);
+		code.setPlaceType(placeType);
 		code.show();
 		return code;
 	}
