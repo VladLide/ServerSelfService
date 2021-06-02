@@ -1,13 +1,5 @@
 package application.controllers.parts;
 
-import java.io.IOException;
-import java.net.URL;
-import java.text.DateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.ResourceBundle;
-
 import application.*;
 import application.controllers.MainCtrl;
 import application.controllers.windows.CheckSendCtrl;
@@ -16,7 +8,6 @@ import application.models.Configs;
 import application.models.PackageSend;
 import application.models.Utils;
 import application.models.net.mysql.MySQL;
-import application.models.net.mysql.interface_tables.ProductItem;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Codes;
 import application.models.net.mysql.tables.Goods;
@@ -29,15 +20,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+
+import java.io.IOException;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ResourceBundle;
 
 public class ContentCtrl {
     private AnchorPane content;
@@ -367,15 +358,16 @@ public class ContentCtrl {
         pack = new PackageSend();
         CheckSendCtrl check = new CheckSendCtrl();
         check.show();
-        if (pack.getConnectSend().size() > 0) {
+        if (!pack.getConnectSend().isEmpty()) {
             ObservableList<Object> arr = FXCollections.observableArrayList();
-            dataTable.getItems().forEach((v) -> {
-                if (v.getCheckBox().isSelected()) {
-                    if (pack.getType().length() < 1) pack.setType(v.getTypeOdject());
-                    arr.add(v.getObject());
+            dataTable.getItems().forEach(item -> {
+                if (item.getCheckBox().isSelected()) {
+                    if (pack.getType().length() < 1)
+                        pack.setType(item.getTypeOdject());
+                    arr.add(item.getObject());
                 }
             });
-            if (arr.size() > 0) {
+            if (!arr.isEmpty()) {
                 pack.setItems(arr);
                 MainCtrl.addPacks(pack);
             }

@@ -1,9 +1,5 @@
 package application.controllers.windows;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
-
 import application.controllers.MainCtrl;
 import application.models.Configs;
 import application.models.Utils;
@@ -20,6 +16,10 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
 public class CheckSendCtrl {
     private Stage stage = new Stage();
@@ -72,23 +72,19 @@ public class CheckSendCtrl {
 
 	@FXML
     void initialize() {
-    	stage.setOnCloseRequest(event->{
-    		close();
-    	});
+    	stage.setOnCloseRequest(event-> close());
     	send.setOnAction(event->{
     		ObservableList<ScaleItemMenu> arr = FXCollections.observableArrayList();
-    		table.getItems().forEach((v)->{
+    		table.getItems().forEach(v ->{
     			if(v.getCheckBox().isSelected())
     				arr.add((ScaleItemMenu)v.getObject());
     		});
     		MainWindowCtrl.getContentCtrl().getPack().setConnectSend(arr);
     		close();
     	});
-    	checkAll.setOnAction(event->{
-    		table.getItems().forEach((v)->{
-    			v.setCheckBox(checkAll.isSelected());
-    		});
-    	});
+    	checkAll.setOnAction(event->
+			    table.getItems().forEach(v ->
+					    v.setCheckBox(checkAll.isSelected())));
     }
 
 	public Stage getStage() {

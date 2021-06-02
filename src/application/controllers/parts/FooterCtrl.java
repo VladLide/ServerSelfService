@@ -1,9 +1,5 @@
 package application.controllers.parts;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
-
 import application.controllers.MainCtrl;
 import application.controllers.windows.MainWindowCtrl;
 import application.models.Configs;
@@ -17,6 +13,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.AnchorPane;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
 public class FooterCtrl {
 	private AnchorPane footer;
@@ -76,8 +76,6 @@ public class FooterCtrl {
     
     @FXML
     void initialize() {
-    	stop.setOnAction(event->{
-    		cancelTask(event);
-    	});
+    	stop.setOnAction(this::cancelTask);
     }
 }

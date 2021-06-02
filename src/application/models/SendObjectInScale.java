@@ -1,5 +1,6 @@
 package application.models;
 
+import application.controllers.windows.MainWindowCtrl;
 import application.models.net.mysql.MySQL;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Templates;
@@ -7,71 +8,90 @@ import application.views.languages.uk.parts.LogInfo;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 
-public class SendObjectInScale extends Task<Void>{
-	private PackageSend pack = null;
+public class SendObjectInScale extends Task<Void> {
+    private PackageSend pack = null;
     private int MAX_WORK = 10;
-    
-	public SendObjectInScale(PackageSend pack) {
-		this.pack = pack;
-		MAX_WORK = pack.getItems().size()*pack.getConnectSend().size();
-	}
-	
-	@Override
+
+    public SendObjectInScale(PackageSend pack) {
+        this.pack = pack;
+        MAX_WORK = pack.getItems().size() * pack.getConnectSend().size();
+    }
+
+    @Override
     public Void call() {
-		process();
+        process();
         return null;
     }
-	private void process() {
-        updateMessage(LogInfo.sendObj[0]);
-        ObservableList<ScaleItemMenu> c = pack.getConnectSend();
-        ObservableList<Object> v = pack.getItems();
+
+    private void process() {
+        String startTransmissionMessage = LogInfo.sendObj[0];
+        String canceledMessage = LogInfo.sendObj[1];
+        MainWindowCtrl.setLog(startTransmissionMessage);
+        updateMessage(startTransmissionMessage);
+
+        ObservableList<ScaleItemMenu> scaleItemMenus = pack.getConnectSend();
+        ObservableList<Object> packItems = pack.getItems();
         int countSend = 0;
-        for(int i = 0; i < c.size(); i++) {
-        	String startText = pack.getType()+" > "+c.get(i).getName()+" "+c.get(i).getId()+": ";
-	        for (int j = 0; j < v.size(); j++) {
-	            if (isCancelled()) {
-	                updateMessage(LogInfo.sendObj[1]);
-	                return;
-	            }
-	            String s = send(v.get(j),c.get(i).getDB());
-	            if(s.length()>0)countSend++;
-	            updateMessage(startText+/*"("+i+","+j+")*/s+" all:"+(i*c.size()+j+1)+"/"+MAX_WORK);
-	            updateProgress((i*c.size()+j), MAX_WORK);
-	
-	            try {
-	                Thread.sleep(300);
-	            } catch (InterruptedException interrupted) {
-	                if (isCancelled()) {
-	                    updateMessage(LogInfo.sendObj[1]);
-	                    return;
-	                }
-	            }
-	        }
+        int scaleItemMenusSize = scaleItemMenus.size();
+
+        for (int i = 0; i < scaleItemMenus.size(); i++) {
+            ScaleItemMenu scaleItemMenu = scaleItemMenus.get(i);
+
+            String startText = pack.getType() + " > "
+                    + scaleItemMenu.getName()
+                    + " " + scaleItemMenu.getId()
+                    + ": ";
+
+            for (int j = 0; j < packItems.size(); j++) {
+                Object packItem = packItems.get(j);
+
+                if (isCancelled()) {
+                    MainWindowCtrl.setLog(canceledMessage);
+                    updateMessage(canceledMessage);
+                    return;
+                }
+
+                String s = send(packItem, scaleItemMenu.getDB());
+
+                if (s.length() > 0)
+                    countSend++;
+
+                String message = startText + s + " all:" + (i * scaleItemMenusSize + j + 1) + "/" + MAX_WORK;
+                MainWindowCtrl.setLog(message);
+                updateMessage(message);
+                updateProgress((long) i * scaleItemMenusSize + j, MAX_WORK);
+
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException interrupted) {
+                    if (isCancelled()) {
+                        MainWindowCtrl.setLog(canceledMessage);
+                        updateMessage(canceledMessage);
+                        return;
+                    }
+                }
+            }
         }
-        updateMessage(LogInfo.sendObj[2]+" "+countSend+"/"+MAX_WORK);
+        updateMessage(LogInfo.sendObj[2] + " " + countSend + "/" + MAX_WORK);
     }
-    protected void updateMessage(String message) {
-        System.out.println(message);
-        super.updateMessage(message);
-    }
-	private String send(Object obj, MySQL db) {
-		System.out.println(obj.getClass().getSimpleName());
-		switch (obj.getClass().getSimpleName()) {
-			case "Templates":{
-				Templates tmp = (Templates)obj;
-				tmp.save(db);
-				return tmp.getId()+" - "+tmp.getName();
-			}
-			case "templateCodes":{
-				
-				return "";
-			}
-			case "settings":{
-				
-				return "";
-			}
-			default:
-				return "";
-		}
+
+    private String send(Object obj, MySQL db) {
+        switch (obj.getClass().getSimpleName()) {
+            case "Templates": {
+                Templates tmp = (Templates) obj;
+                tmp.save(db);
+                return tmp.getId() + " - " + tmp.getName();
+            }
+            case "templateCodes": {
+
+                return "";
+            }
+            case "settings": {
+
+                return "";
+            }
+            default:
+                return "";
+        }
     }
 }

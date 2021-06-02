@@ -1,14 +1,9 @@
 package application.controllers;
 
-import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import application.controllers.windows.MainWindowCtrl;
 import application.models.PackageSend;
 import application.models.net.mysql.MySQL;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.mysql.tables.Scales;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -16,6 +11,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainCtrl {
     private Timer refresh;
