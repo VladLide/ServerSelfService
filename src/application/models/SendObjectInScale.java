@@ -8,10 +8,13 @@ import application.models.net.mysql.tables.Templates;
 import application.views.languages.uk.parts.LogInfo;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Locale;
 
 public class SendObjectInScale extends Task<Void> {
+    private Logger logger = LogManager.getLogger(SendObjectInScale.class);
     private PackageSend pack = null;
     private final int MAX_WORK;
 
@@ -37,47 +40,51 @@ public class SendObjectInScale extends Task<Void> {
         int countSend = 0;
         int scaleItemMenusSize = scaleItemMenus.size();
 
-        for (int i = 0; i < scaleItemMenus.size(); i++) {
-            ScaleItemMenu scaleItemMenu = scaleItemMenus.get(i);
+        try {
+            for (int i = 0; i < scaleItemMenus.size(); i++) {
+                ScaleItemMenu scaleItemMenu = scaleItemMenus.get(i);
 
-            String startText = String.format("%s > %s %s: ",
-                    pack.getType(),
-                    scaleItemMenu.getName(),
-                    scaleItemMenu.getId());
+                String startText = String.format("%s > %s %s: ",
+                        pack.getType(),
+                        scaleItemMenu.getName(),
+                        scaleItemMenu.getId());
 
-            for (int j = 0; j < packItems.size(); j++) {
-                Object packItem = packItems.get(j);
+                for (int j = 0; j < packItems.size(); j++) {
+                    Object packItem = packItems.get(j);
 
-                if (isCancelled()) {
-                    MainWindowCtrl.setLog(canceledMessage);
-                    updateMessage(canceledMessage);
-                    return;
-                }
-
-                String s = send(packItem, scaleItemMenu.getDB());
-
-                if (s.length() > 0)
-                    countSend++;
-
-                String message = String.format("%s %s all %d/%d",
-                        startText,
-                        s,
-                        (i * scaleItemMenusSize + j + 1),
-                        MAX_WORK);
-                MainWindowCtrl.setLog(message);
-                updateMessage(message);
-                updateProgress((long) i * scaleItemMenusSize + j + 1, MAX_WORK);
-
-                try {
-                    Thread.sleep(300);
-                } catch (InterruptedException interrupted) {
                     if (isCancelled()) {
                         MainWindowCtrl.setLog(canceledMessage);
                         updateMessage(canceledMessage);
                         return;
                     }
+
+                    String s = send(packItem, scaleItemMenu.getDB());
+
+                    if (s.length() > 0)
+                        countSend++;
+
+                    String message = String.format("%s %s all %d/%d",
+                            startText,
+                            s,
+                            (i * scaleItemMenusSize + j + 1),
+                            MAX_WORK);
+                    MainWindowCtrl.setLog(message);
+                    updateMessage(message);
+                    updateProgress((long) i * scaleItemMenusSize + j + 1, MAX_WORK);
+
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException interrupted) {
+                        if (isCancelled()) {
+                            MainWindowCtrl.setLog(canceledMessage);
+                            updateMessage(canceledMessage);
+                            return;
+                        }
+                    }
                 }
             }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
 
         String successMessage = LogInfo.sendObj[2] + " " + countSend + "/" + MAX_WORK;

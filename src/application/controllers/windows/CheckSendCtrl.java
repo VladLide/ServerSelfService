@@ -23,94 +23,95 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class CheckSendCtrl {
-    private Stage stage = new Stage();
-    private CurrentItemSendTo currentItemSendTo;
+	private Stage stage = new Stage();
+	private CurrentItemSendTo currentItemSendTo;
 
-    @FXML
-    private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "CheckSend");
-    @FXML
-    private URL location = getClass().getResource(Utils.getView("window", "CheckSend"));
-    @FXML
-    private TableView<ItemContent> table;
-    @FXML
-    private CheckBox checkAll;
-    @FXML
-    private Button send;
+	@FXML
+	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "CheckSend");
+	@FXML
+	private URL location = getClass().getResource(Utils.getView("window", "CheckSend"));
+	@FXML
+	private TableView<ItemContent> table;
+	@FXML
+	private CheckBox checkAll;
+	@FXML
+	private Button send;
 
-    public CheckSendCtrl(CurrentItemSendTo currentItemSendTo) {
-        this.stage.initModality(Modality.WINDOW_MODAL);
-        this.stage.initOwner(MainWindowCtrl.getMainStage());
-        this.currentItemSendTo = currentItemSendTo;
+	public CheckSendCtrl(CurrentItemSendTo currentItemSendTo) {
+		this.stage.initModality(Modality.WINDOW_MODAL);
+		this.stage.initOwner(MainWindowCtrl.getMainStage());
+		this.currentItemSendTo = currentItemSendTo;
 
-        try {
-            FXMLLoader loader = new FXMLLoader(location, resources);
-            loader.setController(this);
-            this.stage.setScene(new Scene(loader.load()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+		try {
+			FXMLLoader loader = new FXMLLoader(location, resources);
+			loader.setController(this);
+			this.stage.setScene(new Scene(loader.load()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-    public void show() {
-        loadTable();
-        stage.showAndWait();
-    }
+	public void show() {
+		loadTable();
+		stage.showAndWait();
+	}
 
-    public void close() {
-        stage.close();
-    }
+	public void close() {
+		stage.close();
+	}
 
-    public void loadTable() {
-        table.getColumns()
-                .addAll(MainWindowCtrl
-                                .getContentCtrl()
-                                .loadTable(ContentInfo
-                                        .getInstance()
-                                        .columnsContent.get("send")));
-        LoadInfo();
-    }
+	public void loadTable() {
+		table.getColumns()
+				.addAll(MainWindowCtrl
+						.getContentCtrl()
+						.loadTable(ContentInfo
+								.getInstance()
+								.columnsContent.get("send")));
+		LoadInfo();
+	}
 
-    public void LoadInfo() {
-        ObservableList<ScaleItemMenu> scales = MainCtrl.getScales();
+	public void LoadInfo() {
+		ObservableList<ScaleItemMenu> scales = MainCtrl.getScales();
 
-        if (CurrentItemSendTo.SCALE.equals(currentItemSendTo)) {
-            //we need to remove scales from which we want to send from list with scales and server where we can send
-            scales.remove(currentItemSendTo.getScaleItemMenu());
+		if (CurrentItemSendTo.SCALE.equals(currentItemSendTo)) {
+			//we need to remove scales from which we want to send from list with scales and server where we can send
+			scales.remove(currentItemSendTo.getScaleItemMenu());
 
-            ObservableList<ItemContent> arr = ItemContent.getCheckSend(scales);
-            //create server item
-            ScaleItemMenu menuItem = new ScaleItemMenu();
-            ItemContent item = new ItemContent();
-            item.setObject(menuItem);
-            item.setNumber(arr.size() + 1);
-            item.setId(menuItem.getId());
-            item.setName(menuItem.getName());
-            //add server item to array
-            arr.add(item);
-            table.setItems(arr);
-        } else {
-            table.setItems(ItemContent.getCheckSend(scales));
-        }
-    }
+			ObservableList<ItemContent> arr = ItemContent.getCheckSend(scales);
+			//create server item
+			ScaleItemMenu menuItem = new ScaleItemMenu();
+			menuItem.setDb(MainCtrl.getDB());
+			ItemContent item = new ItemContent();
+			item.setObject(menuItem);
+			item.setNumber(arr.size() + 1);
+			item.setId(menuItem.getId());
+			item.setName(menuItem.getName());
+			//add server item to array
+			arr.add(item);
+			table.setItems(arr);
+		} else {
+			table.setItems(ItemContent.getCheckSend(scales));
+		}
+	}
 
-    @FXML
-    void initialize() {
-        stage.setOnCloseRequest(event -> close());
-        send.setOnAction(event -> {
-            ObservableList<ScaleItemMenu> arr = FXCollections.observableArrayList();
-            table.getItems().forEach(v -> {
-                if (v.getCheckBox().isSelected())
-                    arr.add((ScaleItemMenu) v.getObject());
-            });
-            MainWindowCtrl.getContentCtrl().getPack().setConnectSend(arr);
-            close();
-        });
-        checkAll.setOnAction(event ->
-                table.getItems().forEach(v ->
-                        v.setCheckBox(checkAll.isSelected())));
-    }
+	@FXML
+	void initialize() {
+		stage.setOnCloseRequest(event -> close());
+		send.setOnAction(event -> {
+			ObservableList<ScaleItemMenu> arr = FXCollections.observableArrayList();
+			table.getItems().forEach(v -> {
+				if (v.getCheckBox().isSelected())
+					arr.add((ScaleItemMenu) v.getObject());
+			});
+			MainWindowCtrl.getContentCtrl().getPack().setConnectSend(arr);
+			close();
+		});
+		checkAll.setOnAction(event ->
+				table.getItems().forEach(v ->
+						v.setCheckBox(checkAll.isSelected())));
+	}
 
-    public Stage getStage() {
-        return stage;
-    }
+	public Stage getStage() {
+		return stage;
+	}
 }

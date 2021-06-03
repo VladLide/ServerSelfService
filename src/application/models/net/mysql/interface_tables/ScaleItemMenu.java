@@ -191,6 +191,11 @@ public class ScaleItemMenu {
 		}
 		return db;
 	}
+	
+	public void setDb(MySQL db) {
+		this.db = db;
+	}
+	
 	public boolean existConnectionDB() {
 		return getDB().getDBConnection()!=null;
 	}
