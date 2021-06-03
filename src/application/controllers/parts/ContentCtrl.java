@@ -356,8 +356,17 @@ public class ContentCtrl {
 
     private void addSend() {
         pack = new PackageSend();
-        CheckSendCtrl check = new CheckSendCtrl();
-        check.show();
+        CurrentItemSendTo currentItemSendTo;
+
+        if (node.getLevel() == 2) {
+            currentItemSendTo = CurrentItemSendTo.SERVER;
+        } else {
+            currentItemSendTo = CurrentItemSendTo.SCALE;
+            currentItemSendTo.setScaleItemMenu((ScaleItemMenu) node.getUpObject().getObject());
+        }
+
+        new CheckSendCtrl(currentItemSendTo).show();
+
         if (!pack.getConnectSend().isEmpty()) {
             ObservableList<Object> arr = FXCollections.observableArrayList();
             dataTable.getItems().forEach(item -> {

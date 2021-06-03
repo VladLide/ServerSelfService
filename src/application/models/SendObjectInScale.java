@@ -3,14 +3,17 @@ package application.models;
 import application.controllers.windows.MainWindowCtrl;
 import application.models.net.mysql.MySQL;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.mysql.tables.Goods;
 import application.models.net.mysql.tables.Templates;
 import application.views.languages.uk.parts.LogInfo;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 
+import java.util.Locale;
+
 public class SendObjectInScale extends Task<Void> {
     private PackageSend pack = null;
-    private int MAX_WORK = 10;
+    private final int MAX_WORK;
 
     public SendObjectInScale(PackageSend pack) {
         this.pack = pack;
@@ -37,10 +40,10 @@ public class SendObjectInScale extends Task<Void> {
         for (int i = 0; i < scaleItemMenus.size(); i++) {
             ScaleItemMenu scaleItemMenu = scaleItemMenus.get(i);
 
-            String startText = pack.getType() + " > "
-                    + scaleItemMenu.getName()
-                    + " " + scaleItemMenu.getId()
-                    + ": ";
+            String startText = String.format("%s > %s %s: ",
+                    pack.getType(),
+                    scaleItemMenu.getName(),
+                    scaleItemMenu.getId());
 
             for (int j = 0; j < packItems.size(); j++) {
                 Object packItem = packItems.get(j);
@@ -56,10 +59,14 @@ public class SendObjectInScale extends Task<Void> {
                 if (s.length() > 0)
                     countSend++;
 
-                String message = startText + s + " all:" + (i * scaleItemMenusSize + j + 1) + "/" + MAX_WORK;
+                String message = String.format("%s %s all %d/%d",
+                        startText,
+                        s,
+                        (i * scaleItemMenusSize + j + 1),
+                        MAX_WORK);
                 MainWindowCtrl.setLog(message);
                 updateMessage(message);
-                updateProgress((long) i * scaleItemMenusSize + j, MAX_WORK);
+                updateProgress((long) i * scaleItemMenusSize + j + 1, MAX_WORK);
 
                 try {
                     Thread.sleep(300);
@@ -72,12 +79,20 @@ public class SendObjectInScale extends Task<Void> {
                 }
             }
         }
-        updateMessage(LogInfo.sendObj[2] + " " + countSend + "/" + MAX_WORK);
+
+        String successMessage = LogInfo.sendObj[2] + " " + countSend + "/" + MAX_WORK;
+        MainWindowCtrl.setLog(successMessage);
+        updateMessage(successMessage);
     }
 
     private String send(Object obj, MySQL db) {
-        switch (obj.getClass().getSimpleName()) {
-            case "Templates": {
+        switch (obj.getClass().getSimpleName().toLowerCase(Locale.ROOT)) {
+            case "goods": {
+                Goods goods = (Goods) obj;
+                goods.save(db);
+                return goods.getId() + " - " + goods.getName();
+            }
+            case "templates": {
                 Templates tmp = (Templates) obj;
                 tmp.save(db);
                 return tmp.getId() + " - " + tmp.getName();

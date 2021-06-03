@@ -131,11 +131,10 @@ public class MainCtrl {
 		return me.db;
 	}
 	public static ObservableList<ScaleItemMenu> getScales() {
-		MainCtrl me = getInstance();
-		if(me.scales.isEmpty()) {
-			me.scales=ScaleItemMenu.get();
-		}
-		return me.scales;
+		MainCtrl mainCtrl = getInstance();
+		if(mainCtrl.scales.isEmpty())
+			mainCtrl.scales = ScaleItemMenu.get();
+		return mainCtrl.scales;
 	}
 	public static ObservableList<ScaleItemMenu> refreshScales() {
 		MainCtrl me = getInstance();

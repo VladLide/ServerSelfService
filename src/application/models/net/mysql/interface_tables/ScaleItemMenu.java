@@ -1,13 +1,5 @@
 package application.models.net.mysql.interface_tables;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import application.controllers.MainCtrl;
 import application.controllers.windows.MainWindowCtrl;
 import application.models.net.mysql.MySQL;
@@ -20,6 +12,16 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ScaleItemMenu {
 	private int id = 0;
@@ -31,6 +33,7 @@ public class ScaleItemMenu {
 	private Timer connect = new Timer();
 	private MySQL db = null;
 	private AtomicBoolean saveToConnect = new AtomicBoolean(true);
+	private static Logger logger = LogManager.getLogger(ScaleItemMenu.class);
 
 	public ScaleItemMenu() {
 		super();
@@ -52,15 +55,12 @@ public class ScaleItemMenu {
     	ResultSet result = MainCtrl.getDB().getSelect(Scales.getSql(0,""));
     	ObservableList<ScaleItemMenu> row = FXCollections.observableArrayList();
     	try {
-    		//int index = 0;
     		while(result.next()) {
     			ScaleItemMenu item = new ScaleItemMenu(new Scales(result));
 				row.add(item);
 			}
-		} catch (NullPointerException e) {
-			System.out.println("ScaleInfo: error db " + e.getMessage());
-		} catch (SQLException e) {
-			System.out.println("ScaleInfo: error db " + e.getMessage());
+		} catch (NullPointerException | SQLException e) {
+			logger.error("ScaleInfo: error db {}", e.getMessage(), e);
 		}
 
 		return row;
@@ -208,5 +208,20 @@ public class ScaleItemMenu {
 	}
 	public void setSaveToConnect(boolean value) {
 		saveToConnect.set(value);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		ScaleItemMenu that = (ScaleItemMenu) o;
+
+		return id == that.id;
+	}
+
+	@Override
+	public int hashCode() {
+		return id;
 	}
 }
