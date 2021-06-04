@@ -3,6 +3,7 @@ package application.models;
 import application.controllers.windows.MainWindowCtrl;
 import application.models.net.mysql.MySQL;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.mysql.tables.Codes;
 import application.models.net.mysql.tables.Goods;
 import application.models.net.mysql.tables.Templates;
 import application.views.languages.uk.parts.LogInfo;
@@ -104,9 +105,11 @@ public class SendObjectInScale extends Task<Void> {
                 tmp.save(db);
                 return tmp.getId() + " - " + tmp.getName();
             }
-            case "templateCodes": {
+            case "codes": {
+                Codes tmp = (Codes) obj;
+                tmp.save(db);
 
-                return "";
+                return tmp.getId() + " - " + tmp.getName();
             }
             case "settings": {
 
