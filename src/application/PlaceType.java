@@ -1,5 +1,8 @@
 package application;
 
+/**
+ * Contains places at which operation can happen
+ */
 public enum PlaceType {
     SCALE("ваги"),
     SERVER("сервер");

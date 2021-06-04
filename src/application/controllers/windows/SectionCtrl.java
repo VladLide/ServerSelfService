@@ -1,13 +1,5 @@
 package application.controllers.windows;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.NoSuchElementException;
-import java.util.ResourceBundle;
-
 import application.*;
 import application.models.Configs;
 import application.models.TextBox;
@@ -20,28 +12,23 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.TreeTableView;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ResourceBundle;
 
 public class SectionCtrl {
     private Logger logger = LogManager.getLogger();
@@ -212,7 +199,7 @@ public class SectionCtrl {
                                             SectionType.SECTION,
                                             item.getName(),
                                             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            Status.SUCCESS)
+                                            OperationStatus.SUCCESS)
                             );
 
                             TextBox.alertOpenDialog(AlertType.INFORMATION, "addSectionYes");
@@ -227,7 +214,7 @@ public class SectionCtrl {
                                             SectionType.SECTION,
                                             item.getName(),
                                             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            Status.FAILURE)
+                                            OperationStatus.FAILURE)
                             );
 
                             TextBox.alertOpenDialog(AlertType.WARNING, "addSectionNo");
@@ -246,7 +233,7 @@ public class SectionCtrl {
                                             SectionType.SECTION,
                                             item.getName(),
                                             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            Status.SUCCESS)
+                                            OperationStatus.SUCCESS)
                             );
                         } else {
                             MainWindowCtrl.setLog(
@@ -257,7 +244,7 @@ public class SectionCtrl {
                                             SectionType.SECTION,
                                             item.getName(),
                                             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            Status.FAILURE)
+                                            OperationStatus.FAILURE)
                             );
 
                             TextBox.alertOpenDialog(AlertType.WARNING, "editSectionNo");
@@ -341,7 +328,7 @@ public class SectionCtrl {
                                         SectionType.SECTION,
                                         item.getName(),
                                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        Status.SUCCESS)
+                                        OperationStatus.SUCCESS)
                         );
 
                         this.item = null;
@@ -355,7 +342,7 @@ public class SectionCtrl {
                                         SectionType.SECTION,
                                         item.getName(),
                                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        Status.FAILURE)
+                                        OperationStatus.FAILURE)
                         );
 
                         TextBox.alertOpenDialog(AlertType.WARNING, "deleteSectionNo");

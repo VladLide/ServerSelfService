@@ -1,12 +1,15 @@
 package application;
 
+/**
+ * Contains sections at which operations can happen
+ */
 public enum SectionType {
     PRODUCT("продукт"),
     SECTION("категорія"),
     TEMPLATE("шаблон етикетки"),
     CODE("шаблон коду");
 
-    private String name;
+    private final String name;
 
     SectionType(String name) {
         this.name = name;

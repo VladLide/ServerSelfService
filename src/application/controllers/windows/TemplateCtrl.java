@@ -17,18 +17,15 @@ import javax.imageio.ImageIO;
 import application.*;
 import com.google.zxing.WriterException;
 
-import application.controllers.MainCtrl;
 import application.models.Configs;
 import application.models.EditingCell;
 import application.models.Info2Col;
 import application.models.TextBox;
 import application.models.Utils;
 import application.models.net.mysql.MySQL;
-import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Codes;
 import application.models.net.mysql.tables.Templates;
 import application.models.objectinfo.ItemTemplate;
-import application.models.objectinfo.NodeTree;
 import application.models.template.Barcode;
 import application.models.template.FontItem;
 import application.models.template.Item;
@@ -82,7 +79,6 @@ import javafx.scene.layout.CornerRadii;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.Callback;
 
 public class TemplateCtrl {
@@ -848,7 +844,7 @@ public class TemplateCtrl {
                             SectionType.TEMPLATE,
                             objTemplate.getName(),
                             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                            Status.SUCCESS)
+                            OperationStatus.SUCCESS)
             );
         });
         testPrint.setOnAction(event -> {

@@ -1,19 +1,6 @@
 package application.controllers.windows;
 
-import java.io.IOException;
-import java.net.URL;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.ResourceBundle;
-
 import application.*;
-import org.apache.commons.lang3.StringUtils;
-
 import application.models.Configs;
 import application.models.TextBox;
 import application.models.Utils;
@@ -26,20 +13,25 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.ResourceBundle;
 
 public class CodeCtrl {
     private Stage stage;
@@ -182,7 +174,7 @@ public class CodeCtrl {
                                             SectionType.CODE,
                                             temp.getName(),
                                             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            Status.SUCCESS)
+                                            OperationStatus.SUCCESS)
                             );
 
                             TextBox.alertOpenDialog(AlertType.INFORMATION, "addBarcodeYes");
@@ -195,7 +187,7 @@ public class CodeCtrl {
                                             SectionType.CODE,
                                             temp.getName(),
                                             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            Status.FAILURE)
+                                            OperationStatus.FAILURE)
                             );
 
                             TextBox.alertOpenDialog(AlertType.WARNING, "addBarcodeNot");
@@ -215,7 +207,7 @@ public class CodeCtrl {
                                             SectionType.CODE,
                                             item.getName(),
                                             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            Status.SUCCESS)
+                                            OperationStatus.SUCCESS)
                             );
 
                             TextBox.alertOpenDialog(AlertType.INFORMATION, "editBarcodeYes");
@@ -229,7 +221,7 @@ public class CodeCtrl {
                                             SectionType.CODE,
                                             item.getName(),
                                             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            Status.FAILURE)
+                                            OperationStatus.FAILURE)
                             );
 
                             TextBox.alertOpenDialog(AlertType.WARNING, "editBarcodeNo");
@@ -297,7 +289,7 @@ public class CodeCtrl {
                                         SectionType.CODE,
                                         item.getName(),
                                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        Status.SUCCESS)
+                                        OperationStatus.SUCCESS)
                         );
 
                         this.item = null;
@@ -311,7 +303,7 @@ public class CodeCtrl {
                                         SectionType.CODE,
                                         item.getName(),
                                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        Status.FAILURE)
+                                        OperationStatus.FAILURE)
                         );
 
                         TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");

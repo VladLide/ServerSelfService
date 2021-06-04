@@ -1,5 +1,8 @@
 package application;
 
+/**
+ * Contains operations which can be done with db items
+ */
 public enum Operation {
     SEND("відправка"),
     CREATE("створення"),

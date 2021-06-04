@@ -5,11 +5,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.ResourceBundle;
 
 import application.*;
-import application.controllers.parts.LogCtrl;
 import application.models.Configs;
 import application.models.TextBox;
 import application.models.Utils;
@@ -199,7 +197,7 @@ public class ProductCtrl {
                                     SectionType.PRODUCT,
                                     plu.getName(),
                                     LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                    Status.SUCCESS)
+                                    OperationStatus.SUCCESS)
                     );
                 } else {
                     TextBox.alertOpenDialog(AlertType.WARNING, "addGoodsNot");
@@ -212,7 +210,7 @@ public class ProductCtrl {
                                     SectionType.PRODUCT,
                                     plu.getName(),
                                     LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                    Status.FAILURE)
+                                    OperationStatus.FAILURE)
                     );
                 }
             } else {
@@ -231,7 +229,7 @@ public class ProductCtrl {
                                     SectionType.PRODUCT,
                                     plu.getName(),
                                     LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                    Status.SUCCESS)
+                                    OperationStatus.SUCCESS)
                     );
                 } else {
                     TextBox.alertOpenDialog(AlertType.WARNING, "editGoodsNo");
@@ -244,7 +242,7 @@ public class ProductCtrl {
                                     SectionType.PRODUCT,
                                     plu.getName(),
                                     LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                    Status.FAILURE)
+                                    OperationStatus.FAILURE)
                     );
                 }
             }
@@ -318,7 +316,7 @@ public class ProductCtrl {
                                         SectionType.PRODUCT,
                                         item.getName(),
                                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        Status.SUCCESS)
+                                        OperationStatus.SUCCESS)
                         );
 
                         item = null;
@@ -334,7 +332,7 @@ public class ProductCtrl {
                                         SectionType.PRODUCT,
                                         item.getName(),
                                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        Status.FAILURE)
+                                        OperationStatus.FAILURE)
                         );
                     }
                 }

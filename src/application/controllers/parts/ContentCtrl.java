@@ -197,7 +197,7 @@ public class ContentCtrl {
                                         SectionType.PRODUCT,
                                         goods.getName(),
                                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        Status.SUCCESS)
+                                        OperationStatus.SUCCESS)
                         );
                     }
                 } else {
@@ -226,7 +226,7 @@ public class ContentCtrl {
                                         SectionType.SECTION,
                                         sections.getName(),
                                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        Status.SUCCESS)
+                                        OperationStatus.SUCCESS)
                         );
                     }
                 } else {
@@ -255,7 +255,7 @@ public class ContentCtrl {
                                         SectionType.TEMPLATE,
                                         templates.getName(),
                                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        Status.SUCCESS)
+                                        OperationStatus.SUCCESS)
                         );
                     }
                 } else {
@@ -282,7 +282,7 @@ public class ContentCtrl {
                                         SectionType.CODE,
                                         codes.getName(),
                                         LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        Status.SUCCESS)
+                                        OperationStatus.SUCCESS)
                         );
                     }
                 } else {

@@ -1,12 +1,15 @@
 package application;
 
-public enum Status {
+/**
+ * Contains statuses of operations
+ */
+public enum OperationStatus {
     SUCCESS("успішно"),
     FAILURE("негативно");
 
     private final String name;
 
-    Status(String name) {
+    OperationStatus(String name) {
         this.name = name;
     }
 

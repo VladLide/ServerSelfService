@@ -1,5 +1,8 @@
 package application;
 
+/**
+ * Contains statuses which scale can have
+ */
 public enum ScaleStatus {
 	INCORRECT_SCALE_ADDRESS,
 	NO_CONNECTION,

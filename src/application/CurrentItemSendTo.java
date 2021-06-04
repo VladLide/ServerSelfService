@@ -2,6 +2,9 @@ package application;
 
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 
+/**
+ * Contains places to which items can be send
+ */
 public enum CurrentItemSendTo {
     SCALE,
     SERVER;
