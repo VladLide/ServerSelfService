@@ -65,7 +65,6 @@ public class ScaleItemMenu {
 		} catch (NullPointerException | SQLException e) {
 			logger.error("ScaleInfo: error db {}", e.getMessage(), e);
 		}
-
 		return row;
 	}
 
@@ -73,45 +72,47 @@ public class ScaleItemMenu {
 		Color color = null;
 		scaleServer.setUpdate((statusServer == 0 && statusScale == 2) ? statusScale : statusServer);
 		switch (scaleServer.getUpdate()) {
-			case -3: {
-				color = Color.BLACK; //Не вірно введений адрес вагів
+		case -3: {
+			color = Color.BLACK; // Не вірно введений адрес вагів
 				this.status = ScaleStatus.INCORRECT_SCALE_ADDRESS;
-				break;
-			}
-			case -2: {
-				color = Color.RED;//Не має зв'язку
-				this.status = ScaleStatus.NO_CONNECTION;
-				break;
-			}
-			case -1: {
-				color = Color.YELLOW;//звязь была потеряна не успев обновиться
-				this.status = ScaleStatus.CONNECTION_WAS_LOST_WITHOUT_UPDATE;
-				break;
-			}
-			case 0: {
-				color = Color.GREEN;//товары на бд актуальны на
-				this.status = ScaleStatus.PRODUCTS_AT_DATABASE_ARE_UP_TO_DATE;
-				break;
-			}
-			case 1: {
-				color = Color.GREENYELLOW;//обновляются не отключайте
-				this.status = ScaleStatus.UPDATING_DONT_SHUTDOWN;
-				break;
-			}
-			case 2: {
-				color = Color.BLUE;//товаров на весах нет
-				this.status = ScaleStatus.NO_PRODUCTS_AT_SCALES;
-				break;
-			}
-			default: {
-				color = Color.BLACK;
-			}
+			break;
 		}
-		return new Rectangle(img.getFitWidth(), img.getFitHeight(), color).snapshot(null, null);
+		case -2: {
+			color = Color.RED;// Не має зв'язку
+				this.status = ScaleStatus.NO_CONNECTION;
+			break;
+		}
+		case -1: {
+			color = Color.YELLOW;// звязь была потеряна не успев обновиться
+				this.status = ScaleStatus.CONNECTION_WAS_LOST_WITHOUT_UPDATE;
+			break;
+		}
+		case 0: {
+			color = Color.GREEN;// товары на бд актуальны на
+				this.status = ScaleStatus.PRODUCTS_AT_DATABASE_ARE_UP_TO_DATE;
+			break;
+		}
+		case 1: {
+			color = Color.GREENYELLOW;// обновляются не отключайте
+				this.status = ScaleStatus.UPDATING_DONT_SHUTDOWN;
+			break;
+		}
+		case 2: {
+			color = Color.BLUE;// товаров на весах нет
+				this.status = ScaleStatus.NO_PRODUCTS_AT_SCALES;
+			break;
+		}
+		default: {
+			color = Color.BLACK;
+		}
+		}
+		return (new Rectangle(img.getFitWidth(),img.getFitHeight(),color)).snapshot(null, null);
 	}
 
 	public void connect() {
-		if (!scaleServer.getIp_address().matches("([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})") || scaleServer.getIp_address().matches("(localhost)|(127\\.0\\.0\\.1)") || scaleServer.getIp_address().length() < 7) {
+		if (!scaleServer.getIp_address().matches("([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})")
+				|| scaleServer.getIp_address().matches("(localhost)|(127\\.0\\.0\\.1)")
+				|| scaleServer.getIp_address().length() < 7) {
 			scaleServer.setUpdate(-3);
 			img.setImage(status(scaleServer.getUpdate(), 0));
 		} else {
@@ -144,19 +145,21 @@ public class ScaleItemMenu {
 						scaleServer.setUpdate(-2);
 					} finally {
 						Platform.runLater(() -> {
-							img.setImage(status(scaleServer.getUpdate(),/*getScale().getUpdate()*/0));
+							img.setImage(status(scaleServer.getUpdate(), /* getScale().getUpdate() */0));
 						});
-						if (saveToConnect.get()) scaleServer.save(MainCtrl.getDB());
+						if (saveToConnect.get())
+							scaleServer.save(MainCtrl.getDB());
 					}
-					if (!MainWindowCtrl.existInstance()) connect.cancel();
+					if (!MainWindowCtrl.existInstance())
+						connect.cancel();
 				}
 			}, 0, 60000);
 		}
 	}
 
 	public static String getSql() {
-		String sql = "SELECT scales.update, count(goods.id) as cout FROM scales" +
-				"	Left join goods on goods.id_scales = scales.id;";
+		String sql = "SELECT scales.update, count(goods.id) as cout FROM scales"
+				+ "	Left join goods on goods.id_scales = scales.id;";
 		return sql;
 	}
 

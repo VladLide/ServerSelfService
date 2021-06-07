@@ -17,7 +17,7 @@ import java.util.List;
 import javax.sql.rowset.serial.SerialBlob;
 import javax.sql.rowset.serial.SerialException;
 
-import application.models.PackingDBValue;
+import application.models.net.PackingDBValue;
 import application.models.net.mysql.MySQL;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,56 +31,60 @@ public class ObjectsTara {
 	private String description = "";
 	private float tara = 0;
 	private Blob img_data = null;
-	
+
 	public static String getTable() {
 		String table = "objects_tara";
 		return table;
 	}
+
 	public List<String> getFields() {
 		ObjectsTara me = this;
 		String table = getTable();
 		List<String> fields = new ArrayList<String>();
 		try {
 			for (Field f : me.getClass().getDeclaredFields()) {
-				if(f.getName()=="inst"||f.getName()=="db") continue;
-				System.out.println(table+"."+f.getName());
-				fields.add(table+"."+f.getName());
+				if (f.getName() == "inst" || f.getName() == "db")
+					continue;
+				System.out.println(table + "." + f.getName());
+				fields.add(table + "." + f.getName());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return fields;
 	}
+
 	public PackingDBValue[] getValues() {
 		ObjectsTara me = this;
 		PackingDBValue[] values = new PackingDBValue[me.getClass().getDeclaredFields().length];
 		int i = 0;
 		for (Field f : me.getClass().getDeclaredFields()) {
 			try {
-				if(f.getName()=="inst"||f.getName()=="db") continue;
+				if (f.getName() == "inst" || f.getName() == "db")
+					continue;
 				String type = f.getType().getTypeName().replace(".", " ");
-				if(type.split(" ").length>0) {
+				if (type.split(" ").length > 0) {
 					String[] typ = type.split(" ");
-					type = typ[typ.length-1];
+					type = typ[typ.length - 1];
 				}
-				switch(type) {
-					case "int":
-						values[i++] = new PackingDBValue((Object)f.get(me),"I");
+				switch (type) {
+				case "int":
+					values[i++] = new PackingDBValue(f.getName(), "I", (Object) f.get(me));
 					break;
-					case "float":
-						values[i++] = new PackingDBValue((Object)f.get(me),"F");
+				case "float":
+					values[i++] = new PackingDBValue(f.getName(), "F", (Object) f.get(me));
 					break;
-					case "double": 
-						values[i++] = new PackingDBValue((Object)f.get(me),"D");
+				case "double":
+					values[i++] = new PackingDBValue(f.getName(), "D", (Object) f.get(me));
 					break;
-					case "String":
-						values[i++] = new PackingDBValue((Object)f.get(me),"S");
+				case "String":
+					values[i++] = new PackingDBValue(f.getName(), "S", (Object) f.get(me));
 					break;
-					case "Blob":
-						values[i++] = new PackingDBValue((Object)f.get(me),"B");
+				case "Blob":
+					values[i++] = new PackingDBValue(f.getName(), "B", (Object) f.get(me));
 					break;
-					default:
-						System.out.println(getTable()+": type was not found " + f.getName()+":"+f.getType());
+				default:
+					System.out.println(getTable() + ": type was not found " + f.getName() + ":" + f.getType());
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -88,157 +92,180 @@ public class ObjectsTara {
 		}
 		return values;
 	}
+
 	public ObjectsTara(ResultSet res, MySQL db) {
 		super();
-		//inst = this;
+		// inst = this;
 		for (Field f : getClass().getDeclaredFields()) {
 			try {
-				if(f.getName()=="inst") continue;
+				if (f.getName() == "inst")
+					continue;
 				String type = f.getType().getTypeName().replace(".", " ");
-				if(type.split(" ").length>0) {
+				if (type.split(" ").length > 0) {
 					String[] typ = type.split(" ");
-					type = typ[typ.length-1];
+					type = typ[typ.length - 1];
 				}
-				switch(type) {
-					case "int":
-						f.set(this,res.getInt(res.findColumn(f.getName())));
+				switch (type) {
+				case "int":
+					f.set(this, res.getInt(res.findColumn(f.getName())));
 					break;
-					case "float":
-						f.set(this,res.getFloat(res.findColumn(f.getName())));
+				case "float":
+					f.set(this, res.getFloat(res.findColumn(f.getName())));
 					break;
-					case "double": 
-						f.set(this,res.getDouble(res.findColumn(f.getName())));
+				case "double":
+					f.set(this, res.getDouble(res.findColumn(f.getName())));
 					break;
-					case "String":
-						f.set(this,res.getString(res.findColumn(f.getName())));
+				case "String":
+					f.set(this, res.getString(res.findColumn(f.getName())));
 					break;
-					case "Blob":
-						f.set(this,res.getBlob(res.findColumn(f.getName())));
+				case "Blob":
+					f.set(this, res.getBlob(res.findColumn(f.getName())));
 					break;
-					default:
-						System.out.println(getTable()+": type was not found " + f.getName()+":"+f.getType());
+				default:
+					System.out.println(getTable() + ": type was not found " + f.getName() + ":" + f.getType());
 				}
 			} catch (Exception e) {
-				System.out.println(getTable()+": "+e);
+				System.out.println(getTable() + ": " + e);
 			}
 		}
 	}
+
 	public ObjectsTara() {}
+
 	public static ObjectsTara get(int sort, int id, String name, MySQL db) {
-    	ResultSet resul = db.getSelect(ObjectsTara.getSql(sort,id,name));
-    	ObjectsTara row = null;
-    	try {
-			while(resul.next()) {
-				row = new ObjectsTara(resul,db);
+		ResultSet resul = db.getSelect(ObjectsTara.getSql(sort, id, name));
+		ObjectsTara row = null;
+		try {
+			while (resul.next()) {
+				row = new ObjectsTara(resul, db);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return row;
 	}
+
 	public static ObservableList<ObjectsTara> getList(int sort, int id, String name, MySQL db) {
-		ResultSet resul = db.getSelect(ObjectsTara.getSql(sort,id,name));
-    	ObservableList<ObjectsTara> row = FXCollections.observableArrayList();
-    	try {
-			while(resul.next()) {
-				row.add(new ObjectsTara(resul,db));
+		ResultSet resul = db.getSelect(ObjectsTara.getSql(sort, id, name));
+		ObservableList<ObjectsTara> row = FXCollections.observableArrayList();
+		try {
+			while (resul.next()) {
+				row.add(new ObjectsTara(resul, db));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return row;
 	}
+
 	public static ObservableList<Object> getListObj(int sort, int id, String name, MySQL db) {
-		ResultSet resul = db.getSelect(ObjectsTara.getSql(sort,id,name));
-    	ObservableList<Object> row = FXCollections.observableArrayList();
-    	try {
-			while(resul.next()) {
-				row.add(new ObjectsTara(resul,db));
+		ResultSet resul = db.getSelect(ObjectsTara.getSql(sort, id, name));
+		ObservableList<Object> row = FXCollections.observableArrayList();
+		try {
+			while (resul.next()) {
+				row.add(new ObjectsTara(resul, db));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return row;
 	}
+
 	public static ObservableList<ObjectsTara> getInfo(int sort, int id, String name, MySQL db) {
-    	ResultSet resul = db.getSelect(ObjectsTara.getSqlInfo(sort, id, name));
-    	ObservableList<ObjectsTara> row = FXCollections.observableArrayList();
-    	try {
-			while(resul.next()) {
-				row.add(new ObjectsTara(resul,db));
+		ResultSet resul = db.getSelect(ObjectsTara.getSqlInfo(sort, id, name));
+		ObservableList<ObjectsTara> row = FXCollections.observableArrayList();
+		try {
+			while (resul.next()) {
+				row.add(new ObjectsTara(resul, db));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return row;
 	}
+
 	public static String getSql(int sort, int id, String name) {
 		String table = getTable();
-		String sql = "SELECT * FROM "+table;
-		if((id > 0)||(name.length()>0)) sql+= " WHERE ";
-		if((id > 0)) sql+= table+".id = "+id;
-		if((id > 0)&&(name.length()>0)) sql+= " AND ";
-		if((name.length()>0)) sql+= table+".name = '"+name+"'";
+		String sql = "SELECT * FROM " + table;
+		if ((id > 0) || (name.length() > 0))
+			sql += " WHERE ";
+		if ((id > 0))
+			sql += table + ".id = " + id;
+		if ((id > 0) && (name.length() > 0))
+			sql += " AND ";
+		if ((name.length() > 0))
+			sql += table + ".name = '" + name + "'";
 		switch (sort) {
 		case 0:
-			sql+=" ORDER BY "+table+".id";
+			sql += " ORDER BY " + table + ".id";
 			break;
 		case 1:
-			sql+=" ORDER BY "+table+".name";
+			sql += " ORDER BY " + table + ".name";
 			break;
 		case 2:
-			sql+=" ORDER BY "+table+".tara";
+			sql += " ORDER BY " + table + ".tara";
 			break;
 		default:
-			sql+=" ORDER BY "+table+".id";
+			sql += " ORDER BY " + table + ".id";
 			break;
 		}
 		return sql;
 	}
+
 	public static String getSqlInfo(int sort, int id, String name) {
 		String table = getTable();
-		String sql = "SELECT id, name, description, tara FROM "+table;
-		if((id > 0)||(name.length()>0)) sql+= " WHERE ";
-		if((id > 0)) sql+= table+".id = "+id;
-		if((id > 0)&&(name.length()>0)) sql+= " AND ";
-		if((name.length()>0)) sql+= table+".name = '"+name+"'";
+		String sql = "SELECT id, name, description, tara FROM " + table;
+		if ((id > 0) || (name.length() > 0))
+			sql += " WHERE ";
+		if ((id > 0))
+			sql += table + ".id = " + id;
+		if ((id > 0) && (name.length() > 0))
+			sql += " AND ";
+		if ((name.length() > 0))
+			sql += table + ".name = '" + name + "'";
 		switch (sort) {
 		case 0:
-			sql+=" ORDER BY "+table+".id";
+			sql += " ORDER BY " + table + ".id";
 			break;
 		case 1:
-			sql+=" ORDER BY "+table+".name";
+			sql += " ORDER BY " + table + ".name";
 			break;
 		case 2:
-			sql+=" ORDER BY "+table+".tara";
+			sql += " ORDER BY " + table + ".tara";
 			break;
 		default:
-			sql+=" ORDER BY "+table+".id";
+			sql += " ORDER BY " + table + ".id";
 			break;
 		}
 		return sql;
 	}
+
 	public int save(MySQL db) {
 		String table = getTable();
-		ObjectsTara isNew = ObjectsTara.get(0,id,"",db);
+		ObjectsTara isNew = ObjectsTara.get(0, id, "", db);
 		String[] fields = getFields().toArray(new String[0]);
 		PackingDBValue[] values = getValues();
-		if(isNew==null) {
+		if (isNew == null) {
 			db.insert(table, fields, values);
-		}else {
-			db.update(table, fields, values, new String[]{table+".id ="+isNew.getId()});
+		} else {
+			db.update(table, fields, values, new String[] { table + ".id =" + isNew.getId() });
 		}
-		ObjectsTara tmp = ObjectsTara.get(0,id,"",db);
-		id = tmp!=null?tmp.getId():-1;
+		ObjectsTara tmp = ObjectsTara.get(0, id, "", db);
+		id = tmp != null ? tmp.getId() : -1;
 		return id;
 	}
+
 	public boolean updateId(int id, MySQL db) {
 		String table = getTable();
-		ObjectsTara isNew = ObjectsTara.get(0,id,"",db);
-		if(isNew==null)db.update(table,new String[]{(table+".id")}, PackingDBValue.get(new String[] {"int"}, new Object[] {id}), new String[]{table+".id = "+this.id});
-		isNew = ObjectsTara.get(0,id,"",db);
-		if(isNew!=null)this.id = id;
-		return isNew!=null;
+		ObjectsTara isNew = ObjectsTara.get(0, id, "", db);
+		if (isNew == null)
+			db.update(table, new String[] { (table + ".id") },
+					PackingDBValue.get(new String[] { "int" }, new Object[] { id }),
+					new String[] { table + ".id = " + this.id });
+		isNew = ObjectsTara.get(0, id, "", db);
+		if (isNew != null)
+			this.id = id;
+		return isNew != null;
 	}
 	/*public boolean updateName(String name,MySQL db) {
 		String table = getTable();
@@ -250,24 +277,24 @@ public class ObjectsTara {
 	}*/
 	public boolean delete(MySQL db) {
 		String table = getTable();
-		if(id>0) {
-			db.delete(table, new String[]{table+".id ='"+id+"'"});
+		if (id > 0) {
+			db.delete(table, new String[] { table + ".id ='" + id + "'" });
 		}
-		ObjectsTara old = ObjectsTara.get(0,id,"",db);
-		return old==null;
+		ObjectsTara old = ObjectsTara.get(0, id, "", db);
+		return old == null;
 	}
 
 	public Image getImage(AnchorPane panel) {
 		InputStream is = null;
 		Image image = null;
 		try {
-			is = (this.img_data!=null)?this.img_data.getBinaryStream():null;
+			is = (this.img_data != null) ? this.img_data.getBinaryStream() : null;
 			image = new Image(is, BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(), true, true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}finally{
-			if(is!=null) {
+		} finally {
+			if (is != null) {
 				try {
 					is.close();
 				} catch (IOException e) {
@@ -278,17 +305,18 @@ public class ObjectsTara {
 		}
 		return image;
 	}
+
 	public Image getImage() {
 		InputStream is = null;
 		Image image = null;
 		try {
-			is = (this.img_data!=null)?this.img_data.getBinaryStream():null;
+			is = (this.img_data != null) ? this.img_data.getBinaryStream() : null;
 			image = new Image(is);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}finally{
-			if(is!=null) {
+		} finally {
+			if (is != null) {
 				try {
 					is.close();
 				} catch (IOException e) {
@@ -299,6 +327,7 @@ public class ObjectsTara {
 		}
 		return image;
 	}
+
 	public void setData(File file) {
 		try {
 			Path filePath = Paths.get(file.getAbsolutePath());
@@ -318,41 +347,51 @@ public class ObjectsTara {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
+
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int i) {
 		this.id = i;
 	}
+
 	public Blob getImg_data() {
 		return img_data;
 	}
+
 	public void setImg_data(Blob img_data) {
 		this.img_data = img_data;
 	}
+
 	public String getDescription() {
 		return description;
 	}
+
 	public void setDescription(String description) {
 		this.description = description;
 	}
+
 	public float getTara() {
 		return tara;
 	}
-	public String getStringTara(){
-		String realT = tara+"";
-		while((realT.length()-1-realT.indexOf("."))<3) {
+
+	public String getStringTara() {
+		String realT = tara + "";
+		while ((realT.length() - 1 - realT.indexOf(".")) < 3) {
 			realT += "0";
 		}
 		return realT;
 	}
+
 	public void setTara(float tara) {
 		this.tara = tara;
 	}

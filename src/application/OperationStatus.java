@@ -7,13 +7,13 @@ public enum OperationStatus {
     SUCCESS("успішно"),
     FAILURE("негативно");
 
-    private final String name;
+	private final String name;
 
     OperationStatus(String name) {
-        this.name = name;
-    }
+		this.name = name;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 }

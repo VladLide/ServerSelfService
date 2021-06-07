@@ -22,20 +22,22 @@ public class QRCode {
 	private String qrCodeText = "https://www.journaldev.com|chfhfhgjhgkj";
 	private int size = 80;
 	private Scales scale = null;
-	private ProductItem plu =null;
+	private ProductItem plu = null;
 	private MainWindowCtrl mainWindow = null;
 	private String cost = "";
-		
-	public QRCode(){}
-    public QRCode(Scales scale, ProductItem plu, MainWindowCtrl mainWindow, String cost) {
-    	super();
-    	this.scale = scale;
-    	this.mainWindow = mainWindow;
-    	this.plu = plu;
-    	this.cost = cost;
+
+	public QRCode() {}
+
+	public QRCode(Scales scale, ProductItem plu, MainWindowCtrl mainWindow, String cost) {
+		super();
+		this.scale = scale;
+		this.mainWindow = mainWindow;
+		this.plu = plu;
+		this.cost = cost;
 	}
-    public void setQRCodeText() {
-    	qrCodeText = "";
+
+	public void setQRCodeText() {
+		qrCodeText = "";
     	/*this.plu.getCodeObj().getItemCode().forEach((k,v)->{
     		String key = new TextBox().itemCode.get(this.plu.getCodeObj().getTypeInt())[this.plu.getCodeObj().getPlaceItem().get(k)][1];
     		switch(key) {
@@ -147,15 +149,17 @@ public class QRCode {
 		    	}
     		}
     	});*/
-    }
-    public String generateStandart(int n, String str, String copyStr) {
-    	String result = new String(str);
-    	while(result.length()<n) {
-    		result = copyStr + result;
-    	}
-    	return result;
-    }
-	public BufferedImage createQRImage() throws WriterException{
+	}
+
+	public String generateStandart(int n, String str, String copyStr) {
+		String result = new String(str);
+		while (result.length() < n) {
+			result = copyStr + result;
+		}
+		return result;
+	}
+
+	public BufferedImage createQRImage() throws WriterException {
 		// Create the ByteMatrix for the QR-Code that encodes the given String
 		Hashtable<EncodeHintType, Object> hintMap = new Hashtable<>();
 		hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
@@ -186,12 +190,15 @@ public class QRCode {
 	public String getQrCodeText() {
 		return qrCodeText;
 	}
+
 	public void setQrCodeText(String qrCodeText) {
 		this.qrCodeText = qrCodeText;
 	}
+
 	public int getSize() {
 		return size;
 	}
+
 	public void setSize(int size) {
 		this.size = size;
 	}

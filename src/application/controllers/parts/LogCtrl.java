@@ -73,16 +73,15 @@ public class LogCtrl {
 
 	public void setLog(String line) {
 		this.log.setText(getLog() + line + System.lineSeparator());
-
 		logger.info(line);
 	}
 
 	public void mouseClickedOnLogTitledPane(MouseEvent mouseEvent) {
 		MainWindowCtrl.updateHeightLogPane(
 				logTitledPane.isExpanded() ?
-						MainWindowCtrl.getHeightOfCenterSplitPane() / 2
-						:
-						minSize
+					MainWindowCtrl.getHeightOfCenterSplitPane() / 2
+				:
+					minSize
 		);
 	}
 }

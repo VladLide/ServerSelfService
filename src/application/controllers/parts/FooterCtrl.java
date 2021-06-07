@@ -22,60 +22,63 @@ public class FooterCtrl {
 	private AnchorPane footer;
 	private SendObjectInScale send;
 
-    @FXML
-    private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"),"part","Footer");
-    @FXML
-    private URL location = getClass().getResource(Utils.getView("part", "Footer"));
-    @FXML
-    private Label process;
-    @FXML
-    private ProgressBar progress;
-    @FXML
-    private Button stop;
-    
+	@FXML
+	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Footer");
+	@FXML
+	private URL location = getClass().getResource(Utils.getView("part", "Footer"));
+	@FXML
+	private Label process;
+	@FXML
+	private ProgressBar progress;
+	@FXML
+	private Button stop;
+
 	public FooterCtrl(AnchorPane anchorPane) {
 		try {
-            FXMLLoader loader = new FXMLLoader(location,resources);
-            loader.setController(this);
-            footer = MainCtrl.loadAnchorPane(anchorPane, loader);
-        } catch (IOException e) {
-        	footer = null;
-            MainWindowCtrl.setLog(e.getMessage());
-        }
-	}
-	public void loadFooter(AnchorPane anchorPane) {
-		if(footer!=null) {
-			anchorPane.getChildren().add(footer);
-		}else {
-			MainWindowCtrl.setLog(this.getClass().getName()+": error null fxml");
+			FXMLLoader loader = new FXMLLoader(location, resources);
+			loader.setController(this);
+			footer = MainCtrl.loadAnchorPane(anchorPane, loader);
+		} catch (IOException e) {
+			footer = null;
+			MainWindowCtrl.setLog(e.getMessage());
 		}
 	}
 
-    public void startTask(PackageSend pack) {
-        if (send != null && send.isRunning()) {
-        	send.cancel();
-        }
+	public void loadFooter(AnchorPane anchorPane) {
+		if (footer != null) {
+			anchorPane.getChildren().add(footer);
+		} else {
+			MainWindowCtrl.setLog(this.getClass().getName() + ": error null fxml");
+		}
+	}
 
-        send = new SendObjectInScale(pack);
-        Thread thread = new Thread(send);
-        thread.setDaemon(true);
-        thread.start();
+	public void startTask(PackageSend pack) {
+		if (send != null && send.isRunning()) {
+			send.cancel();
+		}
 
-        progress.progressProperty().bind(send.progressProperty());
-        process.textProperty().bind(send.messageProperty());
-        MainWindowCtrl.getContentCtrl().getSend().disableProperty().bind(send.runningProperty());
-        stop.disableProperty().bind(send.runningProperty().not());
-    }
+		send = new SendObjectInScale(pack);
+		Thread thread = new Thread(send);
+		thread.setDaemon(true);
+		thread.start();
 
-    public void stop() {
-    	send.runningProperty().not();
-    }
-    public void cancelTask(ActionEvent event) {
-        if (send != null) send.cancel();
-    }
-    
-    @FXML
-    void initialize() {
-    	stop.setOnAction(this::cancelTask);
-    }
+		progress.progressProperty().bind(send.progressProperty());
+		process.textProperty().bind(send.messageProperty());
+		MainWindowCtrl.getContentCtrl().getSend().disableProperty().bind(send.runningProperty());
+		stop.disableProperty().bind(send.runningProperty().not());
+	}
+
+	public void stop() {
+		send.runningProperty().not();
+	}
+
+	public void cancelTask(ActionEvent event) {
+		if (send != null)
+			send.cancel();
+	}
+
+	@FXML
+	void initialize() {
+		stop.setOnAction(this::cancelTask);
+	}
 }

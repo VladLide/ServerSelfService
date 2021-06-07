@@ -7,7 +7,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import application.controllers.pages.Admin;
 import application.models.net.mysql.MySQL;
 import application.models.net.mysql.tables.Goods;
 import application.models.net.mysql.tables.Scales;
@@ -15,26 +14,23 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public class RefreshConnect {
-	private Admin admin = null;
+public class RefreshSend {
 	private Timer refreshTimer = null;
-	private volatile ObservableList<ScaleInfo> scales = FXCollections.observableArrayList();
-	private MySQL db = new MySQL();
+	//private volatile ObservableList<ScaleItemMenu> scales = FXCollections.observableArrayList();
 
-    public RefreshConnect(Admin admin) {
+	public RefreshSend() {
 		super();
-		this.admin = admin;
-		this.db = admin.getDb();
-    	this.refreshTimer = new Timer();
+		this.refreshTimer = new Timer();
 	}
+
 	public void start() {
-		if(this.refreshTimer==null) {
+		if (this.refreshTimer == null) {
 			this.refreshTimer = new Timer();
 		}
-    	this.refreshTimer.schedule(new TimerTask() {
+    	/*this.refreshTimer.schedule(new TimerTask() {
 			@Override
             public void run() {
-				RefreshConnect.updateServer(scales,db);
+				RefreshSend.updateServer(scales,db);
 				scales.forEach(scale->{
 					try {
 						scale.getScale().getDb().getDBConnection().close();
@@ -61,14 +57,14 @@ public class RefreshConnect {
 					admin.loadInfoDBScales();
 				});
 			}
-    	},0,10000);
-    }
-	public static boolean updateServer(ObservableList<ScaleInfo> scales, MySQL db) {
+    	},0,10000);*/
+	}
+	/*public static boolean updateServer(ObservableList<ScaleInfo> scales, MySQL db) {
 		ObservableList<Goods> plu = Goods.getGoodsLoad(db);
 		if(plu.size()!=0) {
 			plu.forEach(value->{
 				int curId = value.getId();
-				Scales scale = RefreshConnect.get(scales,value.getId_scales());
+				Scales scale = RefreshSend.get(scales,value.getId_scales());
 				value.setId(0);
 				int id = 0;
 				if(scale!=null)if(scale.getDb().dbConnection!=null) {
@@ -84,7 +80,7 @@ public class RefreshConnect {
 						scale.save();
 						new ScalesServer(scale,db).save();
 					}
-				}*/
+				}/
 				if(id>0)value.del(curId,db);
 			});
 			return true;
@@ -99,17 +95,19 @@ public class RefreshConnect {
 			}
 		}
 		return null;
-	}
-    public void close() {
+	}*/
+	public void close() {
 		this.refreshTimer.cancel();
-    }
+	}
+
 	public Timer getRefreshTimer() {
 		return refreshTimer;
 	}
+
 	public void setRefreshTimer(Timer refreshTimer) {
 		this.refreshTimer = refreshTimer;
 	}
-	public ObservableList<ScaleInfo> getScaleInfo() {
+	/*public ObservableList<ScaleInfo> getScaleInfo() {
 		return scales;
 	}
 	public void setScales(ObservableList<ScaleInfo> scales) {
@@ -121,5 +119,5 @@ public class RefreshConnect {
 			scalesTemp.add(value.getScale());
 		}
 		return scalesTemp;
-	}
+	}*/
 }

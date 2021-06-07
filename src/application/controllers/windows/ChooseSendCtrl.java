@@ -22,14 +22,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class CheckSendCtrl {
+public class ChooseSendCtrl {
 	private Stage stage = new Stage();
 	private CurrentItemSendTo currentItemSendTo;
 
 	@FXML
-	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "CheckSend");
+	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "ChooseSend");
 	@FXML
-	private URL location = getClass().getResource(Utils.getView("window", "CheckSend"));
+	private URL location = getClass().getResource(Utils.getView("window", "ChooseSend"));
 	@FXML
 	private TableView<ItemContent> table;
 	@FXML
@@ -37,11 +37,11 @@ public class CheckSendCtrl {
 	@FXML
 	private Button send;
 
-	public CheckSendCtrl(CurrentItemSendTo currentItemSendTo) {
+	public ChooseSendCtrl(CurrentItemSendTo currentItemSendTo) {
 		this.stage.initModality(Modality.WINDOW_MODAL);
 		this.stage.initOwner(MainWindowCtrl.getMainStage());
 		this.currentItemSendTo = currentItemSendTo;
-
+		
 		try {
 			FXMLLoader loader = new FXMLLoader(location, resources);
 			loader.setController(this);
@@ -61,12 +61,7 @@ public class CheckSendCtrl {
 	}
 
 	public void loadTable() {
-		table.getColumns()
-				.addAll(MainWindowCtrl
-						.getContentCtrl()
-						.loadTable(ContentInfo
-								.getInstance()
-								.columnsContent.get("send")));
+		table.getColumns().addAll(MainWindowCtrl.getContentCtrl().loadTable(ContentInfo.getInstance().columnsContent.get("send")));
 		LoadInfo();
 	}
 
@@ -100,15 +95,15 @@ public class CheckSendCtrl {
 		send.setOnAction(event -> {
 			ObservableList<ScaleItemMenu> arr = FXCollections.observableArrayList();
 			table.getItems().forEach(v -> {
-				if (v.getCheckBox().isSelected())
+				if (v.isSelected())
 					arr.add((ScaleItemMenu) v.getObject());
 			});
 			MainWindowCtrl.getContentCtrl().getPack().setConnectSend(arr);
 			close();
 		});
 		checkAll.setOnAction(event ->
-				table.getItems().forEach(v ->
-						v.setCheckBox(checkAll.isSelected())));
+			table.getItems().forEach(v ->v.setCheckBox(checkAll.isSelected()))
+		);
 	}
 
 	public Stage getStage() {

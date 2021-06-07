@@ -25,7 +25,7 @@ public class Scales {
 	private LocalDateTime date_update = LocalDateTime.parse("2000-01-01T00:00:00");
 	private String data = null;
 	private Map<String, String> config = new HashMap<String, String>();
-	//private static Scales inst;
+	// private static Scales inst;
 
 	public Scales() {
 		super();
@@ -41,41 +41,42 @@ public class Scales {
 
 	public Scales(ResultSet res) {
 		super();
-		//inst = this;
 		for (Field f : getClass().getDeclaredFields()) {
 			try {
-				if (f.getName() == "inst") continue;
+				if (f.getName() == "inst")
+					continue;
 				String type = f.getType().getTypeName().replace(".", " ");
 				if (type.split(" ").length > 0) {
 					String[] typ = type.split(" ");
 					type = typ[typ.length - 1];
 				}
 				switch (type) {
-					case "int":
-						f.set(this, res.getInt(res.findColumn(f.getName())));
-						break;
-					case "float":
-						f.set(this, res.getFloat(res.findColumn(f.getName())));
-						break;
-					case "double":
-						f.set(this, res.getDouble(res.findColumn(f.getName())));
-						break;
-					case "String":
-						f.set(this, res.getString(res.findColumn(f.getName())));
-						break;
-					case "LocalDateTime": {
-						Timestamp time = res.getTimestamp(res.findColumn(f.getName()));
-						f.set(this, time.toLocalDateTime());
-						break;
-					}
-					case "Blob":
-						f.set(this, res.getBlob(res.findColumn(f.getName())));
-						break;
-					case "Map":
-						this.readConfigFile();
-						break;
-					default:
-						System.out.println(getTable() + " - create: type was not found '" + f.getName() + "' : '" + f.getType() + "'");
+				case "int":
+					f.set(this, res.getInt(res.findColumn(f.getName())));
+					break;
+				case "float":
+					f.set(this, res.getFloat(res.findColumn(f.getName())));
+					break;
+				case "double":
+					f.set(this, res.getDouble(res.findColumn(f.getName())));
+					break;
+				case "String":
+					f.set(this, res.getString(res.findColumn(f.getName())));
+					break;
+				case "LocalDateTime": {
+					Timestamp time = res.getTimestamp(res.findColumn(f.getName()));
+					f.set(this, time.toLocalDateTime());
+					break;
+				}
+				case "Blob":
+					f.set(this, res.getBlob(res.findColumn(f.getName())));
+					break;
+				case "Map":
+					this.readConfigFile();
+					break;
+				default:
+					System.out.println(
+							getTable() + " - create: type was not found '" + f.getName() + "' : '" + f.getType() + "'");
 				}
 			} catch (Exception e) {
 				System.out.println(getTable() + ": " + e.getMessage());
@@ -83,12 +84,6 @@ public class Scales {
 		}
 	}
 
-	/*public static Scales init() {
-		if(inst==null) {
-			inst = new Scales();
-		}
-		return inst;
-	}*/
 	public static String getTable() {
 		return "scales";
 	}
@@ -99,8 +94,9 @@ public class Scales {
 		List<String> fields = new ArrayList<String>();
 		try {
 			for (Field f : me.getClass().getDeclaredFields()) {
-				if (f.getName() == "inst" || f.getName() == "config" || f.getName() == "db") continue;
-				//System.out.println(table+"."+f.getName());
+				if (f.getName() == "inst" || f.getName() == "config" || f.getName() == "db")
+					continue;
+				// System.out.println(table+"."+f.getName());
 				fields.add(table + "." + f.getName());
 
 			}
@@ -116,34 +112,36 @@ public class Scales {
 		int i = 0;
 		for (Field f : me.getClass().getDeclaredFields()) {
 			try {
-				if (f.getName() == "inst" || f.getName() == "config" || f.getName() == "db") continue;
+				if (f.getName() == "inst" || f.getName() == "config" || f.getName() == "db")
+					continue;
 				String type = f.getType().getTypeName().replace(".", " ");
 				if (type.split(" ").length > 0) {
 					String[] typ = type.split(" ");
 					type = typ[typ.length - 1];
 				}
 				switch (type) {
-					case "int":
-						values[i++] = new PackingDBValue(f.getName(), "I", (Object) f.get(me));
-						break;
-					case "float":
-						values[i++] = new PackingDBValue(f.getName(), "F", (Object) f.get(me));
-						break;
-					case "double":
-						values[i++] = new PackingDBValue(f.getName(), "D", (Object) f.get(me));
-						break;
-					case "String":
-						values[i++] = new PackingDBValue(f.getName(), "S", (Object) f.get(me));
-						break;
-					case "Blob":
-						values[i++] = new PackingDBValue(f.getName(), "B", (Object) f.get(me));
-						break;
-					case "LocalDateTime": {
-						values[i++] = new PackingDBValue(f.getName(), "DT", (Object) f.get(me));
-						break;
-					}
-					default:
-						System.out.println(getTable() + " - value: type was not found '" + f.getName() + "' : '" + f.getType() + "'");
+				case "int":
+					values[i++] = new PackingDBValue(f.getName(), "I", (Object) f.get(me));
+					break;
+				case "float":
+					values[i++] = new PackingDBValue(f.getName(), "F", (Object) f.get(me));
+					break;
+				case "double":
+					values[i++] = new PackingDBValue(f.getName(), "D", (Object) f.get(me));
+					break;
+				case "String":
+					values[i++] = new PackingDBValue(f.getName(), "S", (Object) f.get(me));
+					break;
+				case "Blob":
+					values[i++] = new PackingDBValue(f.getName(), "B", (Object) f.get(me));
+					break;
+				case "LocalDateTime": {
+					values[i++] = new PackingDBValue(f.getName(), "DT", (Object) f.get(me));
+					break;
+				}
+				default:
+					System.out.println(
+							getTable() + " - value: type was not found '" + f.getName() + "' : '" + f.getType() + "'");
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -192,50 +190,6 @@ public class Scales {
 		return row;
 	}
 
-	/*public static Scales getWithIp(Scales scale) {
-		//DBHandler db = new DBHandler(scale.getIp_address(),1);
-    	ResultSet resul = scale.getDb().getSelect(init().getSql(0));
-    	Scales row = null;
-    	try {
-			while(resul.next()) {
-				row = new Scales(resul);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return row;
-	}
-	public static ObservableList<Scales> get(DBHandler db) {
-    	ResultSet resul = db.getSelect(init().getSql(0));
-    	ObservableList<Scales> row = FXCollections.observableArrayList();
-    	try {
-			while(resul.next()) {
-				row.add(new Scales(resul));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return row;
-	}
-	public static Scales getIp(String ip_address) {
-		Scales res = new Scales(ip_address);
-		if(res.getDb().dbConnection!=null) {
-			return res.get(0);
-		}
-		return res;
-	}
-	public Scales get(String name) {
-    	ResultSet resul = db.getSelect(this.getSql(name));
-    	Scales row = null;
-    	try {
-			while(resul.next()) {
-				row = new Scales(resul);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return row;
-	}*/
 	public static boolean check(Scales scale, MySQL db) {
 		ResultSet resul = db.getSelect(Scales.getSql(scale.getId(), ""));
 		try {
@@ -255,7 +209,8 @@ public class Scales {
 		Scales me = this;
 		String table = getTable();
 		if (Scales.check(me, db)) {
-			db.update(table, me.getFields().toArray(new String[0]), me.getValues(), new String[]{table + ".id =" + me.getId()});
+			db.update(table, me.getFields().toArray(new String[0]), me.getValues(),
+					new String[] { table + ".id =" + me.getId() });
 		} else {
 			db.deleteAll(table);
 			db.insert(table, me.getFields().toArray(new String[0]), me.getValues());
@@ -267,10 +222,13 @@ public class Scales {
 	public boolean updateId(int id, MySQL db) {
 		Scales me = this;
 		String table = getTable();
-		db.update(table, new String[]{(table + ".id")}, PackingDBValue.get(new String[]{int.class.getTypeName()}, new Object[]{id}), new String[]{table + ".id = " + me.getId()});
+		db.update(table, new String[] { (table + ".id") },
+				PackingDBValue.get(new String[] { int.class.getTypeName() }, new Object[] { id }),
+				new String[] { table + ".id = " + me.getId() });
 		int oldId = me.getId();
 		this.setId(id);
-		if (Scales.check(me, db)) return true;
+		if (Scales.check(me, db))
+			return true;
 		else {
 			this.setId(oldId);
 			return false;
@@ -289,7 +247,8 @@ public class Scales {
 	public void readConfigFile() {
 		String[] nextLine = {};
 		if (this.data != null) {
-			if (this.data.length() > 0) nextLine = this.data.split("\r");
+			if (this.data.length() > 0)
+				nextLine = this.data.split("\r");
 		}
 		if (TextBox.options.length > nextLine.length + 2) {
 			for (int i = 2; i < TextBox.options.length; i++)
@@ -309,25 +268,6 @@ public class Scales {
 		});
 	}
 
-	/*public void setDataFile(File file) {
-		try {
-			Path filePath = Paths.get(file.getAbsolutePath());
-			byte[] fileContent = Files.readAllBytes(filePath);
-			this.data = new SerialBlob(fileContent);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SerialException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}*/
 	public boolean getBoolean(String key) {
 		try {
 			return Integer.parseInt(this.config.get(key)) > 0;

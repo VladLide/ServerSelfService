@@ -20,9 +20,11 @@ public class NodeTree {
 	private int level;
 	private Object object;
 	private NodeTree upObject;
-	
-    @Override
-    public String toString()  {return name;}
+
+	@Override
+	public String toString() {
+		return name;
+	}
 
 	public NodeTree(String name, String type, int level, Object object) {
 		super();
@@ -32,6 +34,7 @@ public class NodeTree {
 		this.upObject = null;
 		this.setStatus(type);
 	}
+
 	public NodeTree(String name, String type, int level, Object object, NodeTree upObject) {
 		super();
 		this.name = name;
@@ -40,6 +43,7 @@ public class NodeTree {
 		this.upObject = upObject;
 		this.setStatus(type);
 	}
+
 	public NodeTree(int id, String name, String type, int level, Object object, NodeTree upObject) {
 		super();
 		this.id = id;
@@ -63,15 +67,17 @@ public class NodeTree {
 				status.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
 				break;
 			case "Sections":
-				status.setBackground(new Background(new BackgroundImage(((Sections)object).getImage(status), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, 
-						BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
+				status.setBackground(new Background(new BackgroundImage(((Sections) object).getImage(status),
+						BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
+						new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(), true,
+								false, true, false))));
 				break;
 			default:
-				status=null;
+				status = null;
 				break;
 			}
-		}catch (Exception e) {
-			status=null;
+		} catch (Exception e) {
+			status = null;
 		}
 	}
 
@@ -97,8 +103,9 @@ public class NodeTree {
 
 	public String getTypeObj() {
 		String[] type = object.getClass().getTypeName().replace(".", " ").split(" ");
-		return type[type.length-1];
+		return type[type.length - 1];
 	}
+
 	public void setType(String type) {
 		this.type = type;
 	}

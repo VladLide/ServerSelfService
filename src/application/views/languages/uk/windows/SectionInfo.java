@@ -10,20 +10,22 @@ public class SectionInfo {
 	public static SectionInfo inst = null;
 	public static String root = "Категорії";
 	public Map<String, ObservableList<String[]>> columns = new HashMap<String, ObservableList<String[]>>();
-	
+
 	public SectionInfo() {
 		super();
-		columns.put("sections", FXCollections.observableArrayList(new String[] {"Integer","Номер","id"}, new String[] {"String","Назва","name"}));
+		columns.put("sections", FXCollections.observableArrayList(new String[] { "Integer", "Номер", "id" },
+				new String[] { "String", "Назва", "name" }));
 	}
-	
+
 	public static SectionInfo getInstance() {
-		if(inst==null) {
+		if (inst == null) {
 			inst = new SectionInfo();
 		}
 		return inst;
 	}
+
 	public static ObservableList<String[]> getColumns(String key) {
 		return getInstance().columns.get(key);
 	}
-	
+
 }

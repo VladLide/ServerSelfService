@@ -98,18 +98,19 @@ public class SidebarCtrl {
 							root.getValue()));
 			main.setExpanded(true);
 			switch (mainNode[0]) {
-				case "scales": {
-					if (!scales.isEmpty()) {
+			case "scales": {
+				if (!scales.isEmpty()) {
 						scales.forEach(scale -> {
 							TreeItem<NodeTree> scaleNode = new TreeItem<>(
-									new NodeTree(
-											scale.getName() + "-" + scale.getId(),
-											"ScaleInfo",
-											2,
-											scale,
-											main.getValue()),
-									scale.getImg()
-							);
+								new NodeTree(
+										scale.getName() + "-" + scale.getId(),
+										"ScaleInfo",
+										2,
+										scale,
+										main.getValue()
+								),
+								scale.getImg()
+						);
 							SidebarInfo.menuScale.forEach(value -> {
 								TreeItem<NodeTree> node = new TreeItem<>(
 										new NodeTree(
@@ -118,14 +119,14 @@ public class SidebarCtrl {
 												3,
 												value[0],
 												scaleNode.getValue()));
-								scaleNode.getChildren().add(node);
-							});
-							main.getChildren().add(scaleNode);
+							scaleNode.getChildren().add(node);
 						});
-					}
-					break;
+						main.getChildren().add(scaleNode);
+					});
 				}
-				case "editors": {
+				break;
+			}
+			case "editors": {
 					SidebarInfo.menuEditors.forEach(value -> {
 						TreeItem<NodeTree> node = new TreeItem<>(
 								new NodeTree(
@@ -134,10 +135,10 @@ public class SidebarCtrl {
 										2,
 										value[0],
 										main.getValue()));
-						main.getChildren().add(node);
-					});
-					break;
-				}
+					main.getChildren().add(node);
+				});
+				break;
+			}
 				default:
 					throw new IllegalArgumentException("Wrong menu item");
 			}
@@ -157,9 +158,10 @@ public class SidebarCtrl {
 						"ScaleInfo",
 						2,
 						scale),
-				scale.getImg());
-		SidebarInfo.menuScale.forEach(value -> {
-			TreeItem<NodeTree> node = new TreeItem<>(new NodeTree(value[1], "String", 3, value[0]));
+				scale.getImg()
+		);
+		SidebarInfo.menuScale.forEach((value) -> {
+			TreeItem<NodeTree> node = new TreeItem<NodeTree>(new NodeTree(value[1], "String", 3, value[0]));
 			scaleNode.getChildren().add(node);
 		});
 		main.getChildren().add(scaleNode);
@@ -174,16 +176,23 @@ public class SidebarCtrl {
 
 	public void openItemTree(NodeTree node) {
 		switch (node.getLevel()) {
-			case 1: {
-				break;
-			}
-			case 2:
-			case 3: {
-				MainWindowCtrl.getContentCtrl().showTableRedactorData(node);
-				break;
-			}
-			default:
-				break;
+		case 1: {
+			//openTableScales();
+			break;
+		}
+		case 2:{
+			//openTableInfoScale();
+			//openTableRedactorDataServer
+			MainWindowCtrl.getContentCtrl().showTableRedactorData(node);
+			break;
+		}
+		case 3: {
+			MainWindowCtrl.getContentCtrl().showTableRedactorData(node);
+			//openTableRedactorDataScales();
+			break;
+		}
+		default:
+			break;
 		}
 	}
 
@@ -208,6 +217,7 @@ public class SidebarCtrl {
 				}
 
 				openItemTree(node.getValue());
+        		String path = node.getValue().getName().toUpperCase();
 				node = node.getParent();
 
 				StringBuilder builder = new StringBuilder();
@@ -228,6 +238,10 @@ public class SidebarCtrl {
 				createCM.setDisable(node.getType().compareToIgnoreCase("scales") != 0);
 				editCM.setDisable(true);
 				deleteCM.setDisable(true);
+				/*
+				 * if(node.getType().compareToIgnoreCase("scales")!=0) {
+				 * sidebarContextMenu.hide(); }
+				 */
 			} else {
 				createCM.setDisable(false);
 				editCM.setDisable(false);
@@ -252,6 +266,7 @@ public class SidebarCtrl {
 		});
 		deleteCM.setOnAction(event -> {
 			TreeItem<NodeTree> item = menu.getSelectionModel().getSelectedItem();
+        	//item.getChildren().clear();
 			ScaleItemMenu scaleInfo = (ScaleItemMenu) item.getValue().getObject();
 			scaleInfo.setSaveToConnect(false);
 			if (scaleInfo.getScaleServer().getUpdate() >= 0) {

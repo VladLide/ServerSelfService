@@ -1,4 +1,4 @@
-package application.models;
+package application.models.objectinfo;
 
 public class Info2Col {
 	private String name;
