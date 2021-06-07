@@ -1,5 +1,6 @@
 package application.controllers.parts;
 
+import application.Marquee;
 import application.ScaleStatus;
 import application.controllers.MainCtrl;
 import application.controllers.windows.MainWindowCtrl;
@@ -16,6 +17,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URL;
@@ -27,6 +30,9 @@ public class SidebarCtrl {
 	private AnchorPane sidebar;
 	private NodeTree tempEdit = null;
 	private static SidebarCtrl sidebarCtrl;
+	private final Logger logger = LogManager.getLogger(SidebarCtrl.class);
+	private Marquee marquee;
+	private Thread labelThread;
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Sidebar");
@@ -41,7 +47,9 @@ public class SidebarCtrl {
 	@FXML
 	private AnchorPane filterPane;
 	@FXML
-	private Label status;
+	private AnchorPane status;
+	@FXML
+	private Label label;
 	@FXML
 	private MenuItem createCM;
 	@FXML
@@ -81,7 +89,13 @@ public class SidebarCtrl {
 		TreeItem<NodeTree> root = new TreeItem<>(new NodeTree(SidebarInfo.root, "root", 0, "root"));
 		root.setExpanded(true);
 		SidebarInfo.menu.forEach(mainNode -> {
-			TreeItem<NodeTree> main = new TreeItem<>(new NodeTree(mainNode[1], mainNode[0], 1, mainNode[0], root.getValue()));
+			TreeItem<NodeTree> main = new TreeItem<>(
+					new NodeTree(
+							mainNode[1],
+							mainNode[0],
+							1,
+							mainNode[0],
+							root.getValue()));
 			main.setExpanded(true);
 			switch (mainNode[0]) {
 				case "scales": {
@@ -113,37 +127,26 @@ public class SidebarCtrl {
 				}
 				case "editors": {
 					SidebarInfo.menuEditors.forEach(value -> {
-						TreeItem<NodeTree> node = new TreeItem<>(new NodeTree(value[1], value[0], 2, value[0], main.getValue()));
+						TreeItem<NodeTree> node = new TreeItem<>(
+								new NodeTree(
+										value[1],
+										value[0],
+										2,
+										value[0],
+										main.getValue()));
 						main.getChildren().add(node);
 					});
 					break;
 				}
+				default:
+					throw new IllegalArgumentException("Wrong menu item");
 			}
 			root.getChildren().add(main);
 		});
 		menu.setRoot(root);
 		menu.setShowRoot(false);
 
-		//update status line
-		int numberOfScales = root.getChildren().get(0).getChildren().size();
-		long numberOfOnlineScales = scales
-				.stream()
-				.filter(scale ->
-						ScaleStatus
-								.PRODUCTS_AT_DATABASE_ARE_UP_TO_DATE
-								.equals(scale.getStatus()))
-				.count();
-		long numberOfOfflineScales = scales
-				.stream()
-				.filter(scale ->
-						ScaleStatus
-								.NO_CONNECTION
-								.equals(scale.getStatus()))
-				.count();
-		setStatus(String.format("%d scale(s), %d online, %d offline",
-				numberOfScales,
-				numberOfOnlineScales,
-				numberOfOfflineScales));
+		setStatusToDefaultValue(scales);
 	}
 
 	public void addItemMenu(ScaleItemMenu scale) {
@@ -172,18 +175,11 @@ public class SidebarCtrl {
 	public void openItemTree(NodeTree node) {
 		switch (node.getLevel()) {
 			case 1: {
-				//openTableScales();
 				break;
 			}
-			case 2: {
-				//openTableInfoScale();
-				//openTableRedactorDataServer
-				MainWindowCtrl.getContentCtrl().showTableRedactorData(node);
-				break;
-			}
+			case 2:
 			case 3: {
 				MainWindowCtrl.getContentCtrl().showTableRedactorData(node);
-				//openTableRedactorDataScales();
 				break;
 			}
 			default:
@@ -201,14 +197,29 @@ public class SidebarCtrl {
 		menu.setOnMouseReleased(event -> {
 			TreeItem<NodeTree> node = menu.getSelectionModel().getSelectedItem();
 			if (node != null) {
+				if (node.getValue().getObject().getClass().equals(ScaleItemMenu.class)) {
+					setStatusToScaleStatus(node);
+				} else if (node.getValue().getObject()
+						.equals(SidebarInfo.menu.get(0)[0])) {
+					setStatusToDefaultValue(MainCtrl.getScales());
+				} else if (node.getValue().getLevel() == 3) {
+					TreeItem<NodeTree> parent = node.getParent();
+					setStatusToScaleStatus(parent);
+				}
+
 				openItemTree(node.getValue());
-				String path = node.getValue().getName().toUpperCase();
 				node = node.getParent();
+
+				StringBuilder builder = new StringBuilder();
+				builder.append(node.getValue().getName().toUpperCase());
+
 				while (node.getValue().getLevel() != 0) {
-					path = node.getValue().getName().toUpperCase() + " > " + path;
+					builder.insert(0, " > ")
+							.insert(0, node.getValue().getName().toUpperCase());
+
 					node = node.getParent();
 				}
-				MainWindowCtrl.setURL(path);
+				MainWindowCtrl.setURL(builder.toString());
 			}
 		});
 		menu.setOnContextMenuRequested(event -> {
@@ -247,7 +258,7 @@ public class SidebarCtrl {
 				try {
 					scaleInfo.getDB().getDBConnection().close();
 				} catch (SQLException e) {
-					System.out.println("Delete scale >> DB close: " + e.getMessage());
+					logger.error("Delete scale >> DB close", e);
 				}
 			}
 			MainCtrl.getDB().delete("goods_load", "id_scales = " + scaleInfo.getScaleServer().getId());
@@ -262,10 +273,87 @@ public class SidebarCtrl {
 	}
 
 	public void setStatus(String string) {
-		Platform.runLater(() -> status.setText(string));
+		if (labelThread != null) labelThread.interrupt();
+		labelThread = new Thread(() -> {
+			try {
+				Platform.runLater(() -> {
+					label.setText(string);
+					if (marquee != null) marquee.stop();
+				});
+				label.setVisible(true);
+				Thread.sleep(5000);
+				label.setVisible(false);
+
+				Platform.runLater(() -> {
+					marquee = new Marquee(string);
+					marquee.setColor("black");
+					marquee.setStyle("-fx-font: 12 arial;");
+					marquee.setBoundsFrom(status);
+					marquee.moveDownBy(-7);
+					marquee.setScrollDuration(18);
+
+					status.getChildren().add(marquee);
+					marquee.run();
+				});
+
+			} catch (InterruptedException e) {
+				Platform.runLater(() -> {
+					if (marquee != null)
+						marquee.stop();
+				});
+			}
+		});
+		labelThread.start();
+
 	}
 
 	public static SidebarCtrl getInstance() {
 		return sidebarCtrl;
+	}
+
+	/**
+	 * Method will count number of scales overall, number of online scales and number of
+	 * offline scales and output it using setStatus in such way
+	 * "numberOfScales scale(s), numberOfOnlineScales online, numberOfOfflineScales offline"
+	 *
+	 * @param scales list which contains scales
+	 */
+	private void setStatusToDefaultValue(ObservableList<ScaleItemMenu> scales) {
+		//update status line
+		int numberOfScales = scales.size();
+		long numberOfOnlineScales = scales
+				.stream()
+				.filter(scale ->
+						ScaleStatus
+								.PRODUCTS_AT_DATABASE_ARE_UP_TO_DATE
+								.equals(scale.getStatus()))
+				.count();
+		long numberOfOfflineScales = scales
+				.stream()
+				.filter(scale ->
+						ScaleStatus
+								.NO_CONNECTION
+								.equals(scale.getStatus()))
+				.count();
+		setStatus(String.format("%d scale(s), %d online, %d offline",
+				numberOfScales,
+				numberOfOnlineScales,
+				numberOfOfflineScales));
+	}
+
+	/**
+	 * Method will data from node and output it in such way
+	 * "scaleName-scaleId - scaleStatus"
+	 *
+	 * @param node treeItem with node which contains ScaleItemMenu object
+	 */
+	private void setStatusToScaleStatus(TreeItem<NodeTree> node) {
+		ScaleItemMenu scale = (ScaleItemMenu) node.getValue().getObject();
+		setStatus(String.format(
+				"%s-%d - %s",
+				scale.getName(),
+				scale.getId(),
+				scale.getStatus().getMessage()
+		));
 	}
 }
