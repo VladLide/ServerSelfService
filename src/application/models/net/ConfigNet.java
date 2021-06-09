@@ -31,14 +31,25 @@ public class ConfigNet {
 				try {
 					if (f.getName() == "table")
 						continue;
-					f.set(this,
-							(id > 0) ? res.getObject(res.findColumn(f.getName())) : Configs.getItemObj(f.getName()));
+					String type = f.getType().getTypeName().replace(".", " ");
+					if(type.split(" ").length>0) {
+						String[] typ = type.split(" ");
+						type = typ[typ.length-1];
+					}
+					switch(type) {
+						case "Integer":
+							f.set(this,(id > 0) ? res.getInt(res.findColumn(f.getName())) : Configs.getItemInt(f.getName()));
+						break;
+						case "String":
+							f.set(this,(id > 0) ? res.getString(res.findColumn(f.getName())) : Configs.getItemObj(f.getName()));
+						break;
+						default:
+							System.out.println(table+": type was not found " + f.getName()+":"+f.getType());
+					}
 				} catch (Exception e) {
-					System.out.println(table + ": " + e.getMessage());
+					System.out.println(table+": "+e.getMessage());
 				}
 			}
-			if (res != null)
-				res.close();
 		}
 	}
 

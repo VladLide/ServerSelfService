@@ -23,7 +23,6 @@ import javafx.scene.control.Alert.AlertType;
 
 public class MySQL {
 	public Connection dbConnection = null;
-	private Statement statement = null;
 	private ConfigNet config = null;
 	private static final String SQL_INSERT = "INSERT INTO ${table}(${keys}) VALUES(${values})";
 	private static final String SQL_UPDATE = "UPDATE ${table} SET ${values}";
@@ -76,7 +75,6 @@ public class MySQL {
 			config = new ConfigNet(id);
 			getDBConnection().close();
 			dbConnection = null;
-			statement = null;
 			getDBConnection();
 		} catch (SQLException e) {
 		}
@@ -87,10 +85,7 @@ public class MySQL {
 	}
 
 	public Statement getStatement() throws SQLException {
-		if (statement == null) {
-			statement = getDBConnection().createStatement();
-		}
-		return statement;
+		return getDBConnection().createStatement();
 	}
 
 	public static String Query(String tableName, String[] columns, String type) {

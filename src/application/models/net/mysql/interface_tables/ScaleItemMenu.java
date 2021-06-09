@@ -29,7 +29,6 @@ public class ScaleItemMenu {
 	private String name = "";
 	private LocalDateTime date_update = LocalDateTime.now();
 	private ImageView img = new ImageView();
-	private Scales scaleServer = null;
 	private Scales scale = null;
 	private Timer connect = new Timer();
 	private MySQL db = null;
@@ -46,7 +45,7 @@ public class ScaleItemMenu {
 		super();
 		this.id = scale.getId();
 		this.name = scale.getName();
-		this.scaleServer = scale;
+		this.scale = scale;
 		img.setFitWidth(30);
 		img.setFitHeight(15);
 		img.setImage(status(scale.getUpdate(), 0));
@@ -70,8 +69,8 @@ public class ScaleItemMenu {
 
 	private Image status(int statusServer, int statusScale) {
 		Color color = null;
-		scaleServer.setUpdate((statusServer == 0 && statusScale == 2) ? statusScale : statusServer);
-		switch (scaleServer.getUpdate()) {
+		scale.setUpdate((statusServer == 0 && statusScale == 2) ? statusScale : statusServer);
+		switch (scale.getUpdate()) {
 		case -3: {
 			color = Color.BLACK; // Не вірно введений адрес вагів
 				this.status = ScaleStatus.INCORRECT_SCALE_ADDRESS;
@@ -106,49 +105,49 @@ public class ScaleItemMenu {
 			color = Color.BLACK;
 		}
 		}
-		return (new Rectangle(img.getFitWidth(),img.getFitHeight(),color)).snapshot(null, null);
+		return (new Rectangle(img.getFitWidth(), img.getFitHeight(), color)).snapshot(null, null);
 	}
 
 	public void connect() {
-		if (!scaleServer.getIp_address().matches("([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})")
-				|| scaleServer.getIp_address().matches("(localhost)|(127\\.0\\.0\\.1)")
-				|| scaleServer.getIp_address().length() < 7) {
-			scaleServer.setUpdate(-3);
-			img.setImage(status(scaleServer.getUpdate(), 0));
+		if (!scale.getIp_address().matches("([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})")
+				|| scale.getIp_address().matches("(localhost)|(127\\.0\\.0\\.1)")
+				|| scale.getIp_address().length() < 7) {
+			scale.setUpdate(-3);
+			img.setImage(status(scale.getUpdate(), 0));
 		} else {
-			scaleServer.setUpdate(-2);
+			scale.setUpdate(-2);
 		}
-		if (scaleServer.getUpdate() != -3) {
+		if (scale.getUpdate() != -3) {
 			connect.schedule(new TimerTask() {
 				@Override
 				public void run() {
 					try {
 						if (isConnectionDB()) {
-							if (Goods.getCountGoodsLoad(scaleServer.getId(), MainCtrl.getDB()) > 0) {
-								scaleServer.setUpdate(1);
+							if (Goods.getCountGoodsLoad(scale.getId(), MainCtrl.getDB()) > 0) {
+								scale.setUpdate(1);
 							} else {
-								if (Goods.getCountGoods(scaleServer.getId(), getDB()) < 1) {
-									scaleServer.setUpdate(2);
+								if (Goods.getCountGoods(0, getDB()) < 1) {
+									scale.setUpdate(2);
 								} else {
-									scaleServer.setUpdate(0);
+									scale.setUpdate(0);
 								}
 							}
 						} else {
-							if (Goods.getCountGoodsLoad(scaleServer.getId(), MainCtrl.getDB()) > 0) {
-								scaleServer.setUpdate(-1);
+							if (Goods.getCountGoodsLoad(scale.getId(), MainCtrl.getDB()) > 0) {
+								scale.setUpdate(-1);
 							} else {
-								scaleServer.setUpdate(-2);
+								scale.setUpdate(-2);
 							}
 						}
 					} catch (SQLException e) {
 						System.out.println("ScaleInfo: error " + e.getMessage());
-						scaleServer.setUpdate(-2);
+						scale.setUpdate(-2);
 					} finally {
 						Platform.runLater(() -> {
-							img.setImage(status(scaleServer.getUpdate(), /* getScale().getUpdate() */0));
+							img.setImage(status(scale.getUpdate(), /* getScale().getUpdate() */0));
 						});
 						if (saveToConnect.get())
-							scaleServer.save(MainCtrl.getDB());
+							scale.save(MainCtrl.getDB());
 					}
 					if (!MainWindowCtrl.existInstance())
 						connect.cancel();
@@ -163,10 +162,10 @@ public class ScaleItemMenu {
 		return sql;
 	}
 
-	public void setScaleServer(Scales scale) {
+	public void setScale(Scales scale) {
 		this.id = scale.getId();
 		this.name = scale.getName();
-		this.scaleServer = scale;
+		this.scale = scale;
 		img.setImage(status(scale.getUpdate(), 0));
 		this.date_update = scale.getDate_update();
 		getDB().setConfig(scale.getId());
@@ -189,17 +188,6 @@ public class ScaleItemMenu {
 		this.date_update = date_update;
 	}
 
-	public Scales getScale() {
-		if (scale == null) {
-			this.scale = Scales.get(scaleServer.getId(), "", db);
-		}
-		return this.scale;
-	}
-
-	public void updataScale() {
-		this.scale = Scales.get(scaleServer.getId(), "", db);
-	}
-
 	public int getId() {
 		return id;
 	}
@@ -210,7 +198,7 @@ public class ScaleItemMenu {
 
 	public MySQL getDB() {
 		if (db == null) {
-			this.db = new MySQL(scaleServer.getId());
+			this.db = new MySQL(scale.getId());
 		}
 		return db;
 	}
@@ -235,8 +223,8 @@ public class ScaleItemMenu {
 		return connect;
 	}
 
-	public Scales getScaleServer() {
-		return scaleServer;
+	public Scales getScale() {
+		return scale;
 	}
 
 	public void setSaveToConnect(boolean value) {

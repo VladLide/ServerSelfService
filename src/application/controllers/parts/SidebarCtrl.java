@@ -100,8 +100,8 @@ public class SidebarCtrl {
 			switch (mainNode[0]) {
 			case "scales": {
 				if (!scales.isEmpty()) {
-						scales.forEach(scale -> {
-							TreeItem<NodeTree> scaleNode = new TreeItem<>(
+					scales.forEach(scale -> {
+						TreeItem<NodeTree> scaleNode = new TreeItem<>(
 								new NodeTree(
 										scale.getName() + "-" + scale.getId(),
 										"ScaleInfo",
@@ -111,14 +111,16 @@ public class SidebarCtrl {
 								),
 								scale.getImg()
 						);
-							SidebarInfo.menuScale.forEach(value -> {
+						SidebarInfo.menuScale.forEach(value -> {
 								TreeItem<NodeTree> node = new TreeItem<>(
 										new NodeTree(
 												value[1],
 												value[0],
 												3,
 												value[0],
-												scaleNode.getValue()));
+												scaleNode.getValue()
+										)
+								);
 							scaleNode.getChildren().add(node);
 						});
 						main.getChildren().add(scaleNode);
@@ -170,7 +172,7 @@ public class SidebarCtrl {
 
 	public void updateItemMenu(Scales scale) {
 		tempEdit.setName(scale.getName() + "-" + scale.getId());
-		((ScaleItemMenu) tempEdit.getObject()).setScaleServer(scale);
+		((ScaleItemMenu) tempEdit.getObject()).setScale(scale);
 		menu.refresh();
 	}
 
@@ -180,7 +182,7 @@ public class SidebarCtrl {
 			//openTableScales();
 			break;
 		}
-		case 2:{
+		case 2: {
 			//openTableInfoScale();
 			//openTableRedactorDataServer
 			MainWindowCtrl.getContentCtrl().showTableRedactorData(node);
@@ -217,7 +219,7 @@ public class SidebarCtrl {
 				}
 
 				openItemTree(node.getValue());
-        		String path = node.getValue().getName().toUpperCase();
+				String path = node.getValue().getName().toUpperCase();
 				node = node.getParent();
 
 				StringBuilder builder = new StringBuilder();
@@ -260,24 +262,24 @@ public class SidebarCtrl {
 			tempEdit = menu.getSelectionModel().getSelectedItem().getValue();
 			ScaleItemMenu scaleInfo = (ScaleItemMenu) tempEdit.getObject();
 			scaleInfo.setSaveToConnect(false);
-			scaleWindow = new ScaleCtrl(scaleInfo.getScaleServer());
+			scaleWindow = new ScaleCtrl(scaleInfo.getScale());
 			scaleWindow.setScaleInfo(scaleInfo);
 			scaleWindow.showStage();
 		});
 		deleteCM.setOnAction(event -> {
 			TreeItem<NodeTree> item = menu.getSelectionModel().getSelectedItem();
-        	//item.getChildren().clear();
+			//item.getChildren().clear();
 			ScaleItemMenu scaleInfo = (ScaleItemMenu) item.getValue().getObject();
 			scaleInfo.setSaveToConnect(false);
-			if (scaleInfo.getScaleServer().getUpdate() >= 0) {
+			if (scaleInfo.getScale().getUpdate() >= 0) {
 				try {
 					scaleInfo.getDB().getDBConnection().close();
 				} catch (SQLException e) {
 					logger.error("Delete scale >> DB close", e);
 				}
 			}
-			MainCtrl.getDB().delete("goods_load", "id_scales = " + scaleInfo.getScaleServer().getId());
-			scaleInfo.getScaleServer().delete(MainCtrl.getDB());
+			MainCtrl.getDB().delete("goods_load", "id_scales = " + scaleInfo.getScale().getId());
+			scaleInfo.getScale().delete(MainCtrl.getDB());
 			item.getParent().getChildren().remove(item);
 			menu.refresh();
 		});

@@ -2,7 +2,6 @@ package application;
 
 import java.util.NoSuchElementException;
 
-
 //todo add javadoc comments to methods
 
 /**

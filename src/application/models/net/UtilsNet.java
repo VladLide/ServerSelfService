@@ -1,6 +1,7 @@
 package application.models.net;
 
 import java.lang.reflect.Field;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +13,7 @@ public class UtilsNet {
 		// TODO Auto-generated constructor stub
 	}
 
-	public List<String> getFields(String table, Field[] fieldsObj) {
+	public static List<String> getFields(String table, Field[] fieldsObj) {
 		List<String> fields = new ArrayList<String>();
 		try {
 			for (Field f : fieldsObj) {
@@ -25,7 +26,7 @@ public class UtilsNet {
 		return fields;
 	}
 
-	public PackingDBValue[] getValues(Field[] fields, Object obj) {
+	public static PackingDBValue[] getValues(Field[] fields, Object obj) {
 		PackingDBValue[] values = new PackingDBValue[fields.length];
 		int i = 0;
 		for (Field f : fields) {
@@ -61,4 +62,37 @@ public class UtilsNet {
 		return values;
 	}
 
+	public static Object setValue(ResultSet res, Object obj, Field[] fields) {
+		for (Field f : fields) {
+			try {
+				/*if (f.getName() == "inst")
+					continue;*/
+				String type = f.getType().getTypeName().replace(".", " ");
+				if (type.split(" ").length > 0) {
+					String[] typ = type.split(" ");
+					type = typ[typ.length - 1];
+				}
+				switch (type) {
+				case "Integer":
+					f.set(obj, res.getInt(res.findColumn(f.getName())));
+					break;
+				case "float":
+					f.set(obj, res.getFloat(res.findColumn(f.getName())));
+					break;
+				case "double":
+					f.set(obj, res.getDouble(res.findColumn(f.getName())));
+					break;
+				case "String":
+					f.set(obj, res.getString(res.findColumn(f.getName())));
+					break;
+				default:
+					System.out.println(Utils.getTypeObj(obj) + ": type was not found " + f.getName() + ":" + f.getType());
+				}
+			} catch (Exception e) {
+				System.out.println(Utils.getTypeObj(obj) + ": " + e.getMessage());
+			}
+		}
+		return obj;
+	}
+	
 }

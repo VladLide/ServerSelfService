@@ -101,10 +101,10 @@ public class SendObjectInScale extends Task<Void> {
 				return goods.getId() + " - " + goods.getName();
 			}
 			case "templates": {
-			Templates tmp = (Templates) obj;
-			tmp.save(db);
-			return tmp.getId() + " - " + tmp.getName();
-		}
+				Templates tmp = (Templates) obj;
+				tmp.save(db);
+				return tmp.getId() + " - " + tmp.getName();
+			}
 			case "codes": {
 				Codes tmp = (Codes) obj;
 				tmp.save(db);
