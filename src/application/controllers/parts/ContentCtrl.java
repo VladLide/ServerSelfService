@@ -110,7 +110,7 @@ public class ContentCtrl {
 				}
 			} else {
 				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScaleServer().getUpdate() >= 0)
+				if (scale.getScale().getUpdate() >= 0)
 					if (scale.getDB().isDBConnection()) {
 						items = Goods.getListObj(0, 0, "", 0, 0, scale.getDB());
 					}
@@ -124,7 +124,7 @@ public class ContentCtrl {
 				}
 			} else {
 				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScaleServer().getUpdate() >= 0)
+				if (scale.getScale().getUpdate() >= 0)
 					if (scale.getDB().isDBConnection()) {
 						items = Sections.getListObj(0, -1, 0, "", false, scale.getDB());
 					}
@@ -138,7 +138,7 @@ public class ContentCtrl {
 				}
 			} else {
 				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScaleServer().getUpdate() >= 0)
+				if (scale.getScale().getUpdate() >= 0)
 					if (scale.getDB().isDBConnection()) {
 						items = Templates.getListObj(0, "", false, scale.getDB());
 					}
@@ -152,7 +152,7 @@ public class ContentCtrl {
 				}
 			} else {
 				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScaleServer().getUpdate() >= 0)
+				if (scale.getScale().getUpdate() >= 0)
 					if (scale.getDB().isDBConnection()) {
 						items = Codes.getListObj(0, "", scale.getDB());
 					}
@@ -183,10 +183,10 @@ public class ContentCtrl {
 		} else {
 			sim = (ScaleItemMenu) node.getUpObject().getObject();
 			db = sim.getDB();
-			source = sim.getName() + " - " + sim.getId() + " (" + sim.getScaleServer().getIp_address() + ")";
+			source = sim.getName() + " - " + sim.getId() + " (" + sim.getScale().getIp_address() + ")";
 		}
 
-		String ipAddress = sim != null ? sim.getScaleServer().getIp_address() : "localhost";
+		String ipAddress = sim != null ? sim.getScale().getIp_address() : "localhost";
 		PlaceType placeType = sim != null ? PlaceType.SCALE : PlaceType.SERVER;
 
 		switch (node.getType()) {
@@ -205,7 +205,8 @@ public class ContentCtrl {
 									SectionType.PRODUCT,
 									goods.getName(),
 									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        OperationStatus.SUCCESS)
+									OperationStatus.SUCCESS
+							)
 					);
 				}
 			} else {
@@ -234,7 +235,8 @@ public class ContentCtrl {
 									SectionType.SECTION,
 									sections.getName(),
 									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        OperationStatus.SUCCESS)
+									OperationStatus.SUCCESS
+							)
 					);
 				}
 			} else {
@@ -263,14 +265,15 @@ public class ContentCtrl {
 									SectionType.TEMPLATE,
 									templates.getName(),
 									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        OperationStatus.SUCCESS)
-                        );
-                    }
-                } else {
-                    mainWindowCtrl.openTemplate(
-                            (item != null) ? (Templates) item.getObject() : null,
-                            db,
-                            ipAddress,
+									OperationStatus.SUCCESS
+							)
+					);
+				}
+			} else {
+				mainWindowCtrl.openTemplate(
+						(item != null) ? (Templates) item.getObject() : null,
+						db,
+						ipAddress,
 						placeType);
 			}
 			break;
@@ -290,15 +293,16 @@ public class ContentCtrl {
 									SectionType.CODE,
 									codes.getName(),
 									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        OperationStatus.SUCCESS)
+									OperationStatus.SUCCESS
+							)
 					);
 				}
 			} else {
-                    mainWindowCtrl.openCode(
-                            (item != null) ? (Codes) item.getObject() : null,
-                            source,
-                            db,
-                            ipAddress,
+				mainWindowCtrl.openCode(
+						(item != null) ? (Codes) item.getObject() : null,
+						source,
+						db,
+						ipAddress,
 						placeType);
 			}
 			break;
@@ -411,29 +415,29 @@ public class ContentCtrl {
 		});
 		send.setOnAction(event -> addSend());
 		check.setOnAction(event -> dataTable.getItems().forEach(item -> item.setCheckBox(check.isSelected())));
-        create.setOnAction(event -> operationsData(null, null));
-        edit.setOnAction(event -> {
-            ItemContent item = dataTable.getSelectionModel().getSelectedItem();
-            operationsData(item, null);
-        });
-        delete.setOnAction(event -> {
-            ItemContent item = dataTable.getSelectionModel().getSelectedItem();
-            operationsData(item, true);
-            dataTable.getItems().remove(item);
-            dataTable.refresh();
-        });
-        createCM.setOnAction(event -> operationsData(null, null));
-        editCM.setOnAction(event -> {
-            ItemContent item = dataTable.getSelectionModel().getSelectedItem();
-            operationsData(item, null);
-        });
-        deleteCM.setOnAction(event -> {
-            ItemContent item = dataTable.getSelectionModel().getSelectedItem();
-            operationsData(item, true);
-            dataTable.getItems().remove(item);
-            dataTable.refresh();
-        });
-        sectionsCM.setOnAction(event -> {
+		create.setOnAction(event -> operationsData(null, null));
+		edit.setOnAction(event -> {
+			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
+			operationsData(item, null);
+		});
+		delete.setOnAction(event -> {
+			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
+			operationsData(item, true);
+			dataTable.getItems().remove(item);
+			dataTable.refresh();
+		});
+		createCM.setOnAction(event -> operationsData(null, null));
+		editCM.setOnAction(event -> {
+			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
+			operationsData(item, null);
+		});
+		deleteCM.setOnAction(event -> {
+			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
+			operationsData(item, true);
+			dataTable.getItems().remove(item);
+			dataTable.refresh();
+		});
+		sectionsCM.setOnAction(event -> {
 			ChooseCtrl choose = new ChooseCtrl();
 			choose.load(node, "sections");
 			Sections sections = (Sections) choose.show();
@@ -478,6 +482,21 @@ public class ContentCtrl {
 		stocksCM.setOnAction(event -> {
 
 		});
+	}
+
+	public MySQL getCurrentDB() {
+		if (node.getLevel() == 2) {
+			if (MainCtrl.getDB().isDBConnection()) {
+				return MainCtrl.getDB();
+			}
+		} else {
+			ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
+			if (scale.getScale().getUpdate() >= 0)
+				if (scale.getDB().isDBConnection()) {
+					return scale.getDB();
+				}
+		}
+		return null;
 	}
 
 	public Button getSend() {

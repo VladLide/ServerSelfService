@@ -212,7 +212,7 @@ public class Scales {
 			db.update(table, me.getFields().toArray(new String[0]), me.getValues(),
 					new String[] { table + ".id =" + me.getId() });
 		} else {
-			db.deleteAll(table);
+			//db.deleteAll(table);
 			db.insert(table, me.getFields().toArray(new String[0]), me.getValues());
 			this.setId(Scales.get(0, me.getName(), db).getId());
 		}

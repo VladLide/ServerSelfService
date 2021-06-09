@@ -76,7 +76,7 @@ public class ChooseCtrl {
 				}
 			} else {
 				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScaleServer().getUpdate() >= 0)
+				if (scale.getScale().getUpdate() >= 0)
 					if (scale.getDB().isDBConnection()) {
 						items = Goods.getListObj(0, 0, "", 0, 0, scale.getDB());
 					}
@@ -90,7 +90,7 @@ public class ChooseCtrl {
 				}
 			} else {
 				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScaleServer().getUpdate() >= 0)
+				if (scale.getScale().getUpdate() >= 0)
 					if (scale.getDB().isDBConnection()) {
 						items = Sections.getListObj(0, -1, 0, "", false, scale.getDB());
 					}
@@ -104,7 +104,7 @@ public class ChooseCtrl {
 				}
 			} else {
 				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScaleServer().getUpdate() >= 0)
+				if (scale.getScale().getUpdate() >= 0)
 					if (scale.getDB().isDBConnection()) {
 						items = Templates.getListObj(0, "", false, scale.getDB());
 					}
@@ -118,7 +118,7 @@ public class ChooseCtrl {
 				}
 			} else {
 				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScaleServer().getUpdate() >= 0)
+				if (scale.getScale().getUpdate() >= 0)
 					if (scale.getDB().isDBConnection()) {
 						items = Codes.getListObj(0, "", scale.getDB());
 					}

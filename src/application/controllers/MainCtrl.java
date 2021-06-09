@@ -96,8 +96,8 @@ public class MainCtrl {
 
 	public static ObservableList<ScaleItemMenu> getScales() {
 		MainCtrl me = getInstance();
-		if(me.scales.isEmpty()) {
-			me.scales=ScaleItemMenu.get();
+		if (me.scales.isEmpty()) {
+			me.scales = ScaleItemMenu.get();
 		}
 		return me.scales;
 	}

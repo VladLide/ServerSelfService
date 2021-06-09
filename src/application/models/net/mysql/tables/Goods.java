@@ -325,7 +325,7 @@ public class Goods {
 	}
 
 	public static ObservableList<Goods> getGoodsLoad(int idScale, MySQL db) {
-		ResultSet resul = db.getSelect(Goods.getSql(idScale, "goods_load"));
+		ResultSet resul = db.getSelect(Goods.getSql(idScale, "distribute"));
 		ObservableList<Goods> row = FXCollections.observableArrayList();
 		try {
 			while (resul.next()) {
@@ -340,7 +340,7 @@ public class Goods {
 	}
 
 	public static int getCountGoodsLoad(int idScale, MySQL db) {
-		ResultSet resul = db.getSelect(Goods.getSqlCount(idScale, "goods_load"));
+		ResultSet resul = db.getSelect(Goods.getSqlCount(idScale, "distribute"));
 		if (resul != null) {
 			try {
 				while (resul.next()) {
@@ -348,12 +348,6 @@ public class Goods {
 				}
 			} catch (SQLException e) {
 				System.out.println(e.getMessage());
-			} finally {
-				try {
-					resul.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
 			}
 		}
 		return -1;
@@ -363,16 +357,11 @@ public class Goods {
 		ResultSet resul = db.getSelect(Goods.getSqlCount(idScale, getTable()));
 		try {
 			while (resul.next()) {
-				return resul.getInt(1);
+				int n = resul.getInt(1);
+				return n;
 			}
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());
-		} finally {
-			try {
-				resul.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
 		}
 		return -1;
 	}
