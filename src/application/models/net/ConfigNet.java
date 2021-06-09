@@ -129,7 +129,6 @@ public class ConfigNet {
 			db.update(table, getFields().toArray(new String[0]), getValues(),
 					new String[] { table + ".id_scales =" + getId_scales() });
 		} else {
-			db.deleteAll(table);
 			db.insert(table, getFields().toArray(new String[0]), getValues());
 		}
 		return get(id_scales) != null;
