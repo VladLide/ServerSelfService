@@ -357,8 +357,7 @@ public class Goods {
 		ResultSet resul = db.getSelect(Goods.getSqlCount(idScale, getTable()));
 		try {
 			while (resul.next()) {
-				int n = resul.getInt(1);
-				return n;
+				return resul.getInt(1);
 			}
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());
