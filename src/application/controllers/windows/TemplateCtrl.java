@@ -213,22 +213,7 @@ public class TemplateCtrl {
 
 	public void deleteItem() {
 		if ((this.currentItem != null)) {
-			int index = -1;
-			switch (this.currentItem.getType()) {
-				case "barcode":
-				case "qrcode":
-					index = this.paneSave.getPane().getChildren().indexOf((Pane) this.currentItem.getItem());
-					break;
-				case "line":
-					index = this.paneSave.getPane().getChildren().indexOf((Line) this.currentItem.getItem());
-					break;
-				case "rectangle":
-					index = this.paneSave.getPane().getChildren().indexOf((Rectangle) this.currentItem.getItem());
-					break;
-				default:
-					index = this.paneSave.getPane().getChildren().indexOf((Label) this.currentItem.getItem());
-			}
-
+			int index = this.paneSave.getPane().getChildren().indexOf(getClassOfObject(currentItem.getType()).cast(currentItem.getItem()));
 			if (index != -1) {
 				this.paneSave.getPane().getChildren().remove(index);
 				this.paneSave.remove(index);
@@ -238,27 +223,10 @@ public class TemplateCtrl {
 		}
 	}
 
-	public void removeBorder(Item on) {
-		if (on != null) {
-			switch (on.getType()) {
-				case "barcode":
-				case "qrcode":
-					((Pane) on.getItem()).setStyle("");
-					((Pane) on.getItem()).setEffect(null);
-					break;
-				case "line":
-					((Line) on.getItem()).setStyle("");
-					((Line) on.getItem()).setEffect(null);
-					break;
-				case "rectangle":
-					((Rectangle) on.getItem()).setStyle("");
-					((Rectangle) on.getItem()).setEffect(null);
-					break;
-				case "freeText":
-				default:
-					((Label) on.getItem()).setStyle("");
-					((Label) on.getItem()).setEffect(null);
-			}
+	public void removeBorder(Item item) {
+		if (item != null) {
+			getClassOfObject(item.getType()).cast(item.getItem()).setStyle("");
+			getClassOfObject(item.getType()).cast(item.getItem()).setEffect(null);
 		}
 	}
 
@@ -276,24 +244,8 @@ public class TemplateCtrl {
 		colNameTable.setCellValueFactory(new PropertyValueFactory<>(TextBox.info2col[0][2]));
 		colValueTable.setCellValueFactory(new PropertyValueFactory<>(TextBox.info2col[1][2]));
 
-		switch (obj.getType()) {
-			case "barcode":
-			case "qrcode":
-				((Pane) currentItem.getItem()).setStyle(style);
-				((Pane) currentItem.getItem()).setEffect(dropShadow);
-				break;
-			case "rectangle":
-				((Rectangle) this.currentItem.getItem()).setStyle(style);
-				((Rectangle) this.currentItem.getItem()).setEffect(dropShadow);
-				break;
-			case "line":
-				((Line) this.currentItem.getItem()).setStyle(style);
-				((Line) this.currentItem.getItem()).setEffect(dropShadow);
-				break;
-			default:
-				((Label) this.currentItem.getItem()).setStyle(style);
-				((Label) this.currentItem.getItem()).setEffect(dropShadow);
-		}
+		getClassOfObject(obj.getType()).cast(obj.getItem()).setStyle(style);
+		getClassOfObject(obj.getType()).cast(obj.getItem()).setEffect(dropShadow);
 
 		switch (obj.getType()) {
 			case "barcode": {
