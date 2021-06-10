@@ -1,12 +1,5 @@
 package application.controllers.windows;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ResourceBundle;
-
 import application.*;
 import application.models.Configs;
 import application.models.TextBox;
@@ -21,26 +14,29 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class ProductCtrl {
 	private Stage stage;
@@ -50,6 +46,8 @@ public class ProductCtrl {
 	private MySQL db = null;
 	private String ipAddress;
 	private PlaceType placeType;
+	private final Logger logger = LogManager.getLogger(ProductCtrl.class);
+	private Thread notAccurateSearchThread;
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Product");
@@ -93,6 +91,8 @@ public class ProductCtrl {
 	private Button clear;
 	@FXML
 	private Button delete;
+	@FXML
+	private TextField searchBar;
 
 	public ProductCtrl(MySQL db) {
 		this.db = db;
@@ -104,7 +104,7 @@ public class ProductCtrl {
 			loader.setController(this);
 			this.stage.setScene(new Scene(loader.load()));
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 	}
 
@@ -120,20 +120,9 @@ public class ProductCtrl {
 	public ObservableList<TableColumn<Goods, ?>> loadDataTable(ObservableList<String[]> colInfo) {
 		ObservableList<TableColumn<Goods, ?>> col = FXCollections.observableArrayList();
 		colInfo.forEach(v -> {
-			switch (v[0]) {
-			case "Integer": {
-				TableColumn<Goods, Integer> item = new TableColumn<Goods, Integer>(v[1]);
-				item.setCellValueFactory(new PropertyValueFactory<Goods, Integer>(v[2]));
-				col.add(item);
-				break;
-			}
-			case "String": {
-				TableColumn<Goods, String> item = new TableColumn<Goods, String>(v[1]);
-				item.setCellValueFactory(new PropertyValueFactory<Goods, String>(v[2]));
-				col.add(item);
-				break;
-			}
-			}
+			TableColumn<Goods, ?> tableColumn = new TableColumn<>(v[1]);
+			tableColumn.setCellValueFactory(new PropertyValueFactory<>(v[2]));
+			col.add(tableColumn);
 		});
 		return col;
 	}
@@ -148,7 +137,7 @@ public class ProductCtrl {
 								false, true, false))));
 			} catch (Exception e) {
 				imgpanel.setBackground(null);
-				System.out.println("ButtonWithImage: no image - " + e);
+				logger.error(String.format("ButtonWithImage: no image - %s", e));
 			}
 		} else {
 			try {
@@ -159,7 +148,7 @@ public class ProductCtrl {
 										BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
 			} catch (Exception e) {
 				imgpanel.setBackground(null);
-				System.out.println("ButtonWithImage: no image - " + e);
+				logger.error(String.format("ButtonWithImage: no image - %s", e));
 			}
 		}
 	}
@@ -186,12 +175,9 @@ public class ProductCtrl {
 						(expirationDate.getText().length() > 0) ? Integer.parseInt(expirationDate.getText()) : 0);
 				plu.setIngredients(ingredients.getText());
 				plu.setMin_type((float) 0.04);
-				try {
-					plu.setNumber(Integer.parseInt(number.getText()));
-				} catch (NumberFormatException e) {
-					if (item != null) {
-						plu.setNumber(item.getNumber());
-					}
+				int number = getNumberForGoods();
+				if (number != -1) {
+					plu.setNumber(number);
 				}
 
 				if (this.file != null)
@@ -229,10 +215,12 @@ public class ProductCtrl {
 						);
 					}
 				} else {
-					// todo item.getPre_code can throw nullPointer exception
-					plu.setPre_code(this.item.getPre_code());
-					plu.setDataBlob(this.item.getData());
-					if (this.item.getPre_code() != preCode)
+					Goods goods = Optional
+							.ofNullable(this.item)
+							.orElseThrow(() -> new NullPointerException("Item is null"));
+					plu.setPre_code(goods.getPre_code());
+					plu.setDataBlob(goods.getData());
+					if (goods.getPre_code() != preCode)
 						plu.updatePre_code(preCode, db);
 					if (plu.save(db) > 0) {
 						TextBox.alertOpenDialog(AlertType.INFORMATION, "editGoodsYes");
@@ -298,93 +286,20 @@ public class ProductCtrl {
 		name.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		number.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		pre_code.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
-		section.setOnAction(event -> {
-			save.setDisable(false);
-		});
+		section.setOnAction(event -> save.setDisable(false));
 		ingredients.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		price.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
-		unit.setOnAction(event -> {
-			save.setDisable(false);
-		});
+		unit.setOnAction(event -> save.setDisable(false));
 		expirationDate.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
-		code.setOnAction(event -> {
-			save.setDisable(false);
-		});
+		code.setOnAction(event -> save.setDisable(false));
 	}
 
 	@FXML
 	void initialize() {
-		clear.setOnAction(event -> {
-			clearLoad();
-		});
-		delete.setOnAction(event -> {
-			Goods item = dataTable.getSelectionModel().getSelectedItem();
-			// todo fix optional.get() without checking if present
-			if (TextBox.alertOpenDialog(AlertType.CONFIRMATION, "deleteBarcode?", item.getName())
-					.get() == ButtonType.OK) {
-				if (item != null) {
-					if (Goods.delete(item.getPre_code(), db)) {
-						TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteBarcodeYes");
-						MainWindowCtrl.setLog(
-								Helper.formatOutput(
-										Operation.DELETE,
-										placeType,
-										ipAddress,
-										SectionType.PRODUCT,
-										item.getName(),
-										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-										OperationStatus.SUCCESS
-								)
-						);
-						item = null;
-						clearLoad();
-					} else {
-						TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");
-
-						MainWindowCtrl.setLog(
-								Helper.formatOutput(
-										Operation.DELETE,
-										placeType,
-										ipAddress,
-										SectionType.PRODUCT,
-										item.getName(),
-										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-										OperationStatus.FAILURE
-								)
-						);
-					}
-				}
-			}
-		});
-		save.setOnAction(event -> {
-			try {
-				if (section.getSelectionModel().getSelectedItem() == null
-						|| template.getSelectionModel().getSelectedItem() == null
-						|| code.getSelectionModel().getSelectedItem() == null
-						|| unit.getSelectionModel().getSelectedItem() == null
-						|| pre_code.getText().length() <= 0) {
-					TextBox.alertOpenDialog(AlertType.ERROR, "editGoodsNo");
-				} else {
-					continion();
-				}
-			} catch (Exception e) {
-				TextBox.alertOpenDialog(AlertType.WARNING, "saveGoodsNo");
-			}
-		});
-		addImg.setOnAction(event -> {
-			FileChooser fileChooser = new FileChooser();
-			fileChooser.setTitle("Select Image");
-			fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("JPG", "*.jpeg", "*.jpg"),
-					new FileChooser.ExtensionFilter("PNG", "*.png"));
-			file = fileChooser.showOpenDialog(stage);
-			if (file == null) {
-				TextBox.alertOpenDialog(AlertType.WARNING, "chooseImageNo");
-			} else {
-				item.setData(file);
-				this.loadImage(img, "img");
-				save.setDisable(false);
-			}
-		});
+		clear.setOnAction(event -> clearLoad());
+		delete.setOnAction(event -> deleteGoods());
+		save.setOnAction(event -> saveGoods());
+		addImg.setOnAction(event -> addImage());
 		delImg.setOnAction(event -> {
 			img.setBackground(null);
 			item.setDataBlob(null);
@@ -398,8 +313,7 @@ public class ProductCtrl {
 			}
 			loadImage(imgTemplate, "tpl");
 		});
-		dataTable
-				.getSelectionModel()
+		dataTable.getSelectionModel()
 				.selectedItemProperty()
 				.addListener((obs, oldSelection, newSelection) -> {
 					if (newSelection != null) {
@@ -407,6 +321,118 @@ public class ProductCtrl {
 						newItem = false;
 					}
 				});
+		searchBar.setOnKeyPressed(this::search);
+	}
+
+	/**
+	 * Will search for goods with number or pre_code or name which we get from searchBar
+	 * @param event some key event which happened inside of search bar
+	 */
+	private void search(KeyEvent event) {
+		//kill previous non accurate search if it is alive
+		if (notAccurateSearchThread != null && notAccurateSearchThread.isAlive()) {
+			notAccurateSearchThread.interrupt();
+		}
+
+		String text;
+		String fromSearchBar = searchBar.getText();
+
+		if (KeyCode.BACK_SPACE.equals(event.getCode()) && fromSearchBar.length() > 0) {
+			text = fromSearchBar.substring(0, fromSearchBar.length() - 1);
+		} else if (KeyCode.BACK_SPACE.equals(event.getCode())) {
+			text = "";
+		} else if (!KeyCode.ENTER.equals(event.getCode())) {
+			text = fromSearchBar + event.getText();
+		} else {
+			text = fromSearchBar;
+		}
+
+		ObservableList<Goods> items = Goods.getList(0, 0, "", 0, 0, db);
+		if (!text.trim().isEmpty()) {
+			List<Goods> collect;
+			if (isNumeric(text)) {
+				int integer = Integer.parseInt(text);
+				collect = items
+						.stream()
+						.filter(goods -> goods.getNumber() == integer || goods.getPre_code() == integer)
+						.collect(Collectors.toList());
+			} else {
+				collect = items
+						.stream()
+						.filter(goods -> text.equalsIgnoreCase(goods.getName()))
+						.collect(Collectors.toList());
+			}
+			items = FXCollections.observableArrayList(collect);
+		}
+
+		dataTable.setItems(items);
+
+		notAccurateSearchThread = notAccurateSearch(text);
+		notAccurateSearchThread.start();
+	}
+
+	/**
+	 * Will create Thread object which will start not accurate search, it means we are searching
+	 * for all products which number or pre_code or name starts with given text
+	 *
+	 * @param text string which contains input from searchBar
+	 * @return thread with code to start non accurate search
+	 */
+	private Thread notAccurateSearch(String text) {
+		return new Thread(() -> {
+			ObservableList<Goods> items = Goods.getList(0, 0, "", 0, 0, db);
+			items = FXCollections.observableArrayList(
+					items.stream()
+							.filter(goods -> String.valueOf(goods.getNumber()).startsWith(text)
+									|| String.valueOf(goods.getPre_code()).startsWith(text)
+									|| goods.getName().toLowerCase(Locale.ROOT).startsWith(text.toLowerCase(Locale.ROOT)))
+							.collect(Collectors.toList())
+			);
+			dataTable.setItems(items);
+		});
+	}
+
+	private void deleteGoods() {
+		Goods goods = dataTable.getSelectionModel().getSelectedItem();
+		ButtonType buttonType = TextBox
+				.alertOpenDialog(AlertType.CONFIRMATION, "deleteBarcode?", goods.getName())
+				.orElseThrow(() -> new NullPointerException("ButtonType is null"));
+		boolean deleteGoods = ButtonType.OK.equals(buttonType);
+		boolean goodsIsDeleted = false;
+
+		if (deleteGoods) {
+			goodsIsDeleted = Goods.delete(goods.getPre_code(), db);
+		}
+
+		if (deleteGoods && goodsIsDeleted) {
+			TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteBarcodeYes");
+			MainWindowCtrl.setLog(
+					Helper.formatOutput(
+							Operation.DELETE,
+							placeType,
+							ipAddress,
+							SectionType.PRODUCT,
+							goods.getName(),
+							LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+							OperationStatus.SUCCESS
+					)
+			);
+			clearLoad();
+		} else if (deleteGoods) {
+			TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");
+
+			MainWindowCtrl.setLog(
+					Helper.formatOutput(
+							Operation.DELETE,
+							placeType,
+							ipAddress,
+							SectionType.PRODUCT,
+							goods.getName(),
+							LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+							OperationStatus.FAILURE
+					)
+			);
+		}
 	}
 
 	public void setItem(Goods product) {
@@ -446,5 +472,57 @@ public class ProductCtrl {
 
 	public void setPlaceType(PlaceType placeType) {
 		this.placeType = placeType;
+	}
+
+	private void saveGoods() {
+		try {
+			if (section.getSelectionModel().getSelectedItem() == null
+					|| template.getSelectionModel().getSelectedItem() == null
+					|| code.getSelectionModel().getSelectedItem() == null
+					|| unit.getSelectionModel().getSelectedItem() == null
+					|| pre_code.getText().length() <= 0) {
+				TextBox.alertOpenDialog(AlertType.ERROR, "editGoodsNo");
+			} else {
+				continion();
+			}
+		} catch (Exception e) {
+			TextBox.alertOpenDialog(AlertType.WARNING, "saveGoodsNo");
+		}
+	}
+
+	private void addImage() {
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Select Image");
+		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("JPG", "*.jpeg", "*.jpg"),
+				new FileChooser.ExtensionFilter("PNG", "*.png"));
+		file = fileChooser.showOpenDialog(stage);
+		if (file == null) {
+			TextBox.alertOpenDialog(AlertType.WARNING, "chooseImageNo");
+		} else {
+			item.setData(file);
+			this.loadImage(img, "img");
+			save.setDisable(false);
+		}
+	}
+
+	private boolean isNumeric(String string) {
+		try {
+			Integer.parseInt(string);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
+	private int getNumberForGoods() {
+		if (isNumeric(number.getText())) {
+			return Integer.parseInt(number.getText());
+		} else {
+			if (item != null) {
+				return item.getNumber();
+			} else {
+				return -1;
+			}
+		}
 	}
 }
