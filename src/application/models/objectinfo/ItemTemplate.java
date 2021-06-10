@@ -1,10 +1,9 @@
 package application.models.objectinfo;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-import application.views.languages.uk.windows.TemplateInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ItemTemplate {
 	private int id;
@@ -23,9 +22,7 @@ public class ItemTemplate {
 	public static ObservableList<ItemTemplate> getList(ObservableList<String[]> arr) {
 		ObservableList<ItemTemplate> row = FXCollections.observableArrayList();
 		AtomicInteger i = new AtomicInteger(0);
-		arr.forEach((v) -> {
-			row.add(new ItemTemplate(i.getAndIncrement(), v));
-		});
+		arr.forEach(v -> row.add(new ItemTemplate(i.getAndIncrement(), v)));
 		return row;
 	}
 

@@ -1,45 +1,17 @@
 package application.controllers.windows;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
-
-import javax.imageio.ImageIO;
-
 import application.*;
-import com.google.zxing.WriterException;
-
-import application.controllers.MainCtrl;
-import application.models.Configs;
-import application.models.EditingCell;
-import application.models.Info2Col;
-import application.models.TextBox;
-import application.models.Utils;
+import application.models.*;
 import application.models.net.mysql.MySQL;
-import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Codes;
 import application.models.net.mysql.tables.Templates;
 import application.models.objectinfo.ItemTemplate;
-import application.models.template.Code;
-import application.models.template.FontItem;
-import application.models.template.Item;
-import application.models.template.OptionsItem;
-import application.models.template.PaneObj;
-import application.models.template.Point;
-import application.models.template.QRCode;
+import application.models.template.*;
 import application.views.languages.uk.windows.TemplateInfo;
+import com.google.zxing.WriterException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -49,52 +21,51 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellEditEvent;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
-import javafx.scene.layout.CornerRadii;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.ResourceBundle;
 
 public class TemplateCtrl {
-	private Stage stage = new Stage();
+	private final Stage stage = new Stage();
 	private SizeTemplateCtrl size;
 	private PaneObj paneSave;
 	private Item currentItem = null;
 	private Templates objTemplate = null;
 	private MySQL db = null;
-	private Map<String, String> messages = new HashMap<String, String>();
+	private final Map<String, String> messages = new HashMap<>();
 	private String pointMove = "(0.0;0.0)";
-	private DropShadow dropShadow = new DropShadow();
+	private final DropShadow dropShadow = new DropShadow();
 	private String ipAddress;
 	private PlaceType placeType;
+	private final Logger logger = LogManager.getLogger(TemplateCtrl.class);
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Template");
@@ -184,9 +155,9 @@ public class TemplateCtrl {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		if (this.size != null)
-			if (!this.size.isOpenEdit())
-				this.close();
+		if (this.size != null && !size.isOpenEdit()) {
+			this.close();
+		}
 		load();
 	}
 
@@ -218,7 +189,7 @@ public class TemplateCtrl {
 	}
 
 	public void addImage() {
-		File file = null;
+		File file;
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Select Image");
 		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("JPG", "*.jpeg", "*.jpg"),
@@ -233,212 +204,180 @@ public class TemplateCtrl {
 						BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
 						new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(), true,
 								false, true, false))));
-				// String time =
-				// ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ofPattern("HH/mm/ss"));
-				// messages.put(new TextBox().move.get("add")[2]+"("+time+")", "фонове
-				// зображення:{"+file.getAbsolutePath()+"}");
 			} catch (Exception e) {
 				template.setBackground(null);
-				System.out.println("ButtonWithImage: no image - " + e.getMessage());
+				logger.error("ButtonWithImage: no image - {}", e.getMessage());
 			}
 		}
 	}
 
 	public void deleteItem() {
 		if ((this.currentItem != null)) {
-			int index = -1;
-			switch (this.currentItem.getType()) {
-			case "barcode": {
-				index = this.paneSave.getPane().getChildren().indexOf((Pane) this.currentItem.getItem());
-				break;
-			}
-			case "qrcode": {
-				index = this.paneSave.getPane().getChildren().indexOf((Pane) this.currentItem.getItem());
-				break;
-			}
-			case "line": {
-				index = this.paneSave.getPane().getChildren().indexOf((Line) this.currentItem.getItem());
-				break;
-			}
-			case "rectangle": {
-				index = this.paneSave.getPane().getChildren().indexOf((Rectangle) this.currentItem.getItem());
-				break;
-			}
-			default: {
-				index = this.paneSave.getPane().getChildren().indexOf((Label) this.currentItem.getItem());
-			}
-			}
-			;
+			int index = this.paneSave.getPane().getChildren().indexOf(getClassOfObject(currentItem.getType()).cast(currentItem.getItem()));
 			if (index != -1) {
 				this.paneSave.getPane().getChildren().remove(index);
 				this.paneSave.remove(index);
-				// String time =
-				// ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ofPattern("HH/mm/ss"));
-				// messages.put(new TextBox().move.get("delete")[2]+"("+time+")",
-				// this.currentItem.getType()+":{1}");
 			} else {
-				System.out.println("item: " + this.currentItem.getType() + " error");
+				logger.error("Item: {} error", this.currentItem.getType());
 			}
 		}
 	}
 
-	public void removeBorder(Item on) {
-		if (on != null)
-			switch (on.getType()) {
+	public void removeBorder(Item item) {
+		if (item != null) {
+			getClassOfObject(item.getType()).cast(item.getItem()).setStyle("");
+			getClassOfObject(item.getType()).cast(item.getItem()).setEffect(null);
+		}
+	}
+
+	public void loadInfo(Node on) {
+		ObservableList<Info2Col> row = FXCollections.observableArrayList();
+		String style = "-fx-border-color: black;-fx-border-style: dashed;";
+		int i = paneSave.getPane().getChildren().indexOf(on);
+
+		removeBorder(currentItem);
+
+		Item obj = currentItem = paneSave.getItem(i);
+
+		nameObjTemplate.setText(TemplateInfo.ItemsTemplate.get(obj.getId())[1]);
+		infoParameterTable.getItems().clear();
+		colNameTable.setCellValueFactory(new PropertyValueFactory<>(TextBox.info2col[0][2]));
+		colValueTable.setCellValueFactory(new PropertyValueFactory<>(TextBox.info2col[1][2]));
+
+		getClassOfObject(obj.getType()).cast(obj.getItem()).setStyle(style);
+		getClassOfObject(obj.getType()).cast(obj.getItem()).setEffect(dropShadow);
+
+		switch (obj.getType()) {
 			case "barcode": {
-				((Pane) on.getItem()).setStyle("");
-				((Pane) on.getItem()).setEffect(null);
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(0),
+						Double.toString(obj.getOptions().getWidthModule()),
+						0));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(1),
+						Double.toString(obj.getOptions().getHeight()),
+						1));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(2),
+						Double.toString(obj.getOptions().getFont().size),
+						2));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(3),
+						Double.toString(obj.getOptions().getQuietZone()),
+						3));
 				break;
 			}
 			case "qrcode": {
-				((Pane) on.getItem()).setStyle("");
-				((Pane) on.getItem()).setEffect(null);
-				break;
-			}
-			case "line": {
-				((Line) on.getItem()).setStyle("");
-				((Line) on.getItem()).setEffect(null);
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(6),
+						Double.toString(obj.getOptions().getWidth()),
+						6));
 				break;
 			}
 			case "rectangle": {
-				((Rectangle) on.getItem()).setStyle("");
-				((Rectangle) on.getItem()).setEffect(null);
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(6),
+						Double.toString(obj.getOptions().getWidth()),
+						6));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(7),
+						Double.toString(obj.getOptions().getHeight()),
+						7));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(12),
+						Double.toString(obj.getOptions().getBorderWidth()), 12));
 				break;
 			}
-			case "freeText": {
-				((Label) on.getItem()).setStyle("");
-				((Label) on.getItem()).setEffect(null);
+			case "line": {
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(14),
+						Double.toString(obj.getOptions().getWidth()),
+						6));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(13),
+						Double.toString(obj.getOptions().getRotate()),
+						13));
+				row.add(new Info2Col(TemplateInfo.parametersItem.get(12),
+						Double.toString(obj.getOptions().getBorderWidth()),
+						12));
 				break;
 			}
-			default: {
-				((Label) on.getItem()).setStyle("");
-				((Label) on.getItem()).setEffect(null);
-			}
-			}
-		;
-	}
+			case "freeText":
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(5),
+						((Label) obj.getItem()).getText(),
+						5));
+			default:
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(6),
+						Double.toString(obj.getOptions().getWidth()),
+						6));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(7),
+						Double.toString(obj.getOptions().getHeight()),
+						7));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(4),
+						obj.getOptions().getFont().fontWeight,
+						4));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(2),
+						Double.toString(obj.getOptions().getFont().size),
+						2));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(8),
+						obj.getOptions().getAlignment(),
+						8));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(9),
+						obj.getOptions().getWrapText(),
+						9));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(10),
+						obj.getOptions().getLineSpacingString(),
+						10));
+				row.add(new Info2Col(
+						TemplateInfo.parametersItem.get(11),
+						obj.getOptions().getIndentString(),
+						11));
+		}
 
-	public void LoadInfo(Node on) {
-		this.removeBorder(this.currentItem);
-		int i = this.paneSave.getPane().getChildren().indexOf(on);
-		Item obj = this.currentItem = this.paneSave.getItem(i);
-		nameObjTemplate.setText(TemplateInfo.ItemsTemplate.get(obj.getId())[1]);
-		this.infoParameterTable.getItems().clear();
-		ObservableList<Info2Col> row = FXCollections.observableArrayList();
-		colNameTable.setCellValueFactory(new PropertyValueFactory<Info2Col, String>(TextBox.info2col[0][2]));
-		colValueTable.setCellValueFactory(new PropertyValueFactory<Info2Col, String>(TextBox.info2col[1][2]));
-		String style = "-fx-border-color: black;-fx-border-style: dashed;";
-		switch (obj.getType()) {
-		case "barcode": {
-			((Pane) this.currentItem.getItem()).setStyle(style);
-			((Pane) this.currentItem.getItem()).setEffect(dropShadow);
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(0), Double.toString(obj.getOptions().getWidthModule()),
-					0));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(1), Double.toString(obj.getOptions().getHeight()), 1));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(2), Double.toString(obj.getOptions().getFont().size),
-					2));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(3), Double.toString(obj.getOptions().getQuietZone()),
-					3));
-			infoParameterTable.getItems().setAll(row);
-			break;
-		}
-		case "qrcode": {
-			((Pane) this.currentItem.getItem()).setStyle(style);
-			((Pane) this.currentItem.getItem()).setEffect(dropShadow);
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(6), Double.toString(obj.getOptions().getWidth()), 6));
-			infoParameterTable.getItems().setAll(row);
-			break;
-		}
-		case "rectangle": {
-			((Rectangle) this.currentItem.getItem()).setStyle(style);
-			((Rectangle) this.currentItem.getItem()).setEffect(dropShadow);
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(6), Double.toString(obj.getOptions().getWidth()), 6));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(7), Double.toString(obj.getOptions().getHeight()), 7));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(12),
-					Double.toString(obj.getOptions().getBorderWidth()), 12));
-			infoParameterTable.getItems().setAll(row);
-			break;
-		}
-		case "line": {
-			((Line) this.currentItem.getItem()).setStyle(style);
-			((Line) this.currentItem.getItem()).setEffect(dropShadow);
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(14), Double.toString(obj.getOptions().getWidth()), 6));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(13), Double.toString(obj.getOptions().getRotate()),
-					13));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(12),
-					Double.toString(obj.getOptions().getBorderWidth()), 12));
-			infoParameterTable.getItems().setAll(row);
-			break;
-		}
-		case "freeText": {
-			((Label) this.currentItem.getItem()).setStyle(style);
-			((Label) this.currentItem.getItem()).setEffect(dropShadow);
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(6), Double.toString(obj.getOptions().getWidth()), 6));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(7), Double.toString(obj.getOptions().getHeight()), 7));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(4), obj.getOptions().getFont().fontWeight, 4));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(2), Double.toString(obj.getOptions().getFont().size),
-					2));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(5), ((Label) obj.getItem()).getText(), 5));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(8), obj.getOptions().getAlignment(), 8));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(9), obj.getOptions().getWrapText(), 9));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(10), obj.getOptions().getLineSpacingString(), 10));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(11), obj.getOptions().getIndentString(), 11));
-			infoParameterTable.getItems().setAll(row);
-			break;
-		}
-		default: {
-			((Label) this.currentItem.getItem()).setStyle(style);
-			((Label) this.currentItem.getItem()).setEffect(dropShadow);
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(6), Double.toString(obj.getOptions().getWidth()), 6));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(7), Double.toString(obj.getOptions().getHeight()), 7));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(4), obj.getOptions().getFont().fontWeight, 4));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(2), Double.toString(obj.getOptions().getFont().size),
-					2));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(8), obj.getOptions().getAlignment(), 8));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(9), obj.getOptions().getWrapText(), 9));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(10), obj.getOptions().getLineSpacingString(), 10));
-			row.add(new Info2Col(TemplateInfo.parametersItem.get(11), obj.getOptions().getIndentString(), 11));
-			infoParameterTable.getItems().setAll(row);
-		}
-		}
-		;
+		row.add(new Info2Col(
+				TemplateInfo.parametersItem.get(15),
+				obj.getPosition().x.toString(),
+				14
+		));
+		row.add(new Info2Col(
+				TemplateInfo.parametersItem.get(16),
+				obj.getPosition().y.toString(),
+				15
+		));
+
+		infoParameterTable.getItems().setAll(row);
 	}
 
 	public Label createViewLabel(FontItem font, String str, AnchorPane pane) {
 		Label label = new Label(str);
-		if (font != null) {
-			label.setFont(Font.font(font.name, FontWeight.findByName(font.fontWeight), font.size));
-		} else {
-			label.setFont(new Font("System", 26));
-		}
+		label.setFont(font != null ? Font.font(font.name, FontWeight.findByName(font.fontWeight), font.size) : new Font("System", 26));
+
 		label.setOnMouseClicked(event -> {
-			this.LoadInfo(label);
-			String old = new String(pointMove);
+			this.loadInfo(label);
 			pointMove = "(" + event.getSceneX() + ";" + event.getSceneY() + ")";
-			System.out.println("OffMove" + pointMove);
-			// String time =
-			// ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ofPattern("HH/mm/ss"));
-			// messages.put(new TextBox().move.get("move")[2]+"("+time+")",
-			// currentItem.getType()+":{"+old+">"+pointMove+"}");
 		});
 		pane.setOnDragExited(event -> {
-			if (this.currentItem != null) {
-				if ((Label) this.currentItem.getItem() == label) {
-					this.currentItem = null;
-				}
+			if (this.currentItem != null && this.currentItem.getItem() == label) {
+				this.currentItem = null;
 			}
 		});
 		label.setOnMousePressed(event -> {
 			Item obj = this.paneSave.getItem(this.paneSave.getPane().getChildren().indexOf(label));
 			obj.setLastposition(new Point(event.getSceneX(), event.getSceneY()));
 			pointMove = "(" + event.getSceneX() + ";" + event.getSceneY() + ")";
-			System.out.println("OnMove:" + pointMove);
 		});
 		label.setOnMouseDragged(event -> {
 			event.setDragDetect(false);
 			Item obj = this.paneSave.getItem(this.paneSave.getPane().getChildren().indexOf(label));
 			if ((this.currentItem != null)) {
-
 				double maxX = this.paneSave.getPane().getWidth();
 				double maxY = this.paneSave.getPane().getHeight();
 				if (obj.getLastposition() == null) {
@@ -447,12 +386,7 @@ public class TemplateCtrl {
 				Point mouse = new Point(event.getSceneX(), event.getSceneY());
 				double dx = event.getSceneX() - obj.getLastposition().x;
 				double dy = event.getSceneY() - obj.getLastposition().y;
-				System.out.println(
-						"panel: " + this.paneSave.getPane().getWidth() + ", " + this.paneSave.getPane().getHeight());
-				System.out.println(obj.getOptions().getWidth() + "," + obj.getOptions().getHeight());
-				System.out.println("event.getScene: " + event.getSceneX() + ", " + event.getSceneY());
-				System.out.println("mouse: " + mouse.x + ", " + mouse.y);
-				System.out.println("on: " + label.getTranslateX() + ", " + label.getTranslateY());
+
 				if (maxX > (label.getTranslateX() + obj.getOptions().getWidth() + dx)) {
 					label.setTranslateX(label.getTranslateX() + dx);
 				} else {
@@ -478,7 +412,7 @@ public class TemplateCtrl {
 				obj.setPosition(new Point(label.getTranslateX(), label.getTranslateY()));
 				event.setDragDetect(true);
 			} else {
-				System.out.println("exit");
+				logger.info("Exit");
 			}
 			event.consume();
 		});
@@ -489,16 +423,16 @@ public class TemplateCtrl {
 		return label;
 	}
 
-	public Pane createViewBarcode(OptionsItem Oitem, AnchorPane pane) {
+	public Pane createViewBarcode(OptionsItem optionsItem, AnchorPane pane) {
 		Code controlCode = new Code(new Codes(), 12345, "15.506");
 		BufferedImage img = null;
-		if (Oitem != null) {
-			controlCode.setBarHeight(Oitem.getHeight());
-			controlCode.setDoQuietZone((Oitem.getQuietZone() > 0.0) ? true : false);
-			controlCode.setFontSize(Oitem.getFont().size);
-			controlCode.setModuleWidth(Oitem.getWidthModule());
-			controlCode.setMsgPosition(Oitem.getHumanReadablePlacement());
-			controlCode.setQuietZone(Oitem.getQuietZone());
+		if (optionsItem != null) {
+			controlCode.setBarHeight(optionsItem.getHeight());
+			controlCode.setDoQuietZone(optionsItem.getQuietZone() > 0.0);
+			controlCode.setFontSize(optionsItem.getFont().size);
+			controlCode.setModuleWidth(optionsItem.getWidthModule());
+			controlCode.setMsgPosition(optionsItem.getHumanReadablePlacement());
+			controlCode.setQuietZone(optionsItem.getQuietZone());
 			img = controlCode.generate(false);
 		} else {
 			img = controlCode.generate(true);
@@ -509,38 +443,26 @@ public class TemplateCtrl {
 		label.setBackground(
 				new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
 						BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(),
-								BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
+						BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
 		label.setOnMouseClicked(event -> {
-			this.LoadInfo(label);
-			String old = new String(pointMove);
+			this.loadInfo(label);
 			pointMove = "(" + event.getSceneX() + ";" + event.getSceneY() + ")";
-			System.out.println("OffMove" + pointMove);
-			// String time =
-			// ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ofPattern("HH/mm/ss"));
-			// messages.put(new TextBox().move.get("move")[2]+"("+time+")",
-			// currentItem.getType()+":{"+old+">"+pointMove+"}");
 		});
 		pane.setOnDragExited(event -> {
-			System.out.println("OnDragExited");
-			if (this.currentItem != null) {
-				if ((Pane) this.currentItem.getItem() == label) {
-					this.currentItem = null;
-				}
+			if (this.currentItem != null && this.currentItem.getItem() == label) {
+				this.currentItem = null;
 			}
 		});
 		label.setOnMousePressed(event -> {
-			// Node on = (Node)event.getTarget();
 			Item obj = this.paneSave.getItem(this.paneSave.getPane().getChildren().indexOf(label));
 			obj.setLastposition(new Point(event.getSceneX(), event.getSceneY()));
 			pointMove = "(" + event.getSceneX() + ";" + event.getSceneY() + ")";
-			System.out.println("OnMove:" + pointMove);
 		});
 		label.setOnMouseDragged(event -> {
 			event.setDragDetect(false);
 			// Node on = (Node)event.getTarget();
 			Item obj = this.paneSave.getItem(this.paneSave.getPane().getChildren().indexOf(label));
 			if ((this.currentItem != null)) {
-
 				double maxX = this.paneSave.getPane().getWidth();
 				double maxY = this.paneSave.getPane().getHeight();
 				if (obj.getLastposition() == null) {
@@ -549,9 +471,7 @@ public class TemplateCtrl {
 				Point mouse = new Point(event.getSceneX(), event.getSceneY());
 				double dx = event.getSceneX() - obj.getLastposition().x;
 				double dy = event.getSceneY() - obj.getLastposition().y;
-				System.out.println("event.getScene: " + event.getSceneX() + ", " + event.getSceneY());
-				System.out.println("mouse: " + mouse.x + ", " + mouse.y);
-				System.out.println("on: " + label.getTranslateX() + ", " + label.getTranslateY());
+
 				if (maxX > label.getTranslateX() + obj.getOptions().getWidth() + dx) {
 					label.setTranslateX(label.getTranslateX() + dx);
 				} else {
@@ -572,7 +492,7 @@ public class TemplateCtrl {
 				obj.setPosition(new Point(label.getTranslateX(), label.getTranslateY()));
 				event.setDragDetect(true);
 			} else {
-				System.out.println("exit");
+				logger.info("Exit");
 			}
 			event.consume();
 		});
@@ -583,39 +503,29 @@ public class TemplateCtrl {
 		return label;
 	}
 
-	public Rectangle createViewRectangle(OptionsItem Oitem, AnchorPane pane) {
+	public Rectangle createViewRectangle(OptionsItem optionsItem, AnchorPane pane) {
 		Rectangle rectangle = new Rectangle(50.0, 50.0);
 		rectangle.setStroke(Color.BLACK);
 		rectangle.setFill(Color.rgb(255, 255, 255, 0.0));
-		if (Oitem != null) {
-			rectangle.setWidth(Oitem.getWidth());
-			rectangle.setHeight(Oitem.getHeight());
-			rectangle.setStrokeWidth(Oitem.getBorderWidth());
+		if (optionsItem != null) {
+			rectangle.setWidth(optionsItem.getWidth());
+			rectangle.setHeight(optionsItem.getHeight());
+			rectangle.setStrokeWidth(optionsItem.getBorderWidth());
 		} else {
 			rectangle.setStrokeWidth(1.0);
 		}
 		rectangle.setOnMouseClicked(event -> {
-			this.LoadInfo(rectangle);
-			String old = new String(pointMove);
+			this.loadInfo(rectangle);
 			pointMove = "(" + event.getSceneX() + ";" + event.getSceneY() + ")";
-			System.out.println("OffMove" + pointMove);
-			String time = ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ofPattern("HH/mm/ss"));
-			// messages.put(new TextBox().move.get("move")[2]+"("+time+")",
-			// currentItem.getType()+":{"+old+">"+pointMove+"}");
 		});
 		pane.setOnDragExited(event -> {
-			System.out.println("OnDragExited");
-			if (this.currentItem != null) {
-				if ((Rectangle) this.currentItem.getItem() == rectangle) {
-					this.currentItem = null;
-				}
+			if (this.currentItem != null && this.currentItem.getItem() == rectangle) {
+				this.currentItem = null;
 			}
 		});
 		rectangle.setOnMousePressed(event -> {
 			Item obj = this.paneSave.getItem(this.paneSave.getPane().getChildren().indexOf(rectangle));
 			obj.setLastposition(new Point(event.getSceneX(), event.getSceneY()));
-			pointMove = "(" + event.getSceneX() + ";" + event.getSceneY() + ")";
-			System.out.println("OnMove:" + pointMove);
 		});
 		rectangle.setOnMouseDragged(event -> {
 			event.setDragDetect(false);
@@ -630,9 +540,7 @@ public class TemplateCtrl {
 				Point mouse = new Point(event.getSceneX(), event.getSceneY());
 				double dx = event.getSceneX() - obj.getLastposition().x;
 				double dy = event.getSceneY() - obj.getLastposition().y;
-				System.out.println("event.getScene: " + event.getSceneX() + ", " + event.getSceneY());
-				System.out.println("mouse: " + mouse.x + ", " + mouse.y);
-				System.out.println("on: " + rectangle.getTranslateX() + ", " + rectangle.getTranslateY());
+
 				if (maxX > rectangle.getTranslateX() + obj.getOptions().getWidth() + dx) {
 					rectangle.setTranslateX(rectangle.getTranslateX() + dx);
 				} else {
@@ -653,7 +561,7 @@ public class TemplateCtrl {
 				obj.setPosition(new Point(rectangle.getTranslateX(), rectangle.getTranslateY()));
 				event.setDragDetect(true);
 			} else {
-				System.out.println("exit");
+				logger.info("Exit");
 			}
 			event.consume();
 		});
@@ -664,54 +572,45 @@ public class TemplateCtrl {
 		return rectangle;
 	}
 
-	public Line createViewLine(OptionsItem Oitem, AnchorPane pane) {
+	public Line createViewLine(OptionsItem optionsItem, AnchorPane pane) {
 		Line line = new Line(0.0, 0.0, 0.0, 0.0);
-		if (Oitem != null) {
-			line.setStartX(Oitem.getWidth());
-			line.setRotate(Oitem.getRotate());
-			line.setStrokeWidth(Oitem.getBorderWidth());
+		if (optionsItem != null) {
+			line.setStartX(optionsItem.getWidth());
+			line.setRotate(optionsItem.getRotate());
+			line.setStrokeWidth(optionsItem.getBorderWidth());
 		} else {
 			line.setStartX(20);
 		}
 		line.setOnMouseClicked(event -> {
-			this.LoadInfo(line);
-			String old = new String(pointMove);
+			this.loadInfo(line);
 			pointMove = "(" + event.getSceneX() + ";" + event.getSceneY() + ")";
-			System.out.println("OffMove" + pointMove);
-			String time = ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ofPattern("HH/mm/ss"));
-			// messages.put(new TextBox().move.get("move")[2]+"("+time+")",
-			// currentItem.getType()+":{"+old+">"+pointMove+"}");
 		});
 		pane.setOnDragExited(event -> {
 			System.out.println("OnDragExited");
-			if (this.currentItem != null) {
-				if ((Line) this.currentItem.getItem() == line) {
-					this.currentItem = null;
-				}
+			if (this.currentItem != null && this.currentItem.getItem() == line) {
+				this.currentItem = null;
 			}
 		});
 		line.setOnMousePressed(event -> {
 			Item obj = this.paneSave.getItem(this.paneSave.getPane().getChildren().indexOf(line));
 			obj.setLastposition(new Point(event.getSceneX(), event.getSceneY()));
 			pointMove = "(" + event.getSceneX() + ";" + event.getSceneY() + ")";
-			System.out.println("OnMove:" + pointMove);
 		});
 		line.setOnMouseDragged(event -> {
 			event.setDragDetect(false);
 			Item obj = this.paneSave.getItem(this.paneSave.getPane().getChildren().indexOf(line));
-			if ((this.currentItem != null)) {
-
+			if (this.currentItem != null) {
 				double maxX = this.paneSave.getPane().getWidth();
 				double maxY = this.paneSave.getPane().getHeight();
+
 				if (obj.getLastposition() == null) {
 					obj.setLastposition(new Point(event.getSceneX(), event.getSceneY()));
 				}
+
 				Point mouse = new Point(event.getSceneX(), event.getSceneY());
 				double dx = event.getSceneX() - obj.getLastposition().x;
 				double dy = event.getSceneY() - obj.getLastposition().y;
-				System.out.println("event.getScene: " + event.getSceneX() + ", " + event.getSceneY());
-				System.out.println("mouse: " + mouse.x + ", " + mouse.y);
-				System.out.println("on: " + line.getTranslateX() + ", " + line.getTranslateY());
+
 				if (maxX > line.getTranslateX() + obj.getOptions().getWidth() + dx) {
 					line.setTranslateX(line.getTranslateX() + dx);
 				} else {
@@ -732,7 +631,7 @@ public class TemplateCtrl {
 				obj.setPosition(new Point(line.getTranslateX(), line.getTranslateY()));
 				event.setDragDetect(true);
 			} else {
-				System.out.println("exit");
+				logger.info("Exit");
 			}
 			event.consume();
 		});
@@ -743,44 +642,33 @@ public class TemplateCtrl {
 		return line;
 	}
 
-	public Pane createViewQRCode(OptionsItem Oitem, AnchorPane pane) throws WriterException {
+	public Pane createViewQRCode(OptionsItem oitem, AnchorPane pane) throws WriterException {
 		QRCode controlCode = new QRCode();
 		BufferedImage img = null;
-		if (Oitem != null) {
-			controlCode.setSize(Oitem.getWidth().intValue());
-			img = controlCode.createQRImage();
-		} else {
-			img = controlCode.createQRImage();
+		if (oitem != null) {
+			controlCode.setSize(oitem.getWidth().intValue());
 		}
+		img = controlCode.createQRImage();
 		Image image = SwingFXUtils.toFXImage(img, null);
 		Pane label = new Pane();
 		label.setPrefSize(image.getWidth(), image.getHeight());
 		label.setBackground(
 				new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
 						BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(),
-								BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
+						BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
 		label.setOnMouseClicked(event -> {
-			this.LoadInfo(label);
-			String old = new String(pointMove);
+			this.loadInfo(label);
 			pointMove = "(" + event.getSceneX() + ";" + event.getSceneY() + ")";
-			System.out.println("OffMove" + pointMove);
-			String time = ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ofPattern("HH/mm/ss"));
-			// messages.put(new TextBox().move.get("move")[2]+"("+time+")",
-			// currentItem.getType()+":{"+old+">"+pointMove+"}");
 		});
 		pane.setOnDragExited(event -> {
-			System.out.println("OnDragExited");
-			if (this.currentItem != null) {
-				if ((Pane) this.currentItem.getItem() == label) {
-					this.currentItem = null;
-				}
+			if (this.currentItem != null && this.currentItem.getItem() == label) {
+				this.currentItem = null;
 			}
 		});
 		label.setOnMousePressed(event -> {
 			Item obj = this.paneSave.getItem(this.paneSave.getPane().getChildren().indexOf(label));
 			obj.setLastposition(new Point(event.getSceneX(), event.getSceneY()));
 			pointMove = "(" + event.getSceneX() + ";" + event.getSceneY() + ")";
-			System.out.println("OnMove:" + pointMove);
 		});
 		label.setOnMouseDragged(event -> {
 			event.setDragDetect(false);
@@ -795,9 +683,7 @@ public class TemplateCtrl {
 				Point mouse = new Point(event.getSceneX(), event.getSceneY());
 				double dx = event.getSceneX() - obj.getLastposition().x;
 				double dy = event.getSceneY() - obj.getLastposition().y;
-				System.out.println("event.getScene: " + event.getSceneX() + ", " + event.getSceneY());
-				System.out.println("mouse: " + mouse.x + ", " + mouse.y);
-				System.out.println("on: " + label.getTranslateX() + ", " + label.getTranslateY());
+
 				if (maxX > label.getTranslateX() + obj.getOptions().getWidth() + dx) {
 					label.setTranslateX(label.getTranslateX() + dx);
 				} else {
@@ -818,7 +704,7 @@ public class TemplateCtrl {
 				obj.setPosition(new Point(label.getTranslateX(), label.getTranslateY()));
 				event.setDragDetect(true);
 			} else {
-				System.out.println("exit");
+				logger.info("Exit");
 			}
 			event.consume();
 		});
@@ -831,8 +717,8 @@ public class TemplateCtrl {
 
 	public void load() {
 		ObservableList<Info2Col> arr = FXCollections.observableArrayList();
-		colNameInfoTable.setCellValueFactory(new PropertyValueFactory<Info2Col, String>(TextBox.info2col[0][2]));
-		colValueInfoTable.setCellValueFactory(new PropertyValueFactory<Info2Col, String>(TextBox.info2col[1][2]));
+		colNameInfoTable.setCellValueFactory(new PropertyValueFactory<>(TextBox.info2col[0][2]));
+		colValueInfoTable.setCellValueFactory(new PropertyValueFactory<>(TextBox.info2col[1][2]));
 		arr.add(new Info2Col(TemplateInfo.templateInfo.get(0), paneSave.getId() + "", 0));
 		arr.add(new Info2Col(TemplateInfo.templateInfo.get(1), paneSave.getName(), 1));
 		arr.add(new Info2Col(TemplateInfo.templateInfo.get(2), paneSave.getWidth() + "", 2));
@@ -842,21 +728,8 @@ public class TemplateCtrl {
 
 	@FXML
 	void initialize() {
-		stage.setOnCloseRequest(event -> {
-			// parentCtrl.getParentCtrl().openTemplate();
-			messages.clear();
-		});
+		stage.setOnCloseRequest(event -> messages.clear());
 		save.setOnAction(event -> {
-			/*
-			 * if(messages.size()>0) { String message =
-			 * paneSave.getName()+":"+((objTemplate.getId()>0)?new
-			 * TextBox().move.get("edit")[2]:new
-			 * TextBox().move.get("add")[2])+"=Етикетка:{1}"; Move move = new
-			 * Move(user.getId(),new TextBox().getTypeMoveInt("template"), message);
-			 * user.setItemMove(move); move.save(mainWindow.getDb()); ResultMove item = new
-			 * ResultMove(move.getId(), messages); item.save(mainWindow.getDb());
-			 * move.setItemResultMove(item); }
-			 */
 			boolean newItem = false;
 			objTemplate.setId(0);
 			objTemplate.setName(paneSave.getName());
@@ -887,113 +760,78 @@ public class TemplateCtrl {
 			 * System.out.println("Editor->TestPrint: "+e.getMessage()); }
 			 */
 		});
-		deleteObj.setOnAction(event -> this.deleteItem());
+		deleteObj.setOnAction(event -> deleteItem());
 		addBackground.setOnAction(event -> addImage());
 		delBackground.setOnAction(event -> {
 			this.objTemplate.setBackground_data(null);
 			template.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-			// String time =
-			// ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ofPattern("HH/mm/ss"));
-			// messages.put(new TextBox().move.get("delete")[2]+"("+time+")", "фонове
-			// зображення:{1}");
 		});
-		Callback<TableColumn<Info2Col, String>, TableCell<Info2Col, String>> cellFactory = new Callback<TableColumn<Info2Col, String>, TableCell<Info2Col, String>>() {
-			public TableCell call(TableColumn p) {
-				EditingCell edc = new EditingCell();
-				return edc;
-			}
-		};
+		Callback<TableColumn<Info2Col, String>, TableCell<Info2Col, String>> cellFactory = p -> new EditingCell();
 		colValueTable.setCellFactory(cellFactory);
-		colValueTable.setOnEditCommit(new EventHandler<CellEditEvent<Info2Col, String>>() {
-			@Override
-			public void handle(CellEditEvent<Info2Col, String> v) {
-				Info2Col item = ((Info2Col) v.getTableView().getItems().get(v.getTablePosition().getRow()));
-				item.setValue(v.getNewValue());
-				// String time =
-				// ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ofPattern("HH/mm/ss"));
-				// messages.put(new TextBox().move.get("edit")[2]+"("+time+")",
-				// item.getName()+":{"+item.getValue()+">"+v.getNewValue()+"}");
-				switch (item.getType()) {
+		colValueTable.setOnEditCommit(value -> {
+			Info2Col item = value
+					.getTableView()
+					.getItems()
+					.get(value.getTablePosition().getRow());
+			item.setValue(value.getNewValue());
+
+			switch (item.getType()) {
 				case 0: {
-					Code controlCode = new Code(new Codes(), 12345, "15.506");
+					Code controlCode = new Code("15.506");
 					controlCode.setBarHeight(currentItem.getOptions().getHeight());
-					controlCode.setDoQuietZone((currentItem.getOptions().getQuietZone() > 0.0) ? true : false);
+					controlCode.setDoQuietZone(currentItem.getOptions().getQuietZone() > 0.0);
 					controlCode.setFontSize(currentItem.getOptions().getFont().size);
 					controlCode.setModuleWidth(Double.parseDouble(item.getValue()));
 					currentItem.getOptions().setWidthModule(Double.parseDouble(item.getValue()));
 					controlCode.setMsgPosition(currentItem.getOptions().getHumanReadablePlacement());
 					controlCode.setQuietZone(currentItem.getOptions().getQuietZone());
 					BufferedImage img = controlCode.generate(false);
-					Image image = SwingFXUtils.toFXImage(img, null);
-					((Pane) currentItem.getItem()).setPrefSize(image.getWidth(), image.getHeight());
-					((Pane) currentItem.getItem()).setBackground(new Background(
-							new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-									BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(),
-											BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
+					createImage(img);
 					break;
 				}
 				case 1: {
-					Code controlCode = new Code(new Codes(), 12345, "15.506");
+					Code controlCode = new Code("15.506");
 					controlCode.setBarHeight(Double.parseDouble(item.getValue()));
 					currentItem.getOptions().setHeight(Double.parseDouble(item.getValue()));
-					controlCode.setDoQuietZone((currentItem.getOptions().getQuietZone() > 0.0) ? true : false);
+					controlCode.setDoQuietZone(currentItem.getOptions().getQuietZone() > 0.0);
 					controlCode.setFontSize(currentItem.getOptions().getFont().size);
 					controlCode.setModuleWidth(currentItem.getOptions().getWidthModule());
 					controlCode.setMsgPosition(currentItem.getOptions().getHumanReadablePlacement());
 					controlCode.setQuietZone(currentItem.getOptions().getQuietZone());
 					BufferedImage img = controlCode.generate(false);
-					Image image = SwingFXUtils.toFXImage(img, null);
-					((Pane) currentItem.getItem()).setPrefSize(image.getWidth(), image.getHeight());
-					((Pane) currentItem.getItem()).setBackground(new Background(
-							new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-									BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(),
-											BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
+					createImage(img);
 					break;
 				}
 				case 2: {
-					switch (currentItem.getType()) {
-					case "barcode": {
-						Code controlCode = new Code(new Codes(), 12345, "15.506");
+					if ("barcode".equals(currentItem.getType())) {
+						Code controlCode = new Code("15.506");
 						controlCode.setBarHeight(currentItem.getOptions().getHeight());
-						controlCode.setDoQuietZone((currentItem.getOptions().getQuietZone() > 0.0) ? true : false);
+						controlCode.setDoQuietZone(currentItem.getOptions().getQuietZone() > 0.0);
 						controlCode.setFontSize(Double.parseDouble(item.getValue()));
 						currentItem.getOptions().getFont().size = Double.parseDouble(item.getValue());
 						controlCode.setModuleWidth(currentItem.getOptions().getWidthModule());
 						controlCode.setMsgPosition(currentItem.getOptions().getHumanReadablePlacement());
 						controlCode.setQuietZone(currentItem.getOptions().getQuietZone());
 						BufferedImage img = controlCode.generate(false);
-						Image image = SwingFXUtils.toFXImage(img, null);
-						((Pane) currentItem.getItem()).setPrefSize(image.getWidth(), image.getHeight());
-						((Pane) currentItem.getItem()).setBackground(new Background(
-								new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-										BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(),
-												BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
-						break;
-					}
-					default: {
+						createImage(img);
+					} else {
 						currentItem.getOptions().getFont().size = Double.parseDouble(item.getValue());
 						((Label) currentItem.getItem()).setFont(new Font(currentItem.getOptions().getFont().name,
 								currentItem.getOptions().getFont().size));// if(currentItem.getType().compareToIgnoreCase(TextBox.nameObjTemplate[2])!=0)
 					}
-					}
 					break;
 				}
 				case 3: {
-					Code controlCode = new Code(new Codes(), 12345, "15.506");
+					Code controlCode = new Code("15.506");
 					controlCode.setBarHeight(currentItem.getOptions().getHeight());
-					controlCode.setDoQuietZone((currentItem.getOptions().getQuietZone() > 0.0) ? true : false);
+					controlCode.setDoQuietZone(currentItem.getOptions().getQuietZone() > 0.0);
 					controlCode.setFontSize(currentItem.getOptions().getFont().size);
 					controlCode.setModuleWidth(currentItem.getOptions().getWidthModule());
 					controlCode.setMsgPosition(currentItem.getOptions().getHumanReadablePlacement());
 					controlCode.setQuietZone(Double.parseDouble(item.getValue()));
 					currentItem.getOptions().setQuietZone(Double.parseDouble(item.getValue()));
 					BufferedImage img = controlCode.generate(false);
-					Image image = SwingFXUtils.toFXImage(img, null);
-					((Pane) currentItem.getItem()).setPrefSize(image.getWidth(), image.getHeight());
-					((Pane) currentItem.getItem()).setBackground(new Background(
-							new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-									BackgroundPosition.CENTER, new BackgroundSize(BackgroundSize.DEFAULT.getWidth(),
-											BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
+					createImage(img);
 					break;
 				}
 				case 4: {
@@ -1008,33 +846,28 @@ public class TemplateCtrl {
 				}
 				case 6: {
 					try {
-						Double w = Double.parseDouble(item.getValue());
+						double w = Double.parseDouble(item.getValue());
 						currentItem.getOptions().setWidth(w);
 						switch (currentItem.getType()) {
-						case "qrcode": {
-							QRCode controlCode = new QRCode();
-							controlCode.setSize(w.intValue());
-							BufferedImage img = controlCode.createQRImage();
-							Image image = SwingFXUtils.toFXImage(img, null);
-							((Pane) currentItem.getItem()).setPrefSize(image.getWidth(), image.getHeight());
-							((Pane) currentItem.getItem()).setBackground(new Background(new BackgroundImage(image,
-									BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
-									new BackgroundSize(BackgroundSize.DEFAULT.getWidth(),
-											BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
-							break;
-						}
-						case "line": {
-							((Line) currentItem.getItem()).setStartX(w);
-							break;
-						}
-						case "rectangle": {
-							((Rectangle) currentItem.getItem()).setWidth(w);
-							break;
-						}
-						default: {
-							((Label) currentItem.getItem()).setPrefWidth(w);
-							break;
-						}
+							case "qrcode": {
+								QRCode controlCode = new QRCode();
+								controlCode.setSize((int) w);
+								BufferedImage img = controlCode.createQRImage();
+								createImage(img);
+								break;
+							}
+							case "line": {
+								((Line) currentItem.getItem()).setStartX(w);
+								break;
+							}
+							case "rectangle": {
+								((Rectangle) currentItem.getItem()).setWidth(w);
+								break;
+							}
+							default: {
+								((Label) currentItem.getItem()).setPrefWidth(w);
+								break;
+							}
 						}
 					} catch (Exception e) {
 						item.setValue(currentItem.getOptions().getWidth() + "");
@@ -1043,15 +876,10 @@ public class TemplateCtrl {
 				}
 				case 7: {
 					try {
-						Double h = Double.parseDouble(item.getValue());
+						double h = Double.parseDouble(item.getValue());
 						currentItem.getOptions().setHeight(h);
-						switch (currentItem.getType()) {
-						case "rectangle": {
+						if ("rectangle".equals(currentItem.getType())) {
 							((Rectangle) currentItem.getItem()).setHeight(h);
-							break;
-						}
-						default:
-							break;
 						}
 						((Label) currentItem.getItem()).setPrefHeight(h);
 					} catch (Exception e) {
@@ -1072,7 +900,7 @@ public class TemplateCtrl {
 				case 9: {
 					try {
 						String s = item.getValue();
-						boolean b = (s.compareToIgnoreCase("true") == 0) ? true : false;// Boolean.getBoolean(s);
+						boolean b = s.compareToIgnoreCase("true") == 0;// Boolean.getBoolean(s);
 						if (b) {
 							currentItem.getOptions().setWrapText(item.getValue());
 							((Label) currentItem.getItem()).setWrapText(b);
@@ -1086,7 +914,7 @@ public class TemplateCtrl {
 				}
 				case 10: {
 					try {
-						Double val = Double.parseDouble(item.getValue());
+						double val = Double.parseDouble(item.getValue());
 						currentItem.getOptions().setLineSpacing(val);
 						((Label) currentItem.getItem()).setLineSpacing(val);
 					} catch (Exception e) {
@@ -1106,19 +934,19 @@ public class TemplateCtrl {
 				}
 				case 12: {
 					try {
-						Double val = Double.parseDouble(item.getValue());
+						double val = Double.parseDouble(item.getValue());
 						currentItem.getOptions().setBorderWidth(val);
 						switch (currentItem.getType()) {
-						case "line": {
-							((Line) currentItem.getItem()).setStrokeWidth(val);
-							break;
-						}
-						case "rectangle": {
-							((Rectangle) currentItem.getItem()).setStrokeWidth(val);
-							break;
-						}
-						default:
-							break;
+							case "line": {
+								((Line) currentItem.getItem()).setStrokeWidth(val);
+								break;
+							}
+							case "rectangle": {
+								((Rectangle) currentItem.getItem()).setStrokeWidth(val);
+								break;
+							}
+							default:
+								break;
 						}
 					} catch (Exception e) {
 						item.setValue(currentItem.getOptions().getBorderWidth() + "");
@@ -1127,130 +955,146 @@ public class TemplateCtrl {
 				}
 				case 13: {
 					try {
-						Double val = Double.parseDouble(item.getValue());
+						double val = Double.parseDouble(item.getValue());
 						currentItem.getOptions().setRotate(val);
-						switch (currentItem.getType()) {
-						case "line": {
+						if ("line".equals(currentItem.getType())) {
 							((Line) currentItem.getItem()).setRotate(val);
-							break;
-						}
-						default:
+						} else {
 							((Label) currentItem.getItem()).setRotate(val);
-							break;
 						}
 					} catch (Exception e) {
 						item.setValue(currentItem.getOptions().getWidth() + "");
 					}
 					break;
 				}
-				default: {
+				case 14: {
+					double x = Double.parseDouble(item.getValue());
+					if (x > paneSave.getPane().getWidth()) {
+						x = paneSave.getPane().getWidth() - currentItem.getOptions().getWidth();
+					} else if (x < 0.0) {
+						x = 0.0;
+					}
+
+					getClassOfObject(currentItem.getType())
+							.cast(currentItem.getItem())
+							.setTranslateX(x);
+					break;
 				}
+				case 15: {
+					double y = Double.parseDouble(item.getValue());
+
+					if (y > paneSave.getPane().getHeight()) {
+						y = paneSave.getPane().getHeight() - currentItem.getOptions().getHeight();
+					} else if (y < 0.0) {
+						y = 0.0;
+					}
+
+					getClassOfObject(currentItem.getType())
+							.cast(currentItem.getItem())
+							.setTranslateY(y);
+					break;
 				}
 			}
 		});
-		// ObservableList<String> langs =
-		// FXCollections.observableArrayList(TextBox.nameObjTemplate);
 		listElement.setItems(ItemTemplate.getList(TemplateInfo.ItemsTemplate));
+
+		//set cursor to open hand as user hovers over list of template elements
 		listElement.setOnMouseMoved(event -> {
 			stage.getScene().setCursor(Cursor.OPEN_HAND);
 			event.consume();
 		});
+		//set cursor back to normal as user stops hovering over list of template elements
 		listElement.setOnMouseExited(event -> {
 			stage.getScene().setCursor(Cursor.DEFAULT);
 			event.consume();
 		});
+
 		listElement.setOnMouseClicked(value -> {
-			// int item = listElement.getSelectionModel().getSelectedIndex();
-			ItemTemplate item = listElement.getSelectionModel().getSelectedItem();
+			ItemTemplate selectedItem = listElement.getSelectionModel().getSelectedItem();
 			stage.getScene().setCursor(Cursor.CLOSED_HAND);
-			// String time =
-			// ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ofPattern("HH/mm/ss"));
-			// messages.put(new TextBox().move.get("add")[2]+"("+time+")",
-			// itemName+":{новий}");
-			switch (item.getType()) {
-			case "barcode": {
-				Pane label = this.createViewBarcode(null, this.paneSave.getPane());
-				this.paneSave.getPane().getChildren().add(label);
-				Item it = new Item(item.getId(), item.getType(), label,
-						new Point(label.getTranslateX(), label.getTranslateY()));
-				it.getOptions().setHeight(label.getPrefHeight());
-				it.getOptions().setWidth(label.getPrefWidth());
-				it.getOptions().setFont(new FontItem("System", "NORMAL", 14.0));
-				this.paneSave.setItem(it);
-				System.out.println("add:" + item);
-				LoadInfo(label);
-				break;
-			}
-			case "qrcode": {
-				try {
-					Pane label = this.createViewQRCode(null, this.paneSave.getPane());
+			switch (selectedItem.getType()) {
+				case "barcode": {
+					Pane label = this.createViewBarcode(null, this.paneSave.getPane());
 					this.paneSave.getPane().getChildren().add(label);
-					Item it = new Item(item.getId(), item.getType(), label,
+					Item it = new Item(selectedItem.getId(), selectedItem.getType(), label,
 							new Point(label.getTranslateX(), label.getTranslateY()));
 					it.getOptions().setHeight(label.getPrefHeight());
 					it.getOptions().setWidth(label.getPrefWidth());
 					it.getOptions().setFont(new FontItem("System", "NORMAL", 14.0));
 					this.paneSave.setItem(it);
-					System.out.println("add:" + item);
-					LoadInfo(label);
-				} catch (WriterException e) {
-					e.printStackTrace();
+					logger.info("add: {}", selectedItem);
+					loadInfo(label);
+					break;
 				}
-				break;
+				case "qrcode": {
+					try {
+						Pane label = this.createViewQRCode(null, this.paneSave.getPane());
+						this.paneSave.getPane().getChildren().add(label);
+						Item it = new Item(selectedItem.getId(), selectedItem.getType(), label,
+								new Point(label.getTranslateX(), label.getTranslateY()));
+						it.getOptions().setHeight(label.getPrefHeight());
+						it.getOptions().setWidth(label.getPrefWidth());
+						it.getOptions().setFont(new FontItem("System", "NORMAL", 14.0));
+						this.paneSave.setItem(it);
+						logger.info("add: {}", selectedItem);
+						loadInfo(label);
+					} catch (WriterException e) {
+						e.printStackTrace();
+					}
+					break;
+				}
+				case "line": {
+					Line line = this.createViewLine(null, this.paneSave.getPane());
+					this.paneSave.getPane().getChildren().add(line);
+					Item it = new Item(selectedItem.getId(), selectedItem.getType(), line,
+							new Point(line.getTranslateX(), line.getTranslateY()));
+					it.getOptions().setRotate(line.getRotate());
+					it.getOptions().setWidth(line.getStartX());
+					it.getOptions().setBorderWidth(line.getStrokeWidth());
+					this.paneSave.setItem(it);
+					logger.info("add: {}", selectedItem);
+					loadInfo(line);
+					break;
+				}
+				case "rectangle": {
+					Rectangle rectangle = createViewRectangle(null, this.paneSave.getPane());
+					this.paneSave.getPane().getChildren().add(rectangle);
+					Item it = new Item(selectedItem.getId(), selectedItem.getType(), rectangle,
+							new Point(rectangle.getTranslateX(), rectangle.getTranslateY()));
+					it.getOptions().setHeight(rectangle.getHeight());
+					it.getOptions().setWidth(rectangle.getWidth());
+					it.getOptions().setBorderWidth(rectangle.getStrokeWidth());
+					this.paneSave.setItem(it);
+					logger.info("add: {}", selectedItem);
+					loadInfo(rectangle);
+					break;
+				}
+				default: {
+					Label label = this.createViewLabel(null, selectedItem.getValue(), this.paneSave.getPane());
+					this.paneSave.getPane().getChildren().add(label);
+					label.setAlignment(Pos.valueOf("CENTER"));
+					Item it = new Item(selectedItem.getId(), selectedItem.getType(), label,
+							new Point(label.getTranslateX(), label.getTranslateY()));
+					it.getOptions().setFont(new FontItem(label.getFont().getFamily(), label.getFont().getSize()));
+					it.getOptions().setHeight(label.getHeight());
+					if (Objects.equals(selectedItem.getType(), "namePLU")
+							|| Objects.equals(selectedItem.getType(), "top")
+							|| Objects.equals(selectedItem.getType(), "bottom")) {
+						label.setPrefWidth(this.paneSave.getPane().getWidth());
+						it.getOptions().setWidth(this.paneSave.getPane().getWidth());
+					} else
+						it.getOptions().setWidth(label.getWidth());
+					this.paneSave.setItem(it);
+					logger.info("add: {}", selectedItem);
+					loadInfo(label);
+				}
 			}
-			case "line": {
-				Line line = this.createViewLine(null, this.paneSave.getPane());
-				this.paneSave.getPane().getChildren().add(line);
-				Item it = new Item(item.getId(), item.getType(), line,
-						new Point(line.getTranslateX(), line.getTranslateY()));
-				it.getOptions().setRotate(line.getRotate());
-				it.getOptions().setWidth(line.getStartX());
-				it.getOptions().setBorderWidth(line.getStrokeWidth());
-				this.paneSave.setItem(it);
-				System.out.println("add:" + item);
-				LoadInfo(line);
-				break;
-			}
-			case "rectangle": {
-				Rectangle rectangle = createViewRectangle(null, this.paneSave.getPane());
-				this.paneSave.getPane().getChildren().add(rectangle);
-				Item it = new Item(item.getId(), item.getType(), rectangle,
-						new Point(rectangle.getTranslateX(), rectangle.getTranslateY()));
-				it.getOptions().setHeight(rectangle.getHeight());
-				it.getOptions().setWidth(rectangle.getWidth());
-				it.getOptions().setBorderWidth(rectangle.getStrokeWidth());
-				this.paneSave.setItem(it);
-				System.out.println("add:" + item);
-				LoadInfo(rectangle);
-				break;
-			}
-			default: {
-				Label label = this.createViewLabel(null, item.getValue(), this.paneSave.getPane());
-				this.paneSave.getPane().getChildren().add(label);
-				label.setAlignment(Pos.valueOf("CENTER"));
-				Item it = new Item(item.getId(), item.getType(), label,
-						new Point(label.getTranslateX(), label.getTranslateY()));
-				it.getOptions().setFont(new FontItem(label.getFont().getFamily(), label.getFont().getSize()));
-				it.getOptions().setHeight(label.getHeight());
-				if (item.getType() == "namePLU" || item.getType() == "top" || item.getType() == "bottom") {
-					label.setPrefWidth(this.paneSave.getPane().getWidth());
-					it.getOptions().setWidth(this.paneSave.getPane().getWidth());
-				} else
-					it.getOptions().setWidth(label.getWidth());
-				this.paneSave.setItem(it);
-				System.out.println("add:" + item);
-				LoadInfo(label);
-			}
-			}
-			;
 			value.consume();
 		});
 		colValueInfoTable.setCellFactory(cellFactory);
-		colValueInfoTable.setOnEditCommit(new EventHandler<CellEditEvent<Info2Col, String>>() {
-			@Override
-			public void handle(CellEditEvent<Info2Col, String> v) {
-				Info2Col item = ((Info2Col) v.getTableView().getItems().get(v.getTablePosition().getRow()));
-				switch (item.getType()) {
+		colValueInfoTable.setOnEditCommit(v -> {
+			Info2Col item = v.getTableView().getItems().get(v.getTablePosition().getRow());
+			switch (item.getType()) {
 				case 0: {
 					int n = 0;
 					try {
@@ -1287,12 +1131,12 @@ public class TemplateCtrl {
 						n = -1;
 					}
 					if (n > 0) {
-						System.out.println(template.getMinWidth() + ":" + template.getMinHeight());
+						logger.info(String.format("%f:%f", template.getMinWidth(), template.getMinHeight()));
 						template.setMinWidth(n);
 						template.setPrefWidth(n);
 						paneSave.setWidthContent((float) n);
 						item.setValue(v.getNewValue());
-						System.out.println(template.getPrefWidth() + ":" + template.getPrefHeight());
+						logger.info(String.format("%f:%f", template.getPrefWidth(), template.getPrefHeight()));
 					}
 					break;
 				}
@@ -1304,20 +1148,40 @@ public class TemplateCtrl {
 						n = -1;
 					}
 					if (n > 0) {
-						System.out.println(template.getMinWidth() + ":" + template.getMinHeight());
+						logger.info(String.format("%f:%f", template.getMinWidth(), template.getMinHeight()));
 						template.setMinHeight(n);
 						template.setPrefHeight(n);
 						paneSave.setHeightContent((float) n);
 						item.setValue(v.getNewValue());
-						System.out.println(template.getPrefWidth() + ":" + template.getPrefHeight());
+						logger.info(String.format("%f:%f", template.getPrefWidth(), template.getPrefHeight()));
 					}
 					break;
 				}
-				default: {
-				}
-				}
 			}
 		});
+	}
+
+	private Class<? extends Node> getClassOfObject(String type) {
+		switch (type) {
+			case "barcode":
+			case "qrcode":
+				return Pane.class;
+			case "rectangle":
+				return Rectangle.class;
+			case "line":
+				return Line.class;
+			default:
+				return Label.class;
+		}
+	}
+
+	private void createImage(BufferedImage img) {
+		Image image = SwingFXUtils.toFXImage(img, null);
+		((Pane) currentItem.getItem()).setPrefSize(image.getWidth(), image.getHeight());
+		((Pane) currentItem.getItem()).setBackground(new Background(new BackgroundImage(image,
+				BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
+				new BackgroundSize(BackgroundSize.DEFAULT.getWidth(),
+						BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
 	}
 
 	public PaneObj getPaneSave() {

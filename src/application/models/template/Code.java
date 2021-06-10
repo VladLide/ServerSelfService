@@ -1,16 +1,14 @@
 package application.models.template;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-
+import application.models.net.mysql.tables.Codes;
 import org.krysalis.barcode4j.BarcodeDimension;
 import org.krysalis.barcode4j.HumanReadablePlacement;
 import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
 import org.krysalis.barcode4j.impl.upcean.EAN13Bean;
 import org.krysalis.barcode4j.output.java2d.Java2DCanvasProvider;
 
-import application.models.net.mysql.tables.Codes;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class Code {
 	private String code = "12345";
@@ -18,6 +16,10 @@ public class Code {
 	private String unit;
 	private AbstractBarcodeBean bean = new EAN13Bean();
 	private final int dpi = 203;
+
+	public Code(String unit) {
+		this.unit = unit.replace(",", "").replace(".", "");
+	}
 
 	public Code(Codes barcode, int cod, String unit) {
 		super();

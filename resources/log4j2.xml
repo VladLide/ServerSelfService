@@ -8,7 +8,7 @@
         <RollingFile
                 name="roll-by-size"
                 fileName="logs/app.log"
-                filePattern="logs/app.%i.log.gz"
+                filePattern="logs/app.%i.log"
                 ignoreExceptions="false">
             <PatternLayout>
                 <Pattern>%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Pattern>
