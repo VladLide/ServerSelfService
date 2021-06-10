@@ -214,7 +214,8 @@ public class SectionCtrl {
 											SectionType.SECTION,
 											item.getName(),
 											LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            OperationStatus.SUCCESS)
+											OperationStatus.SUCCESS
+									)
 							);
 							TextBox.alertOpenDialog(AlertType.INFORMATION, "addSectionYes");
 							if (id != 0)
@@ -239,8 +240,8 @@ public class SectionCtrl {
 							this.item.updateId(id, db);
 						if (item.getName().compareToIgnoreCase(nameNew) != 0)
 							this.item.updateName(nameNew, db);
-                        if (item.save(db) > -1) {
-                            TextBox.alertOpenDialog(AlertType.INFORMATION, "editSectionYes");
+						if (item.save(db) > -1) {
+							TextBox.alertOpenDialog(AlertType.INFORMATION, "editSectionYes");
 							MainWindowCtrl.setLog(
 									Helper.formatOutput(
 											Operation.UPDATE,
@@ -386,9 +387,8 @@ public class SectionCtrl {
 					img.setBackground(null);
 					System.out.println("ButtonWithImage: no image - " + e);
 				}
-                        save.setDisable(true);
-
 				newItem = false;
+				save.setDisable(true);
 			}
 		});
 	}
@@ -397,9 +397,9 @@ public class SectionCtrl {
 		return item;
 	}
 
-    public void setItem(Sections item) {
-        this.item = item;
-    }
+	public void setItem(Sections item) {
+		this.item = item;
+	}
 
 	public void setSource(String source) {
 		this.source.setText(source);

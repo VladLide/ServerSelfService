@@ -121,18 +121,18 @@ public class ProductCtrl {
 		ObservableList<TableColumn<Goods, ?>> col = FXCollections.observableArrayList();
 		colInfo.forEach(v -> {
 			switch (v[0]) {
-				case "Integer": {
-					TableColumn<Goods, Integer> item = new TableColumn<Goods, Integer>(v[1]);
-					item.setCellValueFactory(new PropertyValueFactory<Goods, Integer>(v[2]));
-					col.add(item);
-					break;
-				}
-				case "String": {
-					TableColumn<Goods, String> item = new TableColumn<Goods, String>(v[1]);
-					item.setCellValueFactory(new PropertyValueFactory<Goods, String>(v[2]));
-					col.add(item);
-					break;
-				}
+			case "Integer": {
+				TableColumn<Goods, Integer> item = new TableColumn<Goods, Integer>(v[1]);
+				item.setCellValueFactory(new PropertyValueFactory<Goods, Integer>(v[2]));
+				col.add(item);
+				break;
+			}
+			case "String": {
+				TableColumn<Goods, String> item = new TableColumn<Goods, String>(v[1]);
+				item.setCellValueFactory(new PropertyValueFactory<Goods, String>(v[2]));
+				col.add(item);
+				break;
+			}
 			}
 		});
 		return col;
@@ -166,96 +166,106 @@ public class ProductCtrl {
 
 	private void continion() {
 		try {
-			Goods plu = new Goods();
-			int preCode = Integer.parseInt(pre_code.getText());
-			plu.setId_sections(section.getSelectionModel().getSelectedItem().getId());
-			plu.setId_templates(template.getSelectionModel().getSelectedItem().getId());
-			plu.setId_barcodes(code.getSelectionModel().getSelectedItem().getId());
-			plu.setName(name.getText());
-			plu.setFull_name(name.getText());
-			plu.setPrice(Float.parseFloat(price.getText().replace(",", ".")));
-			plu.setType(unit.getSelectionModel().getSelectedItem());
-			plu.setBefore_validity(
-					(expirationDate.getText().length() > 0) ? Integer.parseInt(expirationDate.getText()) : 0);
-			plu.setIngredients(ingredients.getText());
-			plu.setMin_type((float) 0.04);
-			try {
-				plu.setNumber(Integer.parseInt(number.getText()));
-			} catch (NumberFormatException e) {
-				if (item != null) {
-					plu.setNumber(item.getNumber());
-				}
-			}
-
-			if (this.file != null)
-				plu.setData(this.file);
-			if (newItem) {
-				plu.setPre_code(preCode);
-				if (this.file == null)
-					plu.setDataBlob(null);
-				if (plu.save(db) > 0) {
-					TextBox.alertOpenDialog(AlertType.INFORMATION, "addGoodsYes");
-					load();
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.CREATE,
-									placeType,
-									ipAddress,
-									SectionType.PRODUCT,
-									plu.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.SUCCESS)
-					);
-				} else {
-					TextBox.alertOpenDialog(AlertType.WARNING, "addGoodsNot");
-
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.CREATE,
-									placeType,
-									ipAddress,
-									SectionType.PRODUCT,
-									plu.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.FAILURE)
-					);
-				}
+			if (section.getSelectionModel().getSelectedItem() == null
+					|| template.getSelectionModel().getSelectedItem() == null
+					|| code.getSelectionModel().getSelectedItem() == null
+					|| unit.getSelectionModel().getSelectedItem() == null
+					|| pre_code.getText().length() <= 0) {
+				TextBox.alertOpenDialog(AlertType.ERROR, "editGoodsNo");
 			} else {
-				// todo item.getPre_code can throw nullPointer exception
-				plu.setPre_code(this.item.getPre_code());
-				plu.setDataBlob(this.item.getData());
-				if (this.item.getPre_code() != preCode)
-					plu.updatePre_code(preCode, db);
-				if (plu.save(db) > 0) {
-					TextBox.alertOpenDialog(AlertType.INFORMATION, "editGoodsYes");
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.UPDATE,
-									placeType,
-									ipAddress,
-									SectionType.PRODUCT,
-									plu.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.SUCCESS)
-					);
+				Goods plu = new Goods();
+				int preCode = Integer.parseInt(pre_code.getText());
+				plu.setId_sections(section.getSelectionModel().getSelectedItem().getId());
+				plu.setId_templates(template.getSelectionModel().getSelectedItem().getId());
+				plu.setId_barcodes(code.getSelectionModel().getSelectedItem().getId());
+				plu.setName(name.getText());
+				plu.setFull_name(name.getText());
+				plu.setPrice(Float.parseFloat(price.getText().replace(",", ".")));
+				plu.setType(unit.getSelectionModel().getSelectedItem());
+				plu.setBefore_validity(
+						(expirationDate.getText().length() > 0) ? Integer.parseInt(expirationDate.getText()) : 0);
+				plu.setIngredients(ingredients.getText());
+				plu.setMin_type((float) 0.04);
+				try {
+					plu.setNumber(Integer.parseInt(number.getText()));
+				} catch (NumberFormatException e) {
+					if (item != null) {
+						plu.setNumber(item.getNumber());
+					}
+				}
+
+				if (this.file != null)
+					plu.setData(this.file);
+				if (newItem) {
+					plu.setPre_code(preCode);
+					if (this.file == null)
+						plu.setDataBlob(null);
+					if (plu.save(db) > 0) {
+						TextBox.alertOpenDialog(AlertType.INFORMATION, "addGoodsYes");
+						load();
+						MainWindowCtrl.setLog(
+								Helper.formatOutput(
+										Operation.CREATE,
+										placeType,
+										ipAddress,
+										SectionType.PRODUCT,
+										plu.getName(),
+										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+										OperationStatus.SUCCESS
+								)
+						);
+					} else {
+						TextBox.alertOpenDialog(AlertType.WARNING, "addGoodsNot");
+						MainWindowCtrl.setLog(
+								Helper.formatOutput(
+										Operation.CREATE,
+										placeType,
+										ipAddress,
+										SectionType.PRODUCT,
+										plu.getName(),
+										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+										OperationStatus.FAILURE
+								)
+						);
+					}
 				} else {
-					TextBox.alertOpenDialog(AlertType.WARNING, "editGoodsNo");
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.UPDATE,
-									placeType,
-									ipAddress,
-									SectionType.PRODUCT,
-									plu.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.FAILURE)
-					);
+					// todo item.getPre_code can throw nullPointer exception
+					plu.setPre_code(this.item.getPre_code());
+					plu.setDataBlob(this.item.getData());
+					if (this.item.getPre_code() != preCode)
+						plu.updatePre_code(preCode, db);
+					if (plu.save(db) > 0) {
+						TextBox.alertOpenDialog(AlertType.INFORMATION, "editGoodsYes");
+						MainWindowCtrl.setLog(
+								Helper.formatOutput(
+										Operation.UPDATE,
+										placeType,
+										ipAddress,
+										SectionType.PRODUCT,
+										plu.getName(),
+										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+										OperationStatus.SUCCESS
+								)
+						);
+					} else {
+						TextBox.alertOpenDialog(AlertType.WARNING, "editGoodsNo");
+						MainWindowCtrl.setLog(
+								Helper.formatOutput(
+										Operation.UPDATE,
+										placeType,
+										ipAddress,
+										SectionType.PRODUCT,
+										plu.getName(),
+										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+										OperationStatus.FAILURE
+								)
+						);
+					}
 				}
 			}
 		} catch (Exception e) {
 			TextBox.alertOpenDialog(AlertType.ERROR, "saveGoodsNo", e.getMessage());
 		}
-
 	}
 
 	public void clearLoad() {
@@ -323,7 +333,8 @@ public class ProductCtrl {
 										SectionType.PRODUCT,
 										item.getName(),
 										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-										OperationStatus.SUCCESS)
+										OperationStatus.SUCCESS
+								)
 						);
 						item = null;
 						clearLoad();
@@ -338,7 +349,8 @@ public class ProductCtrl {
 										SectionType.PRODUCT,
 										item.getName(),
 										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-										OperationStatus.FAILURE)
+										OperationStatus.FAILURE
+								)
 						);
 					}
 				}
