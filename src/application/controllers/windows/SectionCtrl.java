@@ -33,7 +33,7 @@ import java.util.ResourceBundle;
 public class SectionCtrl {
 	private Logger logger = LogManager.getLogger();
 	private Stage stage;
-	private Sections item = null;
+	private Sections item = new Sections();
 	private boolean newItem = true;
 	private File file = null;
 	private MySQL db = null;
@@ -172,15 +172,19 @@ public class SectionCtrl {
 	private void continion() {
 		if (name.getText().length() > 2) {
 			Boolean f = Sections.get(0, -1, 0, name.getText(), false, db) == null;
-			if (f || item != null) {
+			if (f && !newItem || !newItem) {
 				try {
 					int id = 0;
 					try {
 						id = Integer.parseInt(number.getText());
-						// temp.setId(id);
 					} catch (Exception e) {
-						if (item != null)
+						if (item.getId() > 0)
 							id = item.getId();
+					}
+					if (!newItem && item.getId() != id) {
+						item.updateId(id, db);
+					} else {
+						item.setId(id);
 					}
 					String nameNew = name.getText();
 					try {
@@ -204,7 +208,6 @@ public class SectionCtrl {
 					}
 					if (newItem) {
 						item.setName(nameNew);
-						item.setId(id);
 						if (item.save(db) > 0) {
 							MainWindowCtrl.setLog(
 									Helper.formatOutput(
@@ -218,8 +221,6 @@ public class SectionCtrl {
 									)
 							);
 							TextBox.alertOpenDialog(AlertType.INFORMATION, "addSectionYes");
-							if (id != 0)
-								item.updateId(id, db);
 							load();
 						} else {
 							MainWindowCtrl.setLog(
@@ -236,8 +237,6 @@ public class SectionCtrl {
 							TextBox.alertOpenDialog(AlertType.WARNING, "addSectionNo");
 						}
 					} else {
-						if (item.getId() != id)
-							this.item.updateId(id, db);
 						if (item.getName().compareToIgnoreCase(nameNew) != 0)
 							this.item.updateName(nameNew, db);
 						if (item.save(db) > -1) {
@@ -253,6 +252,7 @@ public class SectionCtrl {
 											OperationStatus.SUCCESS
 									)
 							);
+							this.load();
 						} else {
 							MainWindowCtrl.setLog(
 									Helper.formatOutput(
@@ -275,7 +275,6 @@ public class SectionCtrl {
 				TextBox.alertOpenDialog(AlertType.WARNING, "warningName");
 		} else
 			TextBox.alertOpenDialog(AlertType.ERROR, "editSectionNo");
-		this.load();
 	}
 
 	public void clearLoad() {

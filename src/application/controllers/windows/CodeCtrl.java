@@ -275,6 +275,7 @@ public class CodeCtrl {
     	clearField.setOnAction(event ->mask.setText(""));
     	number.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
     	name.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
+    	prefixValue.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
     	mask.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
     	delete.setOnAction(event ->{
     		try {
