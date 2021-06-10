@@ -9,7 +9,6 @@ import application.models.Configs;
 import application.models.PackageSend;
 import application.models.Utils;
 import application.models.net.mysql.MySQL;
-import application.models.net.mysql.interface_tables.ProductItem;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Codes;
 import application.models.net.mysql.tables.Goods;
@@ -22,13 +21,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 
@@ -42,6 +35,7 @@ public class ContentCtrl {
 	private AnchorPane content;
 	private NodeTree node = null;
 	private PackageSend pack = null;
+	private static ContentCtrl contentCtrl;
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Content");
@@ -83,6 +77,7 @@ public class ContentCtrl {
 			FXMLLoader loader = new FXMLLoader(location, resources);
 			loader.setController(this);
 			content = MainCtrl.loadAnchorPane(anchorPane, loader);
+			contentCtrl = this;
 		} catch (IOException e) {
 			content = null;
 			MainWindowCtrl.setLog(e.getMessage());
@@ -318,6 +313,8 @@ public class ContentCtrl {
 	}
 
 	public static ObservableList<TableColumn<ItemContent, ?>> loadTable(ObservableList<String[]> colInfo) {
+		getInstance().delete.setDisable(true);
+
 		ObservableList<TableColumn<ItemContent, ?>> col = FXCollections.observableArrayList();
 		try {
 			colInfo.forEach((v) -> {
@@ -401,6 +398,9 @@ public class ContentCtrl {
 		assert check != null : "fx:id=\"check\" was not injected: check your FXML file 'Content.fxml'.";
 		assert dataTable != null : "fx:id=\"viewTreeTable\" was not injected: check your FXML file 'Content.fxml'.";
 		assert delete != null : "fx:id=\"delete\" was not injected: check your FXML file 'Content.fxml'.";
+
+		delete.setDisable(true);
+
 		dataTable.setOnContextMenuRequested(event -> {
 			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
 			if (item != null) {
@@ -411,6 +411,13 @@ public class ContentCtrl {
 				editCM.setDisable(true);
 				deleteCM.setDisable(true);
 				connectCM.setVisible(false);
+			}
+		});
+
+		dataTable.setOnMouseClicked(event -> {
+			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
+			if (item != null) {
+				delete.setDisable(false);
 			}
 		});
 		send.setOnAction(event -> addSend());
@@ -505,5 +512,9 @@ public class ContentCtrl {
 
 	public PackageSend getPack() {
 		return pack;
+	}
+
+	public static ContentCtrl getInstance() {
+		return contentCtrl;
 	}
 }

@@ -111,4 +111,16 @@ public class Item implements Externalizable {
 	public void setOptions(OptionsItem options) {
 		this.options = options;
 	}
+
+	@Override
+	public String toString() {
+		return "Item{" +
+				"id=" + id +
+				", type='" + type + '\'' +
+				", item=" + item +
+				", lastposition=" + lastposition +
+				", position=" + position +
+				", options=" + options +
+				'}';
+	}
 }

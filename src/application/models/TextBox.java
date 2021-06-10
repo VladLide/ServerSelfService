@@ -1,13 +1,13 @@
 package application.models;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
+
 import java.time.DayOfWeek;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Alert.AlertType;
 
 public class TextBox {
 	public static class MSBOX {
@@ -41,7 +41,9 @@ public class TextBox {
 	 * }/,{"String","Етикетки","templatesName"},{"String","Штрих код","barcodesName"
 	 * }};
 	 */
-	public static String[][] info2col = { { "String", "Параметри", "name" }, { "String", "Значення", "value" } };
+	public static String[][] info2col = {
+			{ "String", "Параметри", "name" },
+			{ "String", "Значення", "value" } };
 	public static String[][] options = { { "Пароль адміна", "pass", "0000" }, { "Пароль фасування", "pass", "0000" },
 			{ "Номер етикетки", "id_templates", "1" }, { "Номер штрих коду", "id_barcodes", "1" },
 			{ "Сітка секції (3*2 до 3*4)", "section_grid", "3*2" }, { "Сітка plu (3*2 до 4*5)", "plu_grid", "3*2" },

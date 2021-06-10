@@ -1,10 +1,10 @@
 package application.views.languages.uk.windows;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TemplateInfo {
 	public static TemplateInfo inst = null;
@@ -30,10 +30,24 @@ public class TemplateInfo {
 			new String[] { "timeSave", "Термін зберігання (в годинах)", "00" },
 			/* new String[] {"qrcode","QR код",""}, */ new String[] { "line", "Лінія", "" },
 			new String[] { "rectangle", "Прямокутник", "" }, new String[] { "NB", "Номер кнопки товару", "1" });
-	public static ObservableList<String> parametersItem = FXCollections.observableArrayList("Ширина пробілу",
-			"Висота штрих коду", "Розмір шрифту", "Вільна зона", "Жирність шрифту", "Текст", "Ширина", "Висота",
-			"Вирівнювання", "З наступного рядку", "Міжрядковий інтервал", "Відступ(зверху;праворуч;внизу;зліва)",
-			"Ширина межі", "Кут", "Довжина");// "Шрифт",
+	public static ObservableList<String> parametersItem = FXCollections.observableArrayList(
+			"Ширина пробілу",
+			"Висота штрих коду",
+			"Розмір шрифту",
+			"Вільна зона",
+			"Жирність шрифту",
+			"Текст",
+			"Ширина",
+			"Висота",
+			"Вирівнювання",
+			"З наступного рядку",
+			"Міжрядковий інтервал",
+			"Відступ(зверху;праворуч;внизу;зліва)",
+			"Ширина межі",
+			"Кут",
+			"Довжина",
+			"X",
+			"Y");
 
 	public TemplateInfo() {
 		super();

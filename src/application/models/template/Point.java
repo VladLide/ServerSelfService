@@ -47,4 +47,12 @@ public class Point implements Externalizable {
 			}
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "Point{" +
+				"x=" + x +
+				", y=" + y +
+				'}';
+	}
 }
