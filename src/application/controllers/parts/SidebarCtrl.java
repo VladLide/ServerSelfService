@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
 
@@ -273,7 +274,10 @@ public class SidebarCtrl {
 			scaleInfo.setSaveToConnect(false);
 			if (scaleInfo.getScale().getUpdate() >= 0) {
 				try {
-					scaleInfo.getDB().getDBConnection().close();
+					Connection dbConnection = scaleInfo.getDB().getDBConnection();
+					if (dbConnection != null) {
+						dbConnection.close();
+					}
 				} catch (SQLException e) {
 					logger.error("Delete scale >> DB close", e);
 				}
