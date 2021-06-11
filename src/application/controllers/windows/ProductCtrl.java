@@ -295,7 +295,7 @@ public class ProductCtrl {
 	}
 
 	public void load() {
-		clearLoad();
+		if (item == null) clearLoad();
 		dataTable.getColumns().addAll(loadDataTable(ProductInfo.dataTableColums));
 		dataTable.setItems(Goods.getList(0, 0, "", 0, 0, db));
 		template.setItems(Templates.getList(0, "", true, db));

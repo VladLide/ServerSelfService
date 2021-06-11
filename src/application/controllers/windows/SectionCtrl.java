@@ -87,6 +87,7 @@ public class SectionCtrl {
 	}
 
 	public void show() {
+		load();
 		this.stage.showAndWait();
 	}
 
@@ -168,7 +169,7 @@ public class SectionCtrl {
 				if (item.getId() > 0)
 					id = item.getId();
 			}
-			Boolean f = Sections.get(0, -1, 0, name.getText(), false, db) == null && (id>0) ? Sections.get(id, -1, 0, "", false, db) == null : false;
+			Boolean f = Sections.get(0, -1, 0, name.getText(), false, db) == null && (id > 0) ? Sections.get(id, -1, 0, "", false, db) == null : false;
 			if (f && newItem || !newItem) {
 				try {
 					if (!newItem && item.getId() != id) {
@@ -193,7 +194,7 @@ public class SectionCtrl {
 						}
 					} else {
 						item.setId_up(0);
-						item.setLevel(0,db);
+						item.setLevel(0, db);
 					}
 					if (file != null) {
 						item.setData(file);
@@ -284,7 +285,7 @@ public class SectionCtrl {
 	}
 
 	public void load() {
-		clearLoad();
+		if (item == null) clearLoad();
 		dataTreeTable.getColumns().addAll(loadDataTable(SectionInfo.getColumns("sections")));
 		loadData();
 		ObservableList<String> upSections = FXCollections.observableArrayList();
@@ -301,11 +302,11 @@ public class SectionCtrl {
 		name.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		with.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		to.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
-		up.getSelectionModel().selectedItemProperty().addListener((obs, oldText, newText) ->{
+		up.getSelectionModel().selectedItemProperty().addListener((obs, oldText, newText) -> {
 			Platform.runLater(() -> {
-				if(newText != null) {
-					if(newText.length() < 2) up.setValue(null);
-					if(newText.compareToIgnoreCase(item.getName()) == 0) up.setValue(oldText);
+				if (newText != null) {
+					if (newText.length() < 2) up.setValue(null);
+					if (newText.compareToIgnoreCase(item.getName()) == 0) up.setValue(oldText);
 				}
 			});
 			save.setDisable(false);
@@ -371,36 +372,49 @@ public class SectionCtrl {
 		clear.setOnAction(event -> {
 			clearLoad();
 		});
-		dataTreeTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-			if (newSelection != null) {
-				this.item = (Sections) newSelection.getValue().getObject();
-				number.setText(item.getId() + "");
-				name.setText(item.getName());
-				with.setText(item.getNumber_s() + "");
-				to.setText(item.getNumber_po() + "");
-				Sections up = Sections.get(item.getId_up(), -1, 0, "", false, db);
-				this.up.setValue((up != null && item.getId_up() > 0) ? up.getName() : null);
-				try {
-					img.setBackground(new Background(new BackgroundImage(this.item.getImage(img),
-							BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
-							new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(),
-									true, false, true, false))));
-				} catch (Exception e) {
-					img.setBackground(null);
-					System.out.println("ButtonWithImage: no image - " + e);
-				}
-				newItem = false;
-				save.setDisable(true);
-			}
-		});
+		dataTreeTable.getSelectionModel().
+				selectedItemProperty()
+				.addListener((obs, oldSelection, newSelection) -> {
+					if (newSelection != null) {
+						this.item = (Sections) newSelection.getValue().getObject();
+						number.setText(item.getId() + "");
+						name.setText(item.getName());
+						with.setText(item.getNumber_s() + "");
+						to.setText(item.getNumber_po() + "");
+						Sections up = Sections.get(item.getId_up(), -1, 0, "", false, db);
+						this.up.setValue((up != null && item.getId_up() > 0) ? up.getName() : null);
+						try {
+							img.setBackground(new Background(new BackgroundImage(this.item.getImage(img),
+									BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
+									new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(),
+											true, false, true, false))));
+						} catch (Exception e) {
+							img.setBackground(null);
+							System.out.println("ButtonWithImage: no image - " + e);
+						}
+						newItem = false;
+						save.setDisable(true);
+					}
+				});
 	}
 
 	public Sections getItem() {
 		return item;
 	}
 
-	public void setItem(Sections item) {
-		this.item = item;
+	public void setItem(Sections sections) {
+		item = (sections != null) ? sections : new Sections();
+
+		if (sections != null) {
+			number.setText(String.valueOf(item.getId()));
+			name.setText(item.getName());
+			Sections up = Sections.get(item.getId_up(), -1, 0, "", false, db);
+			this.up.setValue((up != null && item.getId_up() > 0) ? up.getName() : null);
+			with.setText(String.valueOf(item.getNumber_s()));
+			to.setText(String.valueOf(item.getNumber_po()));
+		}
+
+		save.setDisable(true);
 	}
 
 	public void setSource(String source) {
