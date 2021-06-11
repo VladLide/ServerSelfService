@@ -89,6 +89,7 @@ public class CodeCtrl {
 	}
 
     public void show() {
+		load();
         this.stage.showAndWait();
     }
 
@@ -256,10 +257,13 @@ public class CodeCtrl {
 		itemsTable.getColumns().addAll(loadItemsTable(ContentInfo.getColumnsContent("templateCodes")));
 		itemsTable.setItems(ItemTemplate.getList(CodeInfo.ItemsTemplate));
 		this.barcodes = Codes.getList(0, "", db);
-		number.setText("");
-		name.setText("");
-		mask.setText("");
-		this.item = null;
+
+		if (item == null) {
+			number.setText("");
+			name.setText("");
+			mask.setText("");
+		}
+
 		save.setDisable(true);
 		dataTable.getColumns().addAll(loadDataTable(ContentInfo.getColumnsContent("templateCodes")));
 		dataTable.setItems(this.barcodes);
@@ -368,8 +372,18 @@ public class CodeCtrl {
 		return item;
 	}
 
-	public void setItem(Codes item) {
-		this.item = item;
+	public void setItem(Codes codes) {
+		item = codes != null ? codes : new Codes();
+
+		if (codes != null) {
+			number.setText(String.valueOf(item.getId()));
+			name.setText(item.getName());
+			mask.setText(item.getMask());
+			prefixValue.setText(item.getPrefix_val());
+
+			save.setDisable(true);
+			dataTable.getSelectionModel().select(item);
+		}
 	}
 
 	public void setSource(String source) {
