@@ -8,6 +8,7 @@ import application.models.net.mysql.MySQL;
 import application.models.net.mysql.tables.Sections;
 import application.models.objectinfo.NodeTree;
 import application.views.languages.uk.windows.SectionInfo;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -96,20 +97,9 @@ public class SectionCtrl {
 	public ObservableList<TreeTableColumn<NodeTree, ?>> loadDataTable(ObservableList<String[]> colInfo) {
 		ObservableList<TreeTableColumn<NodeTree, ?>> col = FXCollections.observableArrayList();
 		colInfo.forEach((v) -> {
-			switch (v[0]) {
-			case "Integer": {
-				TreeTableColumn<NodeTree, Integer> item = new TreeTableColumn<NodeTree, Integer>(v[1]);
-				item.setCellValueFactory(new TreeItemPropertyValueFactory<NodeTree, Integer>(v[2]));
-				col.add(item);
-				break;
-			}
-			case "String": {
-				TreeTableColumn<NodeTree, String> item = new TreeTableColumn<NodeTree, String>(v[1]);
-				item.setCellValueFactory(new TreeItemPropertyValueFactory<NodeTree, String>(v[2]));
-				col.add(item);
-				break;
-			}
-			}
+			TreeTableColumn<NodeTree, ?> tableColumn = new TreeTableColumn<>(v[1]);
+			tableColumn.setCellValueFactory(new TreeItemPropertyValueFactory<>(v[2]));
+			col.add(tableColumn);
 		});
 		return col;
 	}
@@ -171,16 +161,16 @@ public class SectionCtrl {
 
 	private void continion() {
 		if (name.getText().length() > 2) {
-			Boolean f = Sections.get(0, -1, 0, name.getText(), false, db) == null;
-			if (f && !newItem || !newItem) {
+			int id = 0;
+			try {
+				id = Integer.parseInt(number.getText());
+			} catch (Exception e) {
+				if (item.getId() > 0)
+					id = item.getId();
+			}
+			Boolean f = Sections.get(0, -1, 0, name.getText(), false, db) == null && (id>0) ? Sections.get(id, -1, 0, "", false, db) == null : false;
+			if (f && newItem || !newItem) {
 				try {
-					int id = 0;
-					try {
-						id = Integer.parseInt(number.getText());
-					} catch (Exception e) {
-						if (item.getId() > 0)
-							id = item.getId();
-					}
 					if (!newItem && item.getId() != id) {
 						item.updateId(id, db);
 					} else {
@@ -201,6 +191,9 @@ public class SectionCtrl {
 							item.setId_up(upSec.getId());
 							item.setLevel(upSec.getLevel() + 1, db);
 						}
+					} else {
+						item.setId_up(0);
+						item.setLevel(0,db);
 					}
 					if (file != null) {
 						item.setData(file);
@@ -294,7 +287,10 @@ public class SectionCtrl {
 		clearLoad();
 		dataTreeTable.getColumns().addAll(loadDataTable(SectionInfo.getColumns("sections")));
 		loadData();
-		up.setItems(Sections.getLName(db));
+		ObservableList<String> upSections = FXCollections.observableArrayList();
+		upSections.add(0, "");
+		upSections.addAll(Sections.getLName(db));
+		up.setItems(upSections);
 	}
 
 	@FXML
@@ -305,7 +301,15 @@ public class SectionCtrl {
 		name.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		with.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		to.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
-		up.getSelectionModel().selectedIndexProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+		up.getSelectionModel().selectedItemProperty().addListener((obs, oldText, newText) ->{
+			Platform.runLater(() -> {
+				if(newText != null) {
+					if(newText.length() < 2) up.setValue(null);
+					if(newText.compareToIgnoreCase(item.getName()) == 0) up.setValue(oldText);
+				}
+			});
+			save.setDisable(false);
+		});
 		addImg.setOnAction(event -> {
 			FileChooser fileChooser = new FileChooser();
 			fileChooser.setTitle("Select Image");
@@ -346,7 +350,6 @@ public class SectionCtrl {
 										OperationStatus.SUCCESS
 								)
 						);
-						this.item = null;
 						this.load();
 					} else {
 						MainWindowCtrl.setLog(

@@ -533,7 +533,7 @@ public class Templates {
 					} else {
 						i.setOptions(null);
 					}
-					if (!item[v.getId()] || v.getId() == 7)
+					if (!item[v.getId()] || v.getId() == 7 || v.getId() == 20 || v.getId() == 21)
 						save.setItem(i);
 					item[v.getId()] = true;
 				}

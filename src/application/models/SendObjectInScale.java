@@ -7,6 +7,7 @@ import application.models.net.mysql.MySQL;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Codes;
 import application.models.net.mysql.tables.Goods;
+import application.models.net.mysql.tables.Sections;
 import application.models.net.mysql.tables.Templates;
 import application.views.languages.uk.parts.LogInfo;
 import javafx.collections.ObservableList;
@@ -110,13 +111,19 @@ public class SendObjectInScale extends Task<Void> {
 				tmp.save(db);
 
 				return tmp.getId() + " - " + tmp.getName();
-		}
-		case "settings": {
+			}
+			case "sections": {
+				Sections tmp = (Sections) obj;
+				tmp.save(db);
 
-			return "";
-		}
-		default:
-			return "";
+				return tmp.getId() + " - " + tmp.getName();
+			}
+			case "settings": {
+	
+				return "";
+			}
+			default:
+				return "";
 		}
 	}
 }
