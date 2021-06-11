@@ -18,6 +18,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
@@ -127,28 +128,46 @@ public class ProductCtrl {
 		return col;
 	}
 
-	private void loadImage(AnchorPane imgpanel, String str) {
-		imgpanel.getChildren().clear();
-		if (str.compareToIgnoreCase("img") == 0) {
+	private void loadImage(AnchorPane imgPanel, String str) {
+		if ("img".equalsIgnoreCase(str)) {
 			try {
-				imgpanel.setBackground(new Background(new BackgroundImage(this.item.getImage(imgpanel),
-						BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
-						new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(), true,
-								false, true, false))));
+				Image image = this.item.getImage(imgPanel);
+				imgPanel.setBackground(new Background(
+						new BackgroundImage(image,
+								BackgroundRepeat.NO_REPEAT,
+								BackgroundRepeat.NO_REPEAT,
+								BackgroundPosition.CENTER,
+								new BackgroundSize(
+										BackgroundSize.DEFAULT.getWidth(),
+										BackgroundSize.DEFAULT.getHeight(),
+										true,
+										false,
+										true,
+										false))));
 			} catch (Exception e) {
-				imgpanel.setBackground(null);
-				logger.error(String.format("ButtonWithImage: no image - %s", e));
+				imgPanel.setBackground(null);
+				logger.warn("Background image is null");
 			}
 		} else {
 			try {
-				imgpanel.setBackground(new Background(
-						new BackgroundImage(template.getSelectionModel().getSelectedItem().getImage(imgpanel, 0),
-								BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
-								new BackgroundSize(BackgroundSize.DEFAULT.getWidth(),
-										BackgroundSize.DEFAULT.getHeight(), true, false, true, false))));
+				Image image = template.getSelectionModel().getSelectedItem().getImage(imgPanel, 0);
+				logger.debug("Template image{}", image);
+				imgPanel.setBackground(new Background(
+						new BackgroundImage(
+								image,
+								BackgroundRepeat.NO_REPEAT,
+								BackgroundRepeat.NO_REPEAT,
+								BackgroundPosition.CENTER,
+								new BackgroundSize(
+										BackgroundSize.DEFAULT.getWidth(),
+										BackgroundSize.DEFAULT.getHeight(),
+										true,
+										false,
+										true,
+										false))));
 			} catch (Exception e) {
-				imgpanel.setBackground(null);
-				logger.error(String.format("ButtonWithImage: no image - %s", e));
+				imgPanel.setBackground(null);
+				logger.warn("Background image is null");
 			}
 		}
 	}
@@ -299,6 +318,7 @@ public class ProductCtrl {
 		clear.setOnAction(event -> clearLoad());
 		delete.setOnAction(event -> deleteGoods());
 		save.setOnAction(event -> saveGoods());
+		addImg.setDisable(false);
 		addImg.setOnAction(event -> addImage());
 		delImg.setOnAction(event -> {
 			img.setBackground(null);
@@ -326,6 +346,7 @@ public class ProductCtrl {
 
 	/**
 	 * Will search for goods with number or pre_code or name which we get from searchBar
+	 *
 	 * @param event some key event which happened inside of search bar
 	 */
 	private void search(KeyEvent event) {
@@ -500,7 +521,7 @@ public class ProductCtrl {
 			TextBox.alertOpenDialog(AlertType.WARNING, "chooseImageNo");
 		} else {
 			item.setData(file);
-			this.loadImage(img, "img");
+			loadImage(img, "img");
 			save.setDisable(false);
 		}
 	}
