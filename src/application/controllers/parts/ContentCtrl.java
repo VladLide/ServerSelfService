@@ -17,6 +17,7 @@ import application.models.net.mysql.tables.Templates;
 import application.models.objectinfo.ItemContent;
 import application.models.objectinfo.NodeTree;
 import application.views.languages.uk.parts.ContentInfo;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -35,7 +36,6 @@ public class ContentCtrl {
 	private AnchorPane content;
 	private NodeTree node = null;
 	private PackageSend pack = null;
-	private static ContentCtrl contentCtrl;
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Content");
@@ -77,7 +77,6 @@ public class ContentCtrl {
 			FXMLLoader loader = new FXMLLoader(location, resources);
 			loader.setController(this);
 			content = MainCtrl.loadAnchorPane(anchorPane, loader);
-			contentCtrl = this;
 		} catch (IOException e) {
 			content = null;
 			MainWindowCtrl.setLog(e.getMessage());
@@ -98,69 +97,69 @@ public class ContentCtrl {
 		dataTable.getColumns().clear();
 		ObservableList<Object> items = FXCollections.observableArrayList();
 		switch (node.getType()) {
-		case "products": {
-			if (node.getLevel() == 2) {
-				if (MainCtrl.getDB().isDBConnection()) {
-					items = Goods.getListObj(0, 0, "", 0, 0, MainCtrl.getDB());
-				}
-			} else {
-				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScale().getUpdate() >= 0)
-					if (scale.getDB().isDBConnection()) {
-						items = Goods.getListObj(0, 0, "", 0, 0, scale.getDB());
+			case "products": {
+				if (node.getLevel() == 2) {
+					if (MainCtrl.getDB().isDBConnection()) {
+						items = Goods.getListObj(0, 0, "", 0, 0, MainCtrl.getDB());
 					}
-			}
-			break;
-		}
-		case "sections": {
-			if (node.getLevel() == 2) {
-				if (MainCtrl.getDB().isDBConnection()) {
-					items = Sections.getListObj(0, -1, 0, "", false, MainCtrl.getDB());
+				} else {
+					ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
+					if (scale.getScale().getUpdate() >= 0)
+						if (scale.getDB().isDBConnection()) {
+							items = Goods.getListObj(0, 0, "", 0, 0, scale.getDB());
+						}
 				}
-			} else {
-				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScale().getUpdate() >= 0)
-					if (scale.getDB().isDBConnection()) {
-						items = Sections.getListObj(0, -1, 0, "", false, scale.getDB());
-					}
+				break;
 			}
-			break;
-		}
-		case "templates": {
-			if (node.getLevel() == 2) {
-				if (MainCtrl.getDB().isDBConnection()) {
-					items = Templates.getListObj(0, "", false, MainCtrl.getDB());
+			case "sections": {
+				if (node.getLevel() == 2) {
+					if (MainCtrl.getDB().isDBConnection()) {
+						items = Sections.getListObj(0, -1, 0, "", false, MainCtrl.getDB());
+					}
+				} else {
+					ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
+					if (scale.getScale().getUpdate() >= 0)
+						if (scale.getDB().isDBConnection()) {
+							items = Sections.getListObj(0, -1, 0, "", false, scale.getDB());
+						}
 				}
-			} else {
-				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScale().getUpdate() >= 0)
-					if (scale.getDB().isDBConnection()) {
-						items = Templates.getListObj(0, "", false, scale.getDB());
-					}
+				break;
 			}
-			break;
-		}
-		case "templateCodes": {
-			if (node.getLevel() == 2) {
-				if (MainCtrl.getDB().isDBConnection()) {
-					items = Codes.getListObj(0, "", MainCtrl.getDB());
+			case "templates": {
+				if (node.getLevel() == 2) {
+					if (MainCtrl.getDB().isDBConnection()) {
+						items = Templates.getListObj(0, "", false, MainCtrl.getDB());
+					}
+				} else {
+					ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
+					if (scale.getScale().getUpdate() >= 0)
+						if (scale.getDB().isDBConnection()) {
+							items = Templates.getListObj(0, "", false, scale.getDB());
+						}
 				}
-			} else {
-				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-				if (scale.getScale().getUpdate() >= 0)
-					if (scale.getDB().isDBConnection()) {
-						items = Codes.getListObj(0, "", scale.getDB());
-					}
+				break;
 			}
+			case "templateCodes": {
+				if (node.getLevel() == 2) {
+					if (MainCtrl.getDB().isDBConnection()) {
+						items = Codes.getListObj(0, "", MainCtrl.getDB());
+					}
+				} else {
+					ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
+					if (scale.getScale().getUpdate() >= 0)
+						if (scale.getDB().isDBConnection()) {
+							items = Codes.getListObj(0, "", scale.getDB());
+						}
+				}
 
-			break;
-		}
-		case "settings": {
+				break;
+			}
+			case "settings": {
 
-			break;
-		}
-		default:
-			break;
+				break;
+			}
+			default:
+				break;
 		}
 		dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
 		dataTable.getItems().setAll(ItemContent.get(items));
@@ -185,176 +184,174 @@ public class ContentCtrl {
 		PlaceType placeType = sim != null ? PlaceType.SCALE : PlaceType.SERVER;
 
 		switch (node.getType()) {
-		case "products": {
-			if (del != null && item != null) {
-				if (del) {
-					Goods goods = (Goods) item.getObject();
-					goods.delete(db);
+			case "products": {
+				if (del != null && item != null) {
+					if (del) {
+						Goods goods = (Goods) item.getObject();
+						goods.delete(db);
 
-					// logging context menu deletion of goods
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.DELETE,
-									placeType,
-									ipAddress,
-									SectionType.PRODUCT,
-									goods.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.SUCCESS
-							)
+						// logging context menu deletion of goods
+						MainWindowCtrl.setLog(
+								Helper.formatOutput(
+										Operation.DELETE,
+										placeType,
+										ipAddress,
+										SectionType.PRODUCT,
+										goods.getName(),
+										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+										OperationStatus.SUCCESS
+								)
+						);
+					}
+				} else {
+					mainWindowCtrl.openPlu(
+							(item != null) ? (Goods) item.getObject() : null,
+							source,
+							db,
+							ipAddress,
+							placeType
 					);
 				}
-			} else {
-                    mainWindowCtrl.openPlu(
-                            (item != null) ? (Goods) item.getObject() : null,
-                            source,
-                            db,
-                            ipAddress,
-                            placeType
-                    );
+				break;
 			}
-			break;
-		}
-		case "sections": {
-			if (del != null && item != null) {
-				if (del) {
-					Sections sections = (Sections) item.getObject();
-					sections.delete(false, db);
+			case "sections": {
+				if (del != null && item != null) {
+					if (del) {
+						Sections sections = (Sections) item.getObject();
+						sections.delete(false, db);
 
-					// logging context menu deletion of section
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.DELETE,
-									placeType,
-									ipAddress,
-									SectionType.SECTION,
-									sections.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.SUCCESS
-							)
+						// logging context menu deletion of section
+						MainWindowCtrl.setLog(
+								Helper.formatOutput(
+										Operation.DELETE,
+										placeType,
+										ipAddress,
+										SectionType.SECTION,
+										sections.getName(),
+										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+										OperationStatus.SUCCESS
+								)
+						);
+					}
+				} else {
+					mainWindowCtrl.openSection(
+							(item != null) ? (Sections) item.getObject() : null,
+							source,
+							db,
+							ipAddress,
+							placeType
 					);
 				}
-			} else {
-                    mainWindowCtrl.openSection(
-                            (item != null) ? (Sections) item.getObject() : null,
-                            source,
-                            db,
-                            ipAddress,
-                            placeType
-                    );
+				break;
 			}
-			break;
-		}
-		case "templates": {
-			if (del != null && item != null) {
-				if (del) {
-					Templates templates = (Templates) item.getObject();
-					templates.delete(db);
+			case "templates": {
+				if (del != null && item != null) {
+					if (del) {
+						Templates templates = (Templates) item.getObject();
+						templates.delete(db);
 
-					// logging context menu deletion of template
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.DELETE,
-									placeType,
-									ipAddress,
-									SectionType.TEMPLATE,
-									templates.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.SUCCESS
-							)
-					);
+						// logging context menu deletion of template
+						MainWindowCtrl.setLog(
+								Helper.formatOutput(
+										Operation.DELETE,
+										placeType,
+										ipAddress,
+										SectionType.TEMPLATE,
+										templates.getName(),
+										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+										OperationStatus.SUCCESS
+								)
+						);
+					}
+				} else {
+					mainWindowCtrl.openTemplate(
+							(item != null) ? (Templates) item.getObject() : null,
+							db,
+							ipAddress,
+							placeType);
 				}
-			} else {
-				mainWindowCtrl.openTemplate(
-						(item != null) ? (Templates) item.getObject() : null,
-						db,
-						ipAddress,
-						placeType);
+				break;
 			}
-			break;
-		}
-		case "templateCodes": {
-			if (del != null && item != null) {
-				if (del) {
-					Codes codes = (Codes) item.getObject();
-					codes.delete(db);
+			case "templateCodes": {
+				if (del != null && item != null) {
+					if (del) {
+						Codes codes = (Codes) item.getObject();
+						codes.delete(db);
 
-					// logging context menu deletion of templateCodes
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.DELETE,
-									placeType,
-									ipAddress,
-									SectionType.CODE,
-									codes.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.SUCCESS
-							)
-					);
+						// logging context menu deletion of templateCodes
+						MainWindowCtrl.setLog(
+								Helper.formatOutput(
+										Operation.DELETE,
+										placeType,
+										ipAddress,
+										SectionType.CODE,
+										codes.getName(),
+										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+										OperationStatus.SUCCESS
+								)
+						);
+					}
+				} else {
+					mainWindowCtrl.openCode(
+							(item != null) ? (Codes) item.getObject() : null,
+							source,
+							db,
+							ipAddress,
+							placeType);
 				}
-			} else {
-				mainWindowCtrl.openCode(
-						(item != null) ? (Codes) item.getObject() : null,
-						source,
-						db,
-						ipAddress,
-						placeType);
+				break;
 			}
-			break;
-		}
-		case "settings": {
-			// todo fix empty settings
-			break;
-		}
-		default:
-			break;
+			case "settings": {
+				// todo fix empty settings
+				break;
+			}
+			default:
+				break;
 		}
 		dataTable.refresh();
 	}
 
 	public static ObservableList<TableColumn<ItemContent, ?>> loadTable(ObservableList<String[]> colInfo) {
-		getInstance().delete.setDisable(true);
-
 		ObservableList<TableColumn<ItemContent, ?>> col = FXCollections.observableArrayList();
 		try {
 			colInfo.forEach((v) -> {
 				switch (v[0]) {
-				case "Integer": {
-					TableColumn<ItemContent, Integer> item = new TableColumn<ItemContent, Integer>(v[1]);
-					item.setCellValueFactory(new PropertyValueFactory<ItemContent, Integer>(v[2]));
-					col.add(item);
-					break;
-				}
-				case "String": {
-					TableColumn<ItemContent, String> item = new TableColumn<ItemContent, String>(v[1]);
-					item.setCellValueFactory(new PropertyValueFactory<ItemContent, String>(v[2]));
-					col.add(item);
-					break;
-				}
-				case "Float": {
-					TableColumn<ItemContent, Float> item = new TableColumn<ItemContent, Float>(v[1]);
-					item.setCellValueFactory(new PropertyValueFactory<ItemContent, Float>(v[2]));
-					col.add(item);
-					break;
-				}
-				case "CheckBox": {
-					TableColumn<ItemContent, CheckBox> item = new TableColumn<ItemContent, CheckBox>(v[1]);
-					item.setCellValueFactory(new PropertyValueFactory<ItemContent, CheckBox>(v[2]));
-					col.add(item);
-					break;
-				}
-				case "LocalDateTime": {
-					TableColumn<ItemContent, LocalDateTime> item = new TableColumn<ItemContent, LocalDateTime>(v[1]);
-					item.setCellValueFactory(new PropertyValueFactory<ItemContent, LocalDateTime>(v[2]));
-					col.add(item);
-					break;
-				}
-				case "AnchorPane": {
-					TableColumn<ItemContent, AnchorPane> item = new TableColumn<ItemContent, AnchorPane>(v[1]);
-					item.setCellValueFactory(new PropertyValueFactory<ItemContent, AnchorPane>(v[2]));
-					col.add(item);
-					break;
-				}
+					case "Integer": {
+						TableColumn<ItemContent, Integer> item = new TableColumn<ItemContent, Integer>(v[1]);
+						item.setCellValueFactory(new PropertyValueFactory<ItemContent, Integer>(v[2]));
+						col.add(item);
+						break;
+					}
+					case "String": {
+						TableColumn<ItemContent, String> item = new TableColumn<ItemContent, String>(v[1]);
+						item.setCellValueFactory(new PropertyValueFactory<ItemContent, String>(v[2]));
+						col.add(item);
+						break;
+					}
+					case "Float": {
+						TableColumn<ItemContent, Float> item = new TableColumn<ItemContent, Float>(v[1]);
+						item.setCellValueFactory(new PropertyValueFactory<ItemContent, Float>(v[2]));
+						col.add(item);
+						break;
+					}
+					case "CheckBox": {
+						TableColumn<ItemContent, CheckBox> item = new TableColumn<ItemContent, CheckBox>(v[1]);
+						item.setCellValueFactory(new PropertyValueFactory<ItemContent, CheckBox>(v[2]));
+						col.add(item);
+						break;
+					}
+					case "LocalDateTime": {
+						TableColumn<ItemContent, LocalDateTime> item = new TableColumn<ItemContent, LocalDateTime>(v[1]);
+						item.setCellValueFactory(new PropertyValueFactory<ItemContent, LocalDateTime>(v[2]));
+						col.add(item);
+						break;
+					}
+					case "AnchorPane": {
+						TableColumn<ItemContent, AnchorPane> item = new TableColumn<ItemContent, AnchorPane>(v[1]);
+						item.setCellValueFactory(new PropertyValueFactory<ItemContent, AnchorPane>(v[2]));
+						col.add(item);
+						break;
+					}
 				}
 			});
 		} catch (Exception e) {
@@ -365,16 +362,16 @@ public class ContentCtrl {
 
 	private void addSend() {
 		pack = new PackageSend();
-        CurrentItemSendTo currentItemSendTo;
+		CurrentItemSendTo currentItemSendTo;
 
-        if (node.getLevel() == 2) {
-            currentItemSendTo = CurrentItemSendTo.SERVER;
-        } else {
-            currentItemSendTo = CurrentItemSendTo.SCALE;
-            currentItemSendTo.setScaleItemMenu((ScaleItemMenu) node.getUpObject().getObject());
-        }
+		if (node.getLevel() == 2) {
+			currentItemSendTo = CurrentItemSendTo.SERVER;
+		} else {
+			currentItemSendTo = CurrentItemSendTo.SCALE;
+			currentItemSendTo.setScaleItemMenu((ScaleItemMenu) node.getUpObject().getObject());
+		}
 
-        new ChooseSendCtrl(currentItemSendTo).show();
+		new ChooseSendCtrl(currentItemSendTo).show();
 
 		if (!pack.getConnectSend().isEmpty()) {
 			ObservableList<Object> arr = FXCollections.observableArrayList();
@@ -399,7 +396,7 @@ public class ContentCtrl {
 		assert dataTable != null : "fx:id=\"viewTreeTable\" was not injected: check your FXML file 'Content.fxml'.";
 		assert delete != null : "fx:id=\"delete\" was not injected: check your FXML file 'Content.fxml'.";
 
-		delete.setDisable(true);
+		delete.setDisable(false);
 
 		dataTable.setOnContextMenuRequested(event -> {
 			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
@@ -414,12 +411,6 @@ public class ContentCtrl {
 			}
 		});
 
-		dataTable.setOnMouseClicked(event -> {
-			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
-			if (item != null) {
-				delete.setDisable(false);
-			}
-		});
 		send.setOnAction(event -> addSend());
 		check.setOnAction(event -> dataTable.getItems().forEach(item -> item.setCheckBox(check.isSelected())));
 		create.setOnAction(event -> operationsData(null, null));
@@ -427,12 +418,14 @@ public class ContentCtrl {
 			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
 			operationsData(item, null);
 		});
-		delete.setOnAction(event -> {
-			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
-			operationsData(item, true);
-			dataTable.getItems().remove(item);
-			dataTable.refresh();
-		});
+		delete.setOnAction(event -> dataTable.getItems()
+				.stream()
+				.filter(itemContent -> itemContent.getCheckBox().isSelected())
+				.forEach(itemContent -> Platform.runLater(() -> {
+					operationsData(itemContent, true);
+					dataTable.getItems().remove(itemContent);
+					dataTable.refresh();
+				})));
 		createCM.setOnAction(event -> operationsData(null, null));
 		editCM.setOnAction(event -> {
 			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
@@ -512,9 +505,5 @@ public class ContentCtrl {
 
 	public PackageSend getPack() {
 		return pack;
-	}
-
-	public static ContentCtrl getInstance() {
-		return contentCtrl;
 	}
 }
