@@ -212,7 +212,7 @@ public class ScaleItemMenu {
 	}
 
 	public boolean isConnectionDB() throws SQLException {
-		return (existConnectionDB()) ? getDB().getDBConnection().isValid(5) : false;
+		return (existConnectionDB()) ? db.isDBConnection() : false;
 	}
 
 	public ImageView getImg() {

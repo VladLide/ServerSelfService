@@ -1,25 +1,17 @@
 package application.models.net.mysql;
 
-import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimeZone;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
-
 import application.models.TextBox;
 import application.models.net.ConfigNet;
 import application.models.net.PackingDBValue;
 import javafx.scene.control.Alert.AlertType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimeZone;
 
 public class MySQL {
 	public Connection dbConnection = null;
@@ -73,8 +65,9 @@ public class MySQL {
 	public void setConfig(Integer id) {
 		try {
 			config = new ConfigNet(id);
-			getDBConnection().close();
-			dbConnection = null;
+			Connection connection = getDBConnection();
+			if (connection != null) connection.close();
+			this.dbConnection = null;
 			getDBConnection();
 		} catch (SQLException e) {
 		}
@@ -459,17 +452,24 @@ public class MySQL {
 	public boolean isDBConnection() {
 		boolean result = false;
 		try {
-			if (!getDBConnection().isValid(5)) {
-				dbConnection.close();
-				dbConnection = null;
-			}
-			result = getDBConnection().isValid(5);
+			Statement statement = dbConnection.createStatement();
+			statement.executeQuery("select 1");
+
+			return true;
 		} catch (SQLException e) {
 			System.out.println("isDBConnection: " + e.getMessage());
-			result = false;
-		} catch (Exception e) {
-			System.out.println("isDBConnection: " + e.getMessage());
-			result = false;
+
+			TextBox.alertOpenDialog(AlertType.WARNING, "wait");
+			try {
+				if (!getDBConnection().isValid(5)) {
+					dbConnection.close();
+					dbConnection = null;
+				}
+				result = getDBConnection().isValid(5);
+			} catch (SQLException throwables) {
+				throwables.printStackTrace();
+				return false;
+			}
 		}
 		return result;
 	}
