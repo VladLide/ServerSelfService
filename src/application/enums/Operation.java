@@ -1,4 +1,4 @@
-package application;
+package application.enums;
 
 /**
  * Contains operations which can be done with db items

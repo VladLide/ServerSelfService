@@ -1,6 +1,6 @@
 package application.models.net.mysql.interface_tables;
 
-import application.ScaleStatus;
+import application.enums.ScaleStatus;
 import application.controllers.MainCtrl;
 import application.controllers.windows.MainWindowCtrl;
 import application.models.net.mysql.MySQL;

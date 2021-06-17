@@ -1,6 +1,7 @@
 package application.controllers.windows;
 
-import application.*;
+import application.Helper;
+import application.enums.*;
 import application.models.Configs;
 import application.models.TextBox;
 import application.models.Utils;
@@ -12,6 +13,8 @@ import application.models.net.mysql.tables.Templates;
 import application.views.languages.uk.windows.ProductInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -21,6 +24,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -40,15 +45,23 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class ProductCtrl {
-	private Stage stage;
-	private Goods item = null;
 	private boolean newItem = true;
+	private boolean addMore = true;
+	private boolean firstPass = true;
+	private boolean beenDeleted = false;
+	private int offset = 0;
+	private Goods item = null;
 	private File file = null;
-	private MySQL db = null;
 	private String ipAddress;
 	private PlaceType placeType;
-	private final Logger logger = LogManager.getLogger(ProductCtrl.class);
 	private Thread notAccurateSearchThread;
+	private final MySQL db;
+	private final ObservableList<Goods> showList = FXCollections.observableArrayList();
+	private final EventHandler<MouseEvent> consumeMouseDragEvent = Event::consume;
+	private final Stage stage;
+	private final Logger logger = LogManager.getLogger(ProductCtrl.class);
+	private static final int STEP = 200;
+	private static final ObjectType type = ObjectType.PRODUCTS;
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Product");
@@ -111,7 +124,8 @@ public class ProductCtrl {
 
 	public void show() {
 		load();
-		this.stage.showAndWait();
+		this.stage.show();
+		setUpScrollBar();
 	}
 
 	public void close() {
@@ -297,7 +311,11 @@ public class ProductCtrl {
 	public void load() {
 		if (item == null) clearLoad();
 		dataTable.getColumns().addAll(loadDataTable(ProductInfo.dataTableColums));
-		dataTable.setItems(Goods.getList(0, 0, "", 0, 0, db));
+		showList.addAll(FXCollections.observableArrayList(
+				Helper.getGoods(db, STEP, 0, type)
+						.orElseThrow(type::getNullPointerException)));
+		dataTable.setItems(showList);
+
 		template.setItems(Templates.getList(0, "", true, db));
 		code.setItems(Codes.getList(0, "", db));
 		section.setItems(Sections.getList(0, 0, -1, "", false, db));
@@ -311,6 +329,83 @@ public class ProductCtrl {
 		unit.setOnAction(event -> save.setDisable(false));
 		expirationDate.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		code.setOnAction(event -> save.setDisable(false));
+
+	}
+
+	private void setUpScrollBar() {
+		int numberOfItemsToContain = STEP;
+		ScrollBar scrollBar = Helper.getDataTableScrollBar(dataTable)
+				.orElseThrow(() -> new NullPointerException("Was not able to obtain ScrollBar from TableView"));
+
+		scrollBar.setOnMouseReleased(event -> {
+			addMore = true;
+			scrollBar.removeEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
+		});
+
+		dataTable.addEventFilter(ScrollEvent.ANY, event -> addMore = true);
+		scrollBar.valueProperty().addListener((observable, oldValue, newValue) -> {
+			double position = scrollBar.getValue();
+
+			if (position == scrollBar.getMax() && addMore) {
+				logger.info("Adding at the end");
+				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
+
+				addAtTheEnd(scrollBar);
+
+				if (showList.size() > numberOfItemsToContain) {
+					logger.info("Removing first {} items", numberOfItemsToContain);
+					firstPass = true;
+					beenDeleted = true;
+					showList.remove(0, showList.size() - numberOfItemsToContain);
+					scrollBar.setValue(0);
+				}
+
+				addMore = false;
+			} else if (position <= 0.05 && addMore && beenDeleted && !firstPass) {
+				logger.info("Adding at the beginning");
+				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
+
+				addAtTheBeginning(scrollBar);
+
+				if (showList.size() > numberOfItemsToContain) {
+					logger.info("Removing items and leaving only first {}", numberOfItemsToContain);
+					logger.info("Size before deletion {}", showList.size());
+					showList.remove(numberOfItemsToContain, showList.size());
+					logger.info("Size after deletion {}", showList.size());
+					scrollBar.setValue(0.99);
+				}
+
+			} else if (position >= 0.1 && addMore && beenDeleted) {
+				firstPass = false;
+			}
+		});
+	}
+
+
+	private void addAtTheBeginning(ScrollBar scrollBar) {
+		if (showList.get(0).getNumber() - STEP >= 0) {
+			offset -= STEP;
+			showList.addAll(0,
+					Helper.getGoods(db, STEP, offset, type)
+							.orElseThrow(type::getNullPointerException));
+			double value = (1.0 / showList.size()) * STEP;
+			logger.debug("Setting value to {}", value);
+			scrollBar.setValue(value);
+		} else {
+			beenDeleted = false;
+		}
+	}
+
+	private void addAtTheEnd(ScrollBar scrollBar) {
+		double targetValue = scrollBar.getValue() * showList.size();
+
+		offset += STEP;
+		showList.addAll(
+				Helper.getGoods(db, STEP, offset, type)
+						.orElseThrow(type::getNullPointerException));
+		double value = targetValue / showList.size();
+		logger.debug("Setting value {}", value);
+		scrollBar.setValue(value);
 	}
 
 	@FXML
@@ -460,7 +555,6 @@ public class ProductCtrl {
 		item = (product != null) ? product : new Goods();
 		unit.setItems(ProductInfo.unit);
 		if (product != null) {
-			// this.image = this.item.getImages();
 			name.setText(item.getName());
 			section.setValue((item.getId_sections() > 0) ? Sections.get(item.getId_sections(), 0, -1, "", false, db) : null);
 			number.setText(item.getNumber() + "");

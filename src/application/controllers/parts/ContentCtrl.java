@@ -1,10 +1,11 @@
 package application.controllers.parts;
 
-import application.*;
+import application.Helper;
 import application.controllers.MainCtrl;
 import application.controllers.windows.ChooseCtrl;
 import application.controllers.windows.ChooseSendCtrl;
 import application.controllers.windows.MainWindowCtrl;
+import application.enums.*;
 import application.models.Configs;
 import application.models.PackageSend;
 import application.models.Utils;
@@ -20,27 +21,46 @@ import application.views.languages.uk.parts.ContentInfo;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class ContentCtrl {
+	private final ObservableList<ItemContent> showList = FXCollections.observableArrayList();
+	private final Logger logger = LogManager.getLogger(ContentCtrl.class);
+	private final EventHandler<MouseEvent> consumeMouseDragEvent = Event::consume;
+	private static final int STEP = 200;
+	//todo remove start and end variables
+	private final int[] start = {0};
+	private final int[] end = {STEP};
+	private boolean addMore = true;
+	private boolean beenDeleted = false;
+	private boolean firstPass = true;
 	private AnchorPane content;
 	private NodeTree node = null;
 	private PackageSend pack = null;
+	private MySQL db;
+	private ObjectType type;
 
 	@FXML
-	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Content");
+	private final ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Content");
 	@FXML
-	private URL location = getClass().getResource(Utils.getView("part", "Content"));
+	private final URL location = getClass().getResource(Utils.getView("part", "Content"));
 	@FXML
 	private TableView<ItemContent> dataTable;
 	@FXML
@@ -95,88 +115,86 @@ public class ContentCtrl {
 		this.node = node;
 		dataTable.getItems().clear();
 		dataTable.getColumns().clear();
-		ObservableList<Object> items = FXCollections.observableArrayList();
+		start[0] = 0;
+		end[0] = STEP;
+
 		switch (node.getType()) {
 			case "products": {
-				if (node.getLevel() == 2) {
-					if (MainCtrl.getDB().isDBConnection()) {
-						items = Goods.getListObj(0, 0, "", 0, 0, MainCtrl.getDB());
-					}
-				} else {
-					ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-					if (scale.getScale().getUpdate() >= 0)
-						if (scale.getDB().isDBConnection()) {
-							items = Goods.getListObj(0, 0, "", 0, 0, scale.getDB());
-						}
+				type = ObjectType.PRODUCTS;
+				db = getDbDependingOnNode(node).orElse(null);
+
+				if (db != null) {
+					showList.addAll(
+							ItemContent.get(FXCollections.observableArrayList(
+									Helper.getData(db, STEP, start[0], type)
+											.orElseThrow(type::getNullPointerException)
+									)));
 				}
 				break;
 			}
 			case "sections": {
-				if (node.getLevel() == 2) {
-					if (MainCtrl.getDB().isDBConnection()) {
-						items = Sections.getListObj(0, -1, 0, "", false, MainCtrl.getDB());
-					}
-				} else {
-					ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-					if (scale.getScale().getUpdate() >= 0)
-						if (scale.getDB().isDBConnection()) {
-							items = Sections.getListObj(0, -1, 0, "", false, scale.getDB());
-						}
+				type = ObjectType.SECTIONS;
+				db = getDbDependingOnNode(node).orElse(null);
+
+				if (db != null) {
+					showList.addAll(
+							ItemContent.get(FXCollections.observableArrayList(
+									Helper.getData(db, STEP, start[0], type)
+											.orElseThrow(type::getNullPointerException)
+							)));
 				}
 				break;
 			}
 			case "templates": {
-				if (node.getLevel() == 2) {
-					if (MainCtrl.getDB().isDBConnection()) {
-						items = Templates.getListObj(0, "", false, MainCtrl.getDB());
-					}
-				} else {
-					ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-					if (scale.getScale().getUpdate() >= 0)
-						if (scale.getDB().isDBConnection()) {
-							items = Templates.getListObj(0, "", false, scale.getDB());
-						}
+				type = ObjectType.TEMPLATES;
+				db = getDbDependingOnNode(node).orElse(null);
+
+				if (db != null) {
+					showList.addAll(
+							ItemContent.get(FXCollections.observableArrayList(
+									Helper.getData(db, STEP, start[0], type)
+											.orElseThrow(type::getNullPointerException)
+							)));
 				}
+
 				break;
 			}
 			case "templateCodes": {
-				if (node.getLevel() == 2) {
-					if (MainCtrl.getDB().isDBConnection()) {
-						items = Codes.getListObj(0, "", MainCtrl.getDB());
-					}
-				} else {
-					ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-					if (scale.getScale().getUpdate() >= 0)
-						if (scale.getDB().isDBConnection()) {
-							items = Codes.getListObj(0, "", scale.getDB());
-						}
+				type = ObjectType.TEMPLATES_CODES;
+				db = getDbDependingOnNode(node).orElse(null);
+				if (db != null) {
+					showList.addAll(
+							ItemContent.get(FXCollections.observableArrayList(
+									Helper.getData(db, STEP, start[0], type)
+											.orElseThrow(type::getNullPointerException)
+							)));
 				}
 
 				break;
 			}
 			case "settings": {
-
 				break;
 			}
 			default:
 				break;
 		}
+
 		dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
-		dataTable.getItems().setAll(ItemContent.get(items));
+		dataTable.setItems(showList);
+
+		setUpScrollBar();
 	}
 
-	public void operationsData(ItemContent item, Boolean del) {
+
+	public void operationsData(ItemContent item, boolean del) {
 		MainWindowCtrl mainWindowCtrl = MainWindowCtrl.getInstance();
-		MySQL db = null;
 		String source = "";
 		ScaleItemMenu sim = null;
 
 		if (node.getLevel() == 2) {
-			db = MainCtrl.getDB();
 			source = "Server (localhost)";
 		} else {
 			sim = (ScaleItemMenu) node.getUpObject().getObject();
-			db = sim.getDB();
 			source = sim.getName() + " - " + sim.getId() + " (" + sim.getScale().getIp_address() + ")";
 		}
 
@@ -185,24 +203,22 @@ public class ContentCtrl {
 
 		switch (node.getType()) {
 			case "products": {
-				if (del != null && item != null) {
-					if (del) {
-						Goods goods = (Goods) item.getObject();
-						goods.delete(db);
+				if (item != null && del) {
+					Goods goods = (Goods) item.getObject();
+					goods.delete(db);
 
-						// logging context menu deletion of goods
-						MainWindowCtrl.setLog(
-								Helper.formatOutput(
-										Operation.DELETE,
-										placeType,
-										ipAddress,
-										SectionType.PRODUCT,
-										goods.getName(),
-										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-										OperationStatus.SUCCESS
-								)
-						);
-					}
+					// logging context menu deletion of goods
+					MainWindowCtrl.setLog(
+							Helper.formatOutput(
+									Operation.DELETE,
+									placeType,
+									ipAddress,
+									SectionType.PRODUCT,
+									goods.getName(),
+									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+									OperationStatus.SUCCESS
+							)
+					);
 				} else {
 					mainWindowCtrl.openPlu(
 							(item != null) ? (Goods) item.getObject() : null,
@@ -215,24 +231,22 @@ public class ContentCtrl {
 				break;
 			}
 			case "sections": {
-				if (del != null && item != null) {
-					if (del) {
-						Sections sections = (Sections) item.getObject();
-						sections.delete(false, db);
+				if (item != null && del) {
+					Sections sections = (Sections) item.getObject();
+					sections.delete(false, db);
 
-						// logging context menu deletion of section
-						MainWindowCtrl.setLog(
-								Helper.formatOutput(
-										Operation.DELETE,
-										placeType,
-										ipAddress,
-										SectionType.SECTION,
-										sections.getName(),
-										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-										OperationStatus.SUCCESS
-								)
-						);
-					}
+					// logging context menu deletion of section
+					MainWindowCtrl.setLog(
+							Helper.formatOutput(
+									Operation.DELETE,
+									placeType,
+									ipAddress,
+									SectionType.SECTION,
+									sections.getName(),
+									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+									OperationStatus.SUCCESS
+							)
+					);
 				} else {
 					mainWindowCtrl.openSection(
 							(item != null) ? (Sections) item.getObject() : null,
@@ -245,24 +259,22 @@ public class ContentCtrl {
 				break;
 			}
 			case "templates": {
-				if (del != null && item != null) {
-					if (del) {
-						Templates templates = (Templates) item.getObject();
-						templates.delete(db);
+				if (item != null && del) {
+					Templates templates = (Templates) item.getObject();
+					templates.delete(db);
 
-						// logging context menu deletion of template
-						MainWindowCtrl.setLog(
-								Helper.formatOutput(
-										Operation.DELETE,
-										placeType,
-										ipAddress,
-										SectionType.TEMPLATE,
-										templates.getName(),
-										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-										OperationStatus.SUCCESS
-								)
-						);
-					}
+					// logging context menu deletion of template
+					MainWindowCtrl.setLog(
+							Helper.formatOutput(
+									Operation.DELETE,
+									placeType,
+									ipAddress,
+									SectionType.TEMPLATE,
+									templates.getName(),
+									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+									OperationStatus.SUCCESS
+							)
+					);
 				} else {
 					mainWindowCtrl.openTemplate(
 							(item != null) ? (Templates) item.getObject() : null,
@@ -273,24 +285,22 @@ public class ContentCtrl {
 				break;
 			}
 			case "templateCodes": {
-				if (del != null && item != null) {
-					if (del) {
-						Codes codes = (Codes) item.getObject();
-						codes.delete(db);
+				if (item != null && del) {
+					Codes codes = (Codes) item.getObject();
+					codes.delete(db);
 
-						// logging context menu deletion of templateCodes
-						MainWindowCtrl.setLog(
-								Helper.formatOutput(
-										Operation.DELETE,
-										placeType,
-										ipAddress,
-										SectionType.CODE,
-										codes.getName(),
-										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-										OperationStatus.SUCCESS
-								)
-						);
-					}
+					// logging context menu deletion of templateCodes
+					MainWindowCtrl.setLog(
+							Helper.formatOutput(
+									Operation.DELETE,
+									placeType,
+									ipAddress,
+									SectionType.CODE,
+									codes.getName(),
+									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+									OperationStatus.SUCCESS
+							)
+					);
 				} else {
 					mainWindowCtrl.openCode(
 							(item != null) ? (Codes) item.getObject() : null,
@@ -313,50 +323,11 @@ public class ContentCtrl {
 
 	public static ObservableList<TableColumn<ItemContent, ?>> loadTable(ObservableList<String[]> colInfo) {
 		ObservableList<TableColumn<ItemContent, ?>> col = FXCollections.observableArrayList();
-		try {
-			colInfo.forEach((v) -> {
-				switch (v[0]) {
-					case "Integer": {
-						TableColumn<ItemContent, Integer> item = new TableColumn<ItemContent, Integer>(v[1]);
-						item.setCellValueFactory(new PropertyValueFactory<ItemContent, Integer>(v[2]));
-						col.add(item);
-						break;
-					}
-					case "String": {
-						TableColumn<ItemContent, String> item = new TableColumn<ItemContent, String>(v[1]);
-						item.setCellValueFactory(new PropertyValueFactory<ItemContent, String>(v[2]));
-						col.add(item);
-						break;
-					}
-					case "Float": {
-						TableColumn<ItemContent, Float> item = new TableColumn<ItemContent, Float>(v[1]);
-						item.setCellValueFactory(new PropertyValueFactory<ItemContent, Float>(v[2]));
-						col.add(item);
-						break;
-					}
-					case "CheckBox": {
-						TableColumn<ItemContent, CheckBox> item = new TableColumn<ItemContent, CheckBox>(v[1]);
-						item.setCellValueFactory(new PropertyValueFactory<ItemContent, CheckBox>(v[2]));
-						col.add(item);
-						break;
-					}
-					case "LocalDateTime": {
-						TableColumn<ItemContent, LocalDateTime> item = new TableColumn<ItemContent, LocalDateTime>(v[1]);
-						item.setCellValueFactory(new PropertyValueFactory<ItemContent, LocalDateTime>(v[2]));
-						col.add(item);
-						break;
-					}
-					case "AnchorPane": {
-						TableColumn<ItemContent, AnchorPane> item = new TableColumn<ItemContent, AnchorPane>(v[1]);
-						item.setCellValueFactory(new PropertyValueFactory<ItemContent, AnchorPane>(v[2]));
-						col.add(item);
-						break;
-					}
-				}
-			});
-		} catch (Exception e) {
-			System.out.println("not find type");
-		}
+		colInfo.forEach(value -> {
+			TableColumn<ItemContent, ?> item = new TableColumn<>(value[1]);
+			item.setCellValueFactory(new PropertyValueFactory<>(value[2]));
+			col.add(item);
+		});
 		return col;
 	}
 
@@ -413,10 +384,10 @@ public class ContentCtrl {
 
 		send.setOnAction(event -> addSend());
 		check.setOnAction(event -> dataTable.getItems().forEach(item -> item.setCheckBox(check.isSelected())));
-		create.setOnAction(event -> operationsData(null, null));
+		create.setOnAction(event -> operationsData(null, false));
 		edit.setOnAction(event -> {
 			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
-			operationsData(item, null);
+			operationsData(item, false);
 		});
 		delete.setOnAction(event -> dataTable.getItems()
 				.stream()
@@ -426,10 +397,10 @@ public class ContentCtrl {
 					dataTable.getItems().remove(itemContent);
 					dataTable.refresh();
 				})));
-		createCM.setOnAction(event -> operationsData(null, null));
+		createCM.setOnAction(event -> operationsData(null, false));
 		editCM.setOnAction(event -> {
 			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
-			operationsData(item, null);
+			operationsData(item, false);
 		});
 		deleteCM.setOnAction(event -> {
 			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
@@ -442,9 +413,9 @@ public class ContentCtrl {
 			choose.load(node, "sections");
 			Sections sections = (Sections) choose.show();
 			if (sections != null) {
-				dataTable.getItems().forEach((v) -> {
-					if (v.isSelected()) {
-						Goods item = (Goods) v.getObject();
+				dataTable.getItems().forEach(value -> {
+					if (value.isSelected()) {
+						Goods item = (Goods) value.getObject();
 						item.setId_sections(sections.getId());
 						item.save(MainCtrl.getDB());
 					}
@@ -456,9 +427,9 @@ public class ContentCtrl {
 			choose.load(node, "templateCodes");
 			Codes code = (Codes) choose.show();
 			if (code != null) {
-				dataTable.getItems().forEach((v) -> {
-					if (v.isSelected()) {
-						Goods item = (Goods) v.getObject();
+				dataTable.getItems().forEach(itemContent -> {
+					if (itemContent.isSelected()) {
+						Goods item = (Goods) itemContent.getObject();
 						item.setId_barcodes(code.getId());
 						item.save(MainCtrl.getDB());
 					}
@@ -470,9 +441,9 @@ public class ContentCtrl {
 			choose.load(node, "templates");
 			Templates template = (Templates) choose.show();
 			if (template != null) {
-				dataTable.getItems().forEach((v) -> {
-					if (v.isSelected()) {
-						Goods item = (Goods) v.getObject();
+				dataTable.getItems().forEach(value -> {
+					if (value.isSelected()) {
+						Goods item = (Goods) value.getObject();
 						item.setId_templates(template.getId());
 						item.save(MainCtrl.getDB());
 					}
@@ -480,23 +451,7 @@ public class ContentCtrl {
 			}
 		});
 		stocksCM.setOnAction(event -> {
-
 		});
-	}
-
-	public MySQL getCurrentDB() {
-		if (node.getLevel() == 2) {
-			if (MainCtrl.getDB().isDBConnection()) {
-				return MainCtrl.getDB();
-			}
-		} else {
-			ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-			if (scale.getScale().getUpdate() >= 0)
-				if (scale.getDB().isDBConnection()) {
-					return scale.getDB();
-				}
-		}
-		return null;
 	}
 
 	public Button getSend() {
@@ -506,4 +461,95 @@ public class ContentCtrl {
 	public PackageSend getPack() {
 		return pack;
 	}
+
+	private void setUpScrollBar() {
+		int numberOfItemsToContain = STEP;
+		ScrollBar scrollBar = Helper.getDataTableScrollBar(dataTable)
+				.orElseThrow(() -> new NullPointerException("Was not able to obtain ScrollBar from TableView"));
+
+		scrollBar.setOnMouseReleased(event -> {
+			addMore = true;
+			scrollBar.removeEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
+		});
+
+		dataTable.addEventFilter(ScrollEvent.ANY, event -> addMore = true);
+		scrollBar.valueProperty().addListener((observable, oldValue, newValue) -> {
+			double position = scrollBar.getValue();
+
+			if (position == scrollBar.getMax() && addMore) {
+				logger.info("Adding at the end");
+				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
+
+				addAtTheEnd(scrollBar);
+
+				if (showList.size() > numberOfItemsToContain) {
+					logger.info("Removing first {} items", numberOfItemsToContain);
+					firstPass = true;
+					beenDeleted = true;
+					showList.remove(0, showList.size() - numberOfItemsToContain);
+					scrollBar.setValue(0);
+				}
+
+				addMore = false;
+			} else if (position <= 0.05 && addMore && beenDeleted && !firstPass) {
+				logger.info("Adding at the beginning");
+				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
+
+				addAtTheBeginning(scrollBar);
+
+				if (showList.size() > numberOfItemsToContain) {
+					logger.info("Removing items and leaving only first {}", numberOfItemsToContain);
+					logger.info("Size before deletion {}", showList.size());
+					showList.remove(numberOfItemsToContain, showList.size());
+					logger.info("Size after deletion {}", showList.size());
+					scrollBar.setValue(0.99);
+				}
+
+			} else if (position >= 0.1 && addMore && beenDeleted) {
+				firstPass = false;
+			}
+		});
+	}
+
+	private void addAtTheBeginning(ScrollBar scrollBar) {
+		if (showList.get(0).getNumber() - STEP >= 0) {
+			showList.addAll(0, ItemContent
+					.get(FXCollections.observableArrayList(
+							Helper.getData(db, STEP, showList.get(0).getNumber() - STEP, type)
+									.orElseThrow(type::getNullPointerException)),
+							showList.get(0).getNumber() - STEP));
+			double value = (1.0 / showList.size()) * STEP;
+			logger.debug("Setting value to {}", value);
+			scrollBar.setValue(value);
+		} else {
+			beenDeleted = false;
+		}
+	}
+
+	private void addAtTheEnd(ScrollBar scrollBar) {
+		double targetValue = scrollBar.getValue() * showList.size();
+
+		showList.addAll(ItemContent
+				.get(FXCollections.observableArrayList(
+						Helper.getData(db, STEP, showList.get(showList.size() - 1).getNumber(), type)
+								.orElseThrow(type::getNullPointerException)),
+						showList.get(showList.size() - 1).getNumber() + 1));
+		double value = targetValue / showList.size();
+		logger.debug("Setting value {}", value);
+		scrollBar.setValue(value);
+	}
+
+	private Optional<MySQL> getDbDependingOnNode(NodeTree node) {
+		if (node.getLevel() == 2 && MainCtrl.getDB().isDBConnection()) {
+			return Optional.of(MainCtrl.getDB());
+		} else {
+			ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
+			if (scale.getScale().getUpdate() >= 0 && scale.getDB().isDBConnection()) {
+				return Optional.of(scale.getDB());
+			}
+		}
+
+		return Optional.empty();
+	}
 }
+

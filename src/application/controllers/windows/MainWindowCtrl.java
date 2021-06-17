@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import application.PlaceType;
+import application.enums.PlaceType;
 import application.controllers.MainCtrl;
 import application.controllers.parts.ContentCtrl;
 import application.controllers.parts.FooterCtrl;
@@ -19,8 +19,6 @@ import application.models.net.mysql.tables.Goods;
 import application.models.net.mysql.tables.Scales;
 import application.models.net.mysql.tables.Sections;
 import application.models.net.mysql.tables.Templates;
-import application.models.objectinfo.ItemContent;
-import application.models.objectinfo.NodeTree;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

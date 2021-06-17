@@ -1,7 +1,7 @@
 package application.controllers.parts;
 
 import application.Marquee;
-import application.ScaleStatus;
+import application.enums.ScaleStatus;
 import application.controllers.MainCtrl;
 import application.controllers.windows.MainWindowCtrl;
 import application.controllers.windows.ScaleCtrl;
