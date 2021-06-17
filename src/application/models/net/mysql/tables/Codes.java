@@ -13,12 +13,12 @@ import javafx.collections.ObservableList;
 
 public class Codes {
 	private Integer id = 0;
-	private String name = "2/5/5";
-	private Integer prefix = 2;
-	private Integer code = 5;
-	private Integer unit = 5;
-	private String prefix_val = "22";
-	private String mask = "PPCCCCCUUUUU";
+	private String name = "";
+	private Integer prefix = 0;
+	private Integer code = 0;
+	private Integer unit = 0;
+	private String prefix_val = "";
+	private String mask = "";
 
 	public Codes(String maska, String prefix_val, String mask) {
 		super();
@@ -117,7 +117,16 @@ public class Codes {
 		return values;
 	}
 
-	public Codes() {}
+	public Codes(boolean createDefault) {
+		if (createDefault) {
+			name = "2/5/5";
+			prefix = 2;
+			code = 5;
+			unit = 5;
+			prefix_val = "22";
+			mask = "PPCCCCCUUUUU";
+		}
+	}
 
 	public Codes(Integer id, String name, String maska, String mask) {
 		super();

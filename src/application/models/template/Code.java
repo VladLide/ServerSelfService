@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage;
 
 public class Code {
 	private String code = "12345";
-	private Codes barcode = new Codes();
+	private Codes barcode = new Codes(true);
 	private String unit;
 	private AbstractBarcodeBean bean = new EAN13Bean();
 	private final int dpi = 203;

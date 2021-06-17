@@ -1,6 +1,7 @@
 package application.controllers.windows;
 
 import application.*;
+import application.controllers.MainCtrl;
 import application.enums.Operation;
 import application.enums.OperationStatus;
 import application.enums.PlaceType;
@@ -428,7 +429,7 @@ public class TemplateCtrl {
 	}
 
 	public Pane createViewBarcode(OptionsItem optionsItem, AnchorPane pane) {
-		Code controlCode = new Code(new Codes(), 12345, "15.506");
+		Code controlCode = new Code(new Codes(true), 12345, "15.506");
 		BufferedImage img = null;
 		if (optionsItem != null) {
 			controlCode.setBarHeight(optionsItem.getHeight());
@@ -1103,8 +1104,8 @@ public class TemplateCtrl {
 					int n = 0;
 					try {
 						n = Integer.parseInt(v.getNewValue());
-						// if(TemplateCtrl.get(n, mainWindow.getDb())!=null)
-						n = 0;
+						if(Templates.get(n, "", false, MainCtrl.getDB())!=null)
+							n = 0;
 					} catch (Exception e) {
 						n = -1;
 					}
@@ -1118,12 +1119,17 @@ public class TemplateCtrl {
 					if (v.getNewValue().length() > 0) {
 						Boolean f = true;
 						String n = v.getNewValue();
-						/*
-						 * for(String value : TemplateCtrl.getLName(mainWindow.getDb())) {
-						 * if(value.compareToIgnoreCase(n)==0) { f=false; break; } } if(f) {
-						 * if(objTemplate.getName().length()>0)objTemplate.updateName(n,
-						 * mainWindow.getDb()); paneSave.setName(n); item.setValue(n); }
-						 */
+						for(String value : Templates.getLName(MainCtrl.getDB())) {
+							if(value.compareToIgnoreCase(n)==0) {
+								f=false; break; 
+							} 
+						}
+						if(f) {
+							if(objTemplate.getName().length()>0)
+								objTemplate.updateName(n, MainCtrl.getDB());
+							paneSave.setName(n);
+							item.setValue(n);
+						}
 					}
 					break;
 				}

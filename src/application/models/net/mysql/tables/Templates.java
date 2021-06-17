@@ -24,6 +24,7 @@ import javax.imageio.ImageIO;
 import javax.sql.rowset.serial.SerialBlob;
 import javax.sql.rowset.serial.SerialException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SerializationUtils;
 
 import com.google.zxing.WriterException;
@@ -95,7 +96,7 @@ public class Templates {
 		List<String> fields = new ArrayList<String>();
 		try {
 			for (Field f : getClass().getDeclaredFields()) {
-				if(img&&(f.getName()=="data"||f.getName()=="img_data"||f.getName()=="background_data")) continue;
+				if(!img&&(f.getName()=="data"||f.getName()=="img_data"||f.getName()=="background_data")) continue;
 				System.out.println(table + "." + f.getName());
 				fields.add(table + "." + f.getName());
 			}
@@ -111,7 +112,7 @@ public class Templates {
 		int i = 0;
 		for (Field f : me.getClass().getDeclaredFields()) {
 			try {
-				if(img&&(f.getName()=="data"||f.getName()=="img_data"||f.getName()=="background_data")) continue;
+				if(!img&&(f.getName()=="data"||f.getName()=="img_data"||f.getName()=="background_data")) continue;
 				// if(f.getName()=="id") continue;
 				String type = f.getType().getTypeName().replace(".", " ");
 				if (type.split(" ").length > 0) {
@@ -252,7 +253,7 @@ public class Templates {
 
 	public static String getSql(int rId, String name, boolean img, MySQL db) {
 		String table = getTable();
-		String sql = "SELECT " + new Templates().getFields(img).toArray(new String[0]) + " FROM " + table;
+		String sql = "SELECT " + StringUtils.join(new Templates().getFields(img).toArray(new String[0]), ",") + " FROM " + table;
 		if (rId > 0 || name.length() > 0)
 			sql += " WHERE ";
 		if (rId > 0)

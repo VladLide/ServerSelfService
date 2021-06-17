@@ -46,6 +46,7 @@ public class CodeCtrl {
 	private String ipAddress;
 	private PlaceType placeType;
 	private Logger logger = LogManager.getLogger(CodeCtrl.class);
+	private boolean newItem = true;
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Code");
@@ -93,7 +94,6 @@ public class CodeCtrl {
 	}
 
     public void show() {
-		load();
         this.stage.showAndWait();
     }
 
@@ -152,8 +152,8 @@ public class CodeCtrl {
 					break;
 				}
 			}
-			if (f || this.item != null) {
-				Codes temp = new Codes();
+			if (f || !newItem) {
+				Codes temp = new Codes(false);
 				int prefix = StringUtils.countMatches(mask.getText(), "P");
 				int code = StringUtils.countMatches(mask.getText(), "C");
 				int unit = StringUtils.countMatches(mask.getText(), "U");
@@ -166,11 +166,11 @@ public class CodeCtrl {
 					id = Integer.parseInt(this.number.getText());
 					// temp.setId(id);
 				} catch (Exception e) {
-					if (this.item != null)
+					if (!newItem)
 						temp.setId(this.item.getId());
 				}
 				try {
-					if (this.item == null) {
+					if (newItem) {
 						temp.setId(id);
 						if (temp.save(db) > 0) {
                             MainWindowCtrl.setLog(
@@ -258,20 +258,30 @@ public class CodeCtrl {
 	}
 
 	public void load() {
-		itemsTable.getColumns().addAll(loadItemsTable(ContentInfo.getColumnsContent("templateCodes")));
+		itemsTable.getColumns().setAll(loadItemsTable(ContentInfo.getColumnsContent("templateCodes")));
 		itemsTable.setItems(ItemTemplate.getList(CodeInfo.ItemsTemplate));
 		this.barcodes = Codes.getList(0, "", db);
-
-		if (item == null) {
-			number.setText("");
-			name.setText("");
-			mask.setText("");
-		}
-
-		save.setDisable(true);
-		dataTable.getColumns().addAll(loadDataTable(ContentInfo.getColumnsContent("templateCodes")));
+		dataTable.getColumns().setAll(loadDataTable(ContentInfo.getColumnsContent("templateCodes")));
 		dataTable.setItems(this.barcodes);
 		this.loadBarcode();
+		clear();
+	}
+
+	public void update() {
+		this.barcodes = Codes.getList(0, "", db);
+		save.setDisable(true);
+		dataTable.setItems(this.barcodes);
+		clear();
+	}
+
+	public void clear() {
+		number.setText("");
+		name.setText("");
+		mask.setText("");
+		prefixValue.setText("");
+		newItem = true;
+		item = new Codes(false);
+		save.setDisable(true);
 	}
 
 	@FXML
@@ -303,8 +313,7 @@ public class CodeCtrl {
 										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                                         OperationStatus.SUCCESS)
 						);
-		        		this.item = null;
-						this.load();
+						update();
 	            	}else{
                         MainWindowCtrl.setLog(
                                 Helper.formatOutput(
@@ -325,12 +334,7 @@ public class CodeCtrl {
             }
     	});
     	clear.setOnAction(event -> {
-    	    number.setText("");
-    		name.setText("");
-    		prefixValue.setText("");
-    		mask.setText("");
-    	    this.item = null;
-    	    save.setDisable(true);
+    	    clear();
     	});
     	itemsTable.setOnMouseClicked(event -> {
     		int index = itemsTable.getSelectionModel().selectedIndexProperty().get();
@@ -361,6 +365,7 @@ public class CodeCtrl {
 		});
     	dataTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
     		if (newSelection != null) {
+    			newItem = false;
 				this.item = newSelection;
 			    number.setText(newSelection.getId() + "");
 			    prefixValue.setText(newSelection.getPrefix_val());
@@ -377,14 +382,14 @@ public class CodeCtrl {
 	}
 
 	public void setItem(Codes codes) {
-		item = codes != null ? codes : new Codes();
+		item = codes != null ? codes : new Codes(false);
 
 		if (codes != null) {
 			number.setText(String.valueOf(item.getId()));
 			name.setText(item.getName());
 			mask.setText(item.getMask());
 			prefixValue.setText(item.getPrefix_val());
-
+			newItem = false;
 			save.setDisable(true);
 			dataTable.getSelectionModel().select(item);
 		}

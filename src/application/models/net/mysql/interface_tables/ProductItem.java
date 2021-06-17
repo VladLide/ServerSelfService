@@ -100,7 +100,7 @@ public class ProductItem {
 						f.set(this, new Sections(res.getInt(res.findColumn("sId")),
 								res.getString(res.findColumn("sName"))));
 					} catch (Exception e) {
-						f.set(this, new Codes());
+						f.set(this, new Sections());
 					}
 					break;
 				}
@@ -124,7 +124,7 @@ public class ProductItem {
 						f.set(this, new Codes(res.getInt(res.findColumn("cId")), res.getString(res.findColumn("cname")),
 								res.getString(res.findColumn("cmaska")), res.getString(res.findColumn("cmask"))));
 					} catch (Exception e) {
-						f.set(this, new Codes());
+						f.set(this, new Codes(true));
 					}
 					break;
 				}
