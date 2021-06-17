@@ -381,10 +381,13 @@ public class ProductCtrl {
 		});
 	}
 
+	int tmp = 5;
 
 	private void addAtTheBeginning(ScrollBar scrollBar) {
+		//todo fix if statement because first element in array can have number bigger than step and
+		// we'll try to get more and there won't be any more and we'll get an error
 		if (showList.get(0).getNumber() - STEP >= 0) {
-			offset -= STEP;
+			offset = offset - STEP + tmp;
 			showList.addAll(0,
 					Helper.getGoods(db, STEP, offset, type)
 							.orElseThrow(type::getNullPointerException));
@@ -399,7 +402,7 @@ public class ProductCtrl {
 	private void addAtTheEnd(ScrollBar scrollBar) {
 		double targetValue = scrollBar.getValue() * showList.size();
 
-		offset += STEP;
+		offset = offset + STEP - tmp;
 		showList.addAll(
 				Helper.getGoods(db, STEP, offset, type)
 						.orElseThrow(type::getNullPointerException));

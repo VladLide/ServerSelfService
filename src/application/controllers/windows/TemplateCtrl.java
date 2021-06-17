@@ -429,7 +429,7 @@ public class TemplateCtrl {
 	}
 
 	public Pane createViewBarcode(OptionsItem optionsItem, AnchorPane pane) {
-		Code controlCode = new Code(new Codes(true), 12345, "15.506");
+		Code controlCode = new Code(new Codes(), 12345, "15.506");
 		BufferedImage img = null;
 		if (optionsItem != null) {
 			controlCode.setBarHeight(optionsItem.getHeight());
@@ -1121,8 +1121,8 @@ public class TemplateCtrl {
 						String n = v.getNewValue();
 						for(String value : Templates.getLName(MainCtrl.getDB())) {
 							if(value.compareToIgnoreCase(n)==0) {
-								f=false; break; 
-							} 
+								f=false; break;
+							}
 						}
 						if(f) {
 							if(objTemplate.getName().length()>0)

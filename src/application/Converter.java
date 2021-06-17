@@ -68,7 +68,7 @@ public final class Converter {
 
 		while (set.next()) {
 			//todo image is always false, fix it
-			templatesList.add(new Templates(set));
+			templatesList.add(new Templates(set, false));
 		}
 
 		return templatesList;
