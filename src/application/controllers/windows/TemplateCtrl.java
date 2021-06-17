@@ -189,7 +189,7 @@ public class TemplateCtrl {
 	}
 
 	public void addImage() {
-		File file;
+		File file = null;
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Select Image");
 		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("JPG", "*.jpeg", "*.jpg"),

@@ -90,11 +90,12 @@ public class Templates {
 		return table;
 	}
 
-	public List<String> getFields() {
+	public List<String> getFields(boolean img) {
 		String table = getTable();
 		List<String> fields = new ArrayList<String>();
 		try {
 			for (Field f : getClass().getDeclaredFields()) {
+				if(img&&(f.getName()=="data"||f.getName()=="img_data"||f.getName()=="background_data")) continue;
 				System.out.println(table + "." + f.getName());
 				fields.add(table + "." + f.getName());
 			}
@@ -104,12 +105,13 @@ public class Templates {
 		return fields;
 	}
 
-	public PackingDBValue[] getValues() {
+	public PackingDBValue[] getValues(boolean img) {
 		Templates me = this;
 		PackingDBValue[] values = new PackingDBValue[me.getClass().getDeclaredFields().length];
 		int i = 0;
 		for (Field f : me.getClass().getDeclaredFields()) {
 			try {
+				if(img&&(f.getName()=="data"||f.getName()=="img_data"||f.getName()=="background_data")) continue;
 				// if(f.getName()=="id") continue;
 				String type = f.getType().getTypeName().replace(".", " ");
 				if (type.split(" ").length > 0) {
@@ -142,7 +144,7 @@ public class Templates {
 		return values;
 	}
 
-	public Templates(ResultSet res, boolean img) {
+	public Templates(ResultSet res) {
 		super();
 		for (Field f : getClass().getDeclaredFields()) {
 			try {
@@ -198,10 +200,10 @@ public class Templates {
 
 	public static Templates get(int rId, String name, boolean img, MySQL db) {
 		Templates res = null;
-		ResultSet resul = db.getSelect(Templates.getSql(rId, name, db));
+		ResultSet resul = db.getSelect(Templates.getSql(rId, name, img, db));
 		try {
 			while (resul.next()) {
-				res = new Templates(resul, img);
+				res = new Templates(resul);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -210,37 +212,37 @@ public class Templates {
 	}
 
 	public static ObservableList<Templates> getList(int rId, String name, boolean img, MySQL db) {
-		ResultSet resul = db.getSelect(Templates.getSql(rId, name, db));
-		ObservableList<Templates> row = FXCollections.observableArrayList();
+		ResultSet resul = db.getSelect(Templates.getSql(rId, name, img, db));
+		ObservableList<Templates> rows = FXCollections.observableArrayList();
 		try {
 			while (resul.next()) {
-				row.add(new Templates(resul, img));
+				rows.add(new Templates(resul));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return row;
+		return rows;
 	}
 
 	public static ObservableList<Object> getListObj(int rId, String name, boolean img, MySQL db) {
-		ResultSet resul = db.getSelect(Templates.getSql(rId, name, db));
-		ObservableList<Object> row = FXCollections.observableArrayList();
+		ResultSet resul = db.getSelect(Templates.getSql(rId, name, img, db));
+		ObservableList<Object> rows = FXCollections.observableArrayList();
 		try {
 			while (resul.next()) {
-				row.add(new Templates(resul, img));
+				rows.add(new Templates(resul));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return row;
+		return rows;
 	}
 
 	public static ObservableList<String> getLName(MySQL db) {
-		ResultSet resul = db.getSelect(Templates.getSql(0, "", db));
+		ResultSet resul = db.getSelect(Templates.getSql(0, "", false, db));
 		ObservableList<String> row = FXCollections.observableArrayList();
 		try {
 			while (resul.next()) {
-				row.add(new Templates(resul, false).getName());
+				row.add(new Templates(resul).getName());
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -248,9 +250,9 @@ public class Templates {
 		return row;
 	}
 
-	public static String getSql(int rId, String name, MySQL db) {
+	public static String getSql(int rId, String name, boolean img, MySQL db) {
 		String table = getTable();
-		String sql = "SELECT * FROM " + table;
+		String sql = "SELECT " + new Templates().getFields(img).toArray(new String[0]) + " FROM " + table;
 		if (rId > 0 || name.length() > 0)
 			sql += " WHERE ";
 		if (rId > 0)
@@ -266,13 +268,14 @@ public class Templates {
 	public int save(MySQL db) {
 		String table = getTable();
 		Templates isNew = Templates.get(0, name, false, db);
-		String[] fields = getFields().toArray(new String[0]);
+		String[] fields = getFields(true).toArray(new String[0]);
 		if (isNew != null) {
-			db.update(table, fields, getValues(), new String[] { table + ".id = '" + id + "'" });
+			db.update(table, fields, getValues(true), new String[] { table + ".id = '" + id + "'" });
 		} else {
-			db.insert(table, fields, getValues());
-			id = get(0, name, false, db).getId();
+			db.insert(table, fields, getValues(true));
 		}
+		Templates tmp = Templates.get(0, name, false,db);
+		id = tmp!=null?tmp.getId():-1;
 		return id;
 	}
 
@@ -427,7 +430,6 @@ public class Templates {
 				}
 					System.out.println(v.getType() + " :[ " + v.getPosition().x + ";" + v.getPosition().y + "]");
 				}
-				;
 			});
 			ois.close();
 			return open;
@@ -664,7 +666,7 @@ public class Templates {
 						open.setItem(i);
 					}
 				}
-					System.out.println(v.getType() + " :[ " + v.getPosition().x + ";" + v.getPosition().y + "]");
+				System.out.println(v.getType() + " :[ " + v.getPosition().x + ";" + v.getPosition().y + "]");
 				};
 			});
 			WritableImage img = open.getPane().snapshot(new SnapshotParameters(), null);
