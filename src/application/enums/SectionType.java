@@ -1,4 +1,4 @@
-package application;
+package application.enums;
 
 /**
  * Contains sections at which operations can happen

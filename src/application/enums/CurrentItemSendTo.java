@@ -1,4 +1,4 @@
-package application;
+package application.enums;
 
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 

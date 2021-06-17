@@ -1,6 +1,25 @@
 package application;
 
+import application.enums.*;
+import application.models.net.mysql.MySQL;
+import application.models.net.mysql.SqlQueryBuilder;
+import application.models.net.mysql.tables.Codes;
+import application.models.net.mysql.tables.Goods;
+import application.models.net.mysql.tables.Sections;
+import application.models.net.mysql.tables.Templates;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.TableView;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 //todo add javadoc comments to methods
 
@@ -13,6 +32,7 @@ public final class Helper {
 	private static Operation lastExecutedOperation;
 	private static PlaceType lastPlaceType;
 	private static String lastIp;
+	private static Logger logger = LogManager.getLogger(Helper.class);
 
 	/**
 	 * Helper class contains only static methods, so there is no need to create an
@@ -32,13 +52,13 @@ public final class Helper {
 	 * 2. If operation and place and ip are the same as the last time string will look like
 	 * "   SectionType: name [date] status"
 	 *
-	 * @param operation   enum which contains operations which can be done with objects
-	 * @param place       enum which contains places where operation can happen
-	 * @param ip          string which contains ip address of place which called operation
-	 * @param sectionType enum which contains section at which operations can happen
-	 * @param name        string which contains name of object on which operation is produced
-	 * @param dateTime    string which contains current date and time
-	 * @param operationStatus      enum which contains result of operation
+	 * @param operation       enum which contains operations which can be done with objects
+	 * @param place           enum which contains places where operation can happen
+	 * @param ip              string which contains ip address of place which called operation
+	 * @param sectionType     enum which contains section at which operations can happen
+	 * @param name            string which contains name of object on which operation is produced
+	 * @param dateTime        string which contains current date and time
+	 * @param operationStatus enum which contains result of operation
 	 * @return string with formatted ouptut
 	 * @throws NoSuchElementException will be thrown if place is null or has value that is
 	 *                                not in switch
@@ -88,6 +108,80 @@ public final class Helper {
 
 	private static String capitalizeFirstLetter(String s) {
 		return s.substring(0, 1).toUpperCase() + s.substring(1);
+	}
+
+	public static Optional<List<Object>> getData(MySQL db,
+	                                             int limit,
+	                                             int offset,
+	                                             ObjectType type) {
+		SqlQueryBuilder queryBuilder = new SqlQueryBuilder(db);
+		List<Object> list = null;
+		try {
+			ResultSet resultSet = queryBuilder.select("*")
+					.from(type.getTableName())
+					.orderBy(type.getTableName(), type.getOrderByColumn())
+					.limit(limit)
+					.offset(offset)
+					.execute();
+
+			switch (type) {
+				case PRODUCTS:
+					List<Goods> goods = Converter.fromResultSetToGoodsList(resultSet);
+					list = new ArrayList<>(goods);
+					break;
+				case SECTIONS:
+					List<Sections> sections = Converter.fromResultSetToSectionsList(resultSet);
+					list = new ArrayList<>(sections);
+					break;
+				case TEMPLATES:
+					List<Templates> templates = Converter.fromResultSetToTemplatesList(resultSet);
+					list = new ArrayList<>(templates);
+					break;
+				case TEMPLATES_CODES:
+					List<Codes> codes = Converter.fromResultSetToCodesList(resultSet);
+					list = new ArrayList<>(codes);
+					break;
+				default:
+					throw new IllegalArgumentException("No such type");
+			}
+
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
+
+		return Optional.ofNullable(list);
+	}
+
+	public static Optional<List<Goods>> getGoods(MySQL db,
+	                                   int limit,
+	                                   int offset,
+	                                   ObjectType type) {
+		SqlQueryBuilder queryBuilder = new SqlQueryBuilder(db);
+		ResultSet resultSet = queryBuilder.select("*")
+				.from(type.getTableName())
+				.orderBy(type.getTableName(), type.getOrderByColumn())
+				.limit(limit)
+				.offset(offset)
+				.execute();
+		try {
+			return Optional.of(Converter.fromResultSetToGoodsList(resultSet));
+		} catch (SQLException e) {
+			return Optional.empty();
+		}
+	}
+
+	public static Optional<ScrollBar> getDataTableScrollBar(TableView<?> dataTable) {
+		ScrollBar scrollbar = null;
+		for (Node n : dataTable.lookupAll(".scroll-bar")) {
+			if (n instanceof ScrollBar) {
+				ScrollBar bar = (ScrollBar) n;
+				if (bar.getOrientation().equals(Orientation.VERTICAL)) {
+					scrollbar = bar;
+				}
+			}
+		}
+
+		return Optional.ofNullable(scrollbar);
 	}
 }
 

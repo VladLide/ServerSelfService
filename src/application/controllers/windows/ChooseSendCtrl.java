@@ -1,6 +1,6 @@
 package application.controllers.windows;
 
-import application.CurrentItemSendTo;
+import application.enums.CurrentItemSendTo;
 import application.controllers.MainCtrl;
 import application.models.Configs;
 import application.models.Utils;

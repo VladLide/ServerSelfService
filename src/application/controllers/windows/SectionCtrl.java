@@ -1,6 +1,10 @@
 package application.controllers.windows;
 
 import application.*;
+import application.enums.Operation;
+import application.enums.OperationStatus;
+import application.enums.PlaceType;
+import application.enums.SectionType;
 import application.models.Configs;
 import application.models.TextBox;
 import application.models.Utils;

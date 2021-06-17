@@ -1,4 +1,4 @@
-package application;
+package application.enums;
 
 /**
  * Contains statuses which scale can have

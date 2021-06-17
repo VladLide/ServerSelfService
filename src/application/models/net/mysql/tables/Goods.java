@@ -1,5 +1,14 @@
 package application.models.net.mysql.tables;
 
+import application.models.net.PackingDBValue;
+import application.models.net.mysql.MySQL;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
+import javafx.scene.layout.AnchorPane;
+
+import javax.sql.rowset.serial.SerialBlob;
+import javax.sql.rowset.serial.SerialException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,16 +23,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import javax.sql.rowset.serial.SerialBlob;
-import javax.sql.rowset.serial.SerialException;
-
-import application.models.net.PackingDBValue;
-import application.models.net.mysql.MySQL;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.image.Image;
-import javafx.scene.layout.AnchorPane;
 
 public class Goods {
 	private int id = 0;
@@ -670,4 +669,25 @@ public class Goods {
 		this.tara = tara;
 	}
 
+	@Override
+	public String toString() {
+		return "Goods{" +
+				"id=" + id +
+				", code=" + code +
+				", id_scales=" + id_scales +
+				", id_sections=" + id_sections +
+				", id_templates=" + id_templates +
+				", id_barcodes=" + id_barcodes +
+				", name='" + name + '\'' +
+				", full_name='" + full_name + '\'' +
+				", price=" + price +
+				", type=" + type +
+				", pre_code=" + pre_code +
+				", before_validity=" + before_validity +
+				", ingredients='" + ingredients + '\'' +
+				", min_type=" + min_type +
+				", data=" + data +
+				", tara=" + tara +
+				'}';
+	}
 }

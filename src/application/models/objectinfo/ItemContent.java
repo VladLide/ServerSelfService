@@ -1,9 +1,5 @@
 package application.models.objectinfo;
 
-import java.time.LocalDateTime;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import application.models.net.mysql.interface_tables.ProductItem;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Codes;
 import application.models.net.mysql.tables.Goods;
@@ -13,6 +9,9 @@ import application.views.languages.uk.windows.ProductInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBox;
+
+import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ItemContent {
 	private int number = 0;
@@ -35,46 +34,50 @@ public class ItemContent {
 		checkBox = new CheckBox();
 	}
 
-	public static ObservableList<ItemContent> get(ObservableList<Object> arr) {
+	public static ObservableList<ItemContent> get(ObservableList<Object> array) {
+		return get(array,1);
+	}
+
+	public static ObservableList<ItemContent> get(ObservableList<Object> array, int initialIndex) {
+		AtomicInteger i = new AtomicInteger(initialIndex);
 		ObservableList<ItemContent> result = FXCollections.observableArrayList();
-		AtomicInteger i = new AtomicInteger(1);
-		arr.forEach((v) -> {
+		array.forEach(value -> {
 			ItemContent item = new ItemContent();
-			item.setObject(v);
+			item.setObject(value);
 			item.setNumber(i.getAndIncrement());
 			switch (item.getTypeOdject()) {
-			case "Sections": {
-				Sections val = (Sections) item.getObject();
-				item.setId(val.getId());
-				item.setName(val.getName());
-				item.setName_s(val.getNumber_s() + "");
-				item.setName_t(val.getNumber_po() + "");
-				item.setIngredients(val.getDescription());
-				break;
-			}
-			case "Templates": {
-				Templates val = (Templates) item.getObject();
-				item.setId(val.getId());
-				item.setName(val.getName());
-				item.setIngredients(val.getDescription());
-				break;
-			}
-			case "Codes": {
-				Codes val = (Codes) item.getObject();
-				item.setId(val.getId());
-				item.setName(val.getName());
-				item.setIngredients(val.getMask());
-				break;
-			}
-			case "Goods": {
-				Goods val = (Goods) item.getObject();
-				item.setId(val.getNumber());
-				item.setCode(val.getPre_code());
-				item.setName(val.getName());
-				item.setPrice(val.getPrice());
-				item.setType(val.getType());
-				break;
-			}
+				case "Sections": {
+					Sections val = (Sections) item.getObject();
+					item.setId(val.getId());
+					item.setName(val.getName());
+					item.setName_s(val.getNumber_s() + "");
+					item.setName_t(val.getNumber_po() + "");
+					item.setIngredients(val.getDescription());
+					break;
+				}
+				case "Templates": {
+					Templates val = (Templates) item.getObject();
+					item.setId(val.getId());
+					item.setName(val.getName());
+					item.setIngredients(val.getDescription());
+					break;
+				}
+				case "Codes": {
+					Codes val = (Codes) item.getObject();
+					item.setId(val.getId());
+					item.setName(val.getName());
+					item.setIngredients(val.getMask());
+					break;
+				}
+				case "Goods": {
+					Goods val = (Goods) item.getObject();
+					item.setId(val.getNumber());
+					item.setCode(val.getPre_code());
+					item.setName(val.getName());
+					item.setPrice(val.getPrice());
+					item.setType(val.getType());
+					break;
+				}
 			}
 			result.add(item);
 		});
