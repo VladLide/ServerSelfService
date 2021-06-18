@@ -56,6 +56,7 @@ public class ContentCtrl {
 	private PackageSend pack = null;
 	private MySQL db;
 	private ObjectType type;
+	private int commonObjectsBetweenPages = 5;
 
 	@FXML
 	private final ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Content");
@@ -513,12 +514,14 @@ public class ContentCtrl {
 	}
 
 	private void addAtTheBeginning(ScrollBar scrollBar) {
-		if (showList.get(0).getNumber() - STEP >= 0) {
+		if (showList.get(0).getNumber() - STEP + commonObjectsBetweenPages >= 0) {
+			int limit = STEP;
+			int offset = showList.get(0).getNumber() - STEP + commonObjectsBetweenPages;
+			int initialIndex = showList.get(0).getNumber() - STEP + commonObjectsBetweenPages;
 			showList.addAll(0, ItemContent
 					.get(FXCollections.observableArrayList(
-							Helper.getData(db, STEP, showList.get(0).getNumber() - STEP, type)
-									.orElseThrow(type::getNullPointerException)),
-							showList.get(0).getNumber() - STEP));
+							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
+							initialIndex));
 			double value = (1.0 / showList.size()) * STEP;
 			logger.debug("Setting value to {}", value);
 			scrollBar.setValue(value);
@@ -529,12 +532,17 @@ public class ContentCtrl {
 
 	private void addAtTheEnd(ScrollBar scrollBar) {
 		double targetValue = scrollBar.getValue() * showList.size();
+		int limit = STEP;
+		int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
+		int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
+		logger.info("Limit {}, offset {}, initialIndex {}", limit, offset, initialIndex);
 
 		showList.addAll(ItemContent
 				.get(FXCollections.observableArrayList(
-						Helper.getData(db, STEP, showList.get(showList.size() - 1).getNumber(), type)
-								.orElseThrow(type::getNullPointerException)),
-						showList.get(showList.size() - 1).getNumber() + 1));
+						Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
+						initialIndex));
+		//we are setting value, but later after deletion items we reset it to another, so this part at this time
+		// doesn't do anything but, if we load more than delete we will need this
 		double value = targetValue / showList.size();
 		logger.debug("Setting value {}", value);
 		scrollBar.setValue(value);
