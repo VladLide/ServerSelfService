@@ -61,6 +61,7 @@ public class ProductCtrl {
 	private final Stage stage;
 	private final Logger logger = LogManager.getLogger(ProductCtrl.class);
 	private static final int STEP = 200;
+	private static final int commonObjectsBetweenPages = 5;
 	private static final ObjectType type = ObjectType.PRODUCTS;
 
 	@FXML
@@ -144,27 +145,32 @@ public class ProductCtrl {
 	private void loadImage(AnchorPane imgPanel, String str) {
 		if ("img".equalsIgnoreCase(str)) {
 			try {
+				logger.trace("Getting image");
 				Image image = this.item.getImage(imgPanel);
-				imgPanel.setBackground(new Background(
-						new BackgroundImage(image,
-								BackgroundRepeat.NO_REPEAT,
-								BackgroundRepeat.NO_REPEAT,
-								BackgroundPosition.CENTER,
-								new BackgroundSize(
-										BackgroundSize.DEFAULT.getWidth(),
-										BackgroundSize.DEFAULT.getHeight(),
-										true,
-										false,
-										true,
-										false))));
+				logger.trace("Image: {}", image);
+				BackgroundSize backgroundSize = new BackgroundSize(
+						BackgroundSize.DEFAULT.getWidth(),
+						BackgroundSize.DEFAULT.getHeight(),
+						true,
+						false,
+						true,
+						false);
+				BackgroundImage backgroundImage = new BackgroundImage(image,
+						BackgroundRepeat.NO_REPEAT,
+						BackgroundRepeat.NO_REPEAT,
+						BackgroundPosition.CENTER,
+						backgroundSize);
+				Background background = new Background(backgroundImage);
+				imgPanel.setBackground(background);
 			} catch (Exception e) {
 				imgPanel.setBackground(null);
 				logger.warn("Background image is null");
 			}
 		} else {
 			try {
+				logger.trace("Getting template image");
 				Image image = template.getSelectionModel().getSelectedItem().getImage(imgPanel, 0);
-				logger.debug("Template image{}", image);
+				logger.trace("Template image: {}", image);
 				imgPanel.setBackground(new Background(
 						new BackgroundImage(
 								image,
@@ -180,7 +186,7 @@ public class ProductCtrl {
 										false))));
 			} catch (Exception e) {
 				imgPanel.setBackground(null);
-				logger.warn("Background image is null");
+				logger.warn("Template image is null");
 			}
 		}
 	}
@@ -388,13 +394,12 @@ public class ProductCtrl {
 		});
 	}
 
-	int tmp = 5;
 
 	private void addAtTheBeginning(ScrollBar scrollBar) {
 		//todo fix if statement because first element in array can have number bigger than step and
 		// we'll try to get more and there won't be any more and we'll get an error
 		if (showList.get(0).getNumber() - STEP >= 0) {
-			offset = offset - STEP + tmp;
+			offset = offset - STEP + commonObjectsBetweenPages;
 			showList.addAll(0,
 					Helper.getGoods(db, STEP, offset, type)
 							.orElseThrow(type::getNullPointerException));
@@ -409,7 +414,7 @@ public class ProductCtrl {
 	private void addAtTheEnd(ScrollBar scrollBar) {
 		double targetValue = scrollBar.getValue() * showList.size();
 
-		offset = offset + STEP - tmp;
+		offset = offset + STEP - commonObjectsBetweenPages;
 		showList.addAll(
 				Helper.getGoods(db, STEP, offset, type)
 						.orElseThrow(type::getNullPointerException));

@@ -1,24 +1,16 @@
 package application.controllers.windows;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
-
-import application.enums.PlaceType;
 import application.controllers.MainCtrl;
 import application.controllers.parts.ContentCtrl;
 import application.controllers.parts.FooterCtrl;
 import application.controllers.parts.LogCtrl;
 import application.controllers.parts.SidebarCtrl;
+import application.enums.PlaceType;
 import application.models.Configs;
 import application.models.Utils;
 import application.models.net.mysql.MySQL;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Scales;
-import application.models.net.mysql.tables.Sections;
-import application.models.net.mysql.tables.Templates;
+import application.models.net.mysql.tables.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -28,6 +20,10 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
 public class MainWindowCtrl {
 	private Stage mainStage = null;
@@ -131,11 +127,11 @@ public class MainWindowCtrl {
 
 	public ProductCtrl openPlu(Goods item, String source, MySQL db, String ipAddress, PlaceType placeType) {
 		ProductCtrl plu = new ProductCtrl(db);
-		plu.setItem(item);
 		plu.setSource(source);
 		plu.setIpAddress(ipAddress);
 		plu.setPlaceType(placeType);
 		plu.show();
+		plu.setItem(item);
 		return plu;
 	}
 
@@ -151,11 +147,11 @@ public class MainWindowCtrl {
 
 	public SectionCtrl openSection(Sections item, String source, MySQL db, String ipAddress, PlaceType placeType) {
 		SectionCtrl section = new SectionCtrl(db);
-		section.setItem(item);
 		section.setSource(source);
 		section.setIpAddress(ipAddress);
 		section.setPlaceType(placeType);
 		section.show();
+		section.setItem(item);
 		return section;
 	}
 

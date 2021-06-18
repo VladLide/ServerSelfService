@@ -250,8 +250,14 @@ public class ContentCtrl {
 							)
 					);
 				} else {
+					Sections sectionsWithImage;
+					if (item == null) {
+						sectionsWithImage = null;
+					} else {
+						sectionsWithImage = Sections.get(item.getId(), 0, -1, "", true, db);
+					}
 					mainWindowCtrl.openSection(
-							(item != null) ? (Sections) item.getObject() : null,
+							sectionsWithImage,
 							source,
 							db,
 							ipAddress,

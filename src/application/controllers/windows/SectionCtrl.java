@@ -21,6 +21,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -92,7 +93,7 @@ public class SectionCtrl {
 
 	public void show() {
 		load();
-		this.stage.showAndWait();
+		this.stage.show();
 	}
 
 	public void close() {
@@ -111,10 +112,13 @@ public class SectionCtrl {
 
 	private void loadImage(AnchorPane imgpanel) {
 		try {
-			imgpanel.setBackground(new Background(new BackgroundImage(this.item.getImage(imgpanel),
+			Image image = this.item.getImage(imgpanel);
+			BackgroundImage backgroundImage = new BackgroundImage(image,
 					BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
 					new BackgroundSize(BackgroundSize.DEFAULT.getWidth(), BackgroundSize.DEFAULT.getHeight(), true,
-							false, true, false))));
+							false, true, false));
+			Background background = new Background(backgroundImage);
+			imgpanel.setBackground(background);
 		} catch (Exception e) {
 			imgpanel.setBackground(null);
 			System.out.println("ButtonWithImage: no image - " + e);
@@ -416,6 +420,7 @@ public class SectionCtrl {
 			this.up.setValue((up != null && item.getId_up() > 0) ? up.getName() : null);
 			with.setText(String.valueOf(item.getNumber_s()));
 			to.setText(String.valueOf(item.getNumber_po()));
+			loadImage(img);
 		}
 
 		save.setDisable(true);
