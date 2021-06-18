@@ -10,6 +10,7 @@ import application.models.Configs;
 import application.models.PackageSend;
 import application.models.Utils;
 import application.models.net.mysql.MySQL;
+import application.models.net.mysql.SqlQueryBuilder;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Codes;
 import application.models.net.mysql.tables.Goods;
@@ -35,6 +36,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -44,19 +47,18 @@ public class ContentCtrl {
 	private final ObservableList<ItemContent> showList = FXCollections.observableArrayList();
 	private final Logger logger = LogManager.getLogger(ContentCtrl.class);
 	private final EventHandler<MouseEvent> consumeMouseDragEvent = Event::consume;
+	private static final int commonObjectsBetweenPages = 5;
 	private static final int STEP = 200;
-	//todo remove start and end variables
-	private final int[] start = {0};
-	private final int[] end = {STEP};
+	private int databaseTableSize;
 	private boolean addMore = true;
 	private boolean beenDeleted = false;
 	private boolean firstPass = true;
+	private boolean tableHasMore = true;
 	private AnchorPane content;
 	private NodeTree node = null;
 	private PackageSend pack = null;
 	private MySQL db;
 	private ObjectType type;
-	private int commonObjectsBetweenPages = 5;
 
 	@FXML
 	private final ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Content");
@@ -116,8 +118,6 @@ public class ContentCtrl {
 		this.node = node;
 		dataTable.getItems().clear();
 		dataTable.getColumns().clear();
-		start[0] = 0;
-		end[0] = STEP;
 
 		switch (node.getType()) {
 			case "products": {
@@ -127,7 +127,7 @@ public class ContentCtrl {
 				if (db != null) {
 					showList.addAll(
 							ItemContent.get(FXCollections.observableArrayList(
-									Helper.getData(db, STEP, start[0], type)
+									Helper.getData(db, STEP, 0, type)
 											.orElseThrow(type::getNullPointerException)
 									)));
 				}
@@ -140,7 +140,7 @@ public class ContentCtrl {
 				if (db != null) {
 					showList.addAll(
 							ItemContent.get(FXCollections.observableArrayList(
-									Helper.getData(db, STEP, start[0], type)
+									Helper.getData(db, STEP, 0, type)
 											.orElseThrow(type::getNullPointerException)
 							)));
 				}
@@ -153,7 +153,7 @@ public class ContentCtrl {
 				if (db != null) {
 					showList.addAll(
 							ItemContent.get(FXCollections.observableArrayList(
-									Helper.getData(db, STEP, start[0], type)
+									Helper.getData(db, STEP, 0, type)
 											.orElseThrow(type::getNullPointerException)
 							)));
 				}
@@ -166,7 +166,7 @@ public class ContentCtrl {
 				if (db != null) {
 					showList.addAll(
 							ItemContent.get(FXCollections.observableArrayList(
-									Helper.getData(db, STEP, start[0], type)
+									Helper.getData(db, STEP, 0, type)
 											.orElseThrow(type::getNullPointerException)
 							)));
 				}
@@ -185,6 +185,21 @@ public class ContentCtrl {
 		}
 
 		setUpScrollBar();
+
+		//todo move to the better place
+		if (db != null) {
+			SqlQueryBuilder builder = new SqlQueryBuilder(db);
+			tableHasMore = true;
+			try {
+				ResultSet set = builder.select("").count("*").from("goods").execute();
+				while (set.next()) {
+					databaseTableSize = set.getInt(1);
+				}
+				logger.info("Table size {}", databaseTableSize);
+			} catch (SQLException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
 	}
 
 
@@ -470,6 +485,7 @@ public class ContentCtrl {
 		return pack;
 	}
 
+
 	private void setUpScrollBar() {
 		int numberOfItemsToContain = STEP;
 		ScrollBar scrollBar = Helper.getDataTableScrollBar(dataTable)
@@ -484,7 +500,7 @@ public class ContentCtrl {
 		scrollBar.valueProperty().addListener((observable, oldValue, newValue) -> {
 			double position = scrollBar.getValue();
 
-			if (position == scrollBar.getMax() && addMore) {
+			if (position == scrollBar.getMax() && addMore && tableHasMore) {
 				logger.info("Adding at the end");
 				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
 
@@ -537,21 +553,43 @@ public class ContentCtrl {
 	}
 
 	private void addAtTheEnd(ScrollBar scrollBar) {
-		double targetValue = scrollBar.getValue() * showList.size();
-		int limit = STEP;
-		int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
-		int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
-		logger.info("Limit {}, offset {}, initialIndex {}", limit, offset, initialIndex);
+		if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize) {
+			double targetValue = scrollBar.getValue() * showList.size();
+			int limit = STEP;
+			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
+			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
+			logger.info("Limit {}, offset {}, initialIndex {}", limit, offset, initialIndex);
 
-		showList.addAll(ItemContent
-				.get(FXCollections.observableArrayList(
-						Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
-						initialIndex));
-		//we are setting value, but later after deletion items we reset it to another, so this part at this time
-		// doesn't do anything but, if we load more than delete we will need this
-		double value = targetValue / showList.size();
-		logger.debug("Setting value {}", value);
-		scrollBar.setValue(value);
+			showList.addAll(ItemContent
+					.get(FXCollections.observableArrayList(
+							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
+							initialIndex));
+			//we are setting value, but later after deletion items we reset it to another, so this part at this time
+			// doesn't do anything but, if we load more than delete we will need this
+			double value = targetValue / showList.size();
+			logger.debug("Setting value {}", value);
+			scrollBar.setValue(value);
+		} else if (databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP) {
+			//todo fix code repeating
+			double targetValue = scrollBar.getValue() * showList.size();
+			int limit = STEP;
+			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
+			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
+			logger.info("Limit {}, offset {}, initialIndex {}", limit, offset, initialIndex);
+
+			showList.addAll(ItemContent
+					.get(FXCollections.observableArrayList(
+							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
+							initialIndex));
+			//we are setting value, but later after deletion items we reset it to another, so this part at this time
+			// doesn't do anything but, if we load more than delete we will need this
+			double value = targetValue / showList.size();
+			logger.debug("Setting value {}", value);
+			scrollBar.setValue(value);
+			tableHasMore = false;
+		} else {
+			tableHasMore = false;
+		}
 	}
 
 	private Optional<MySQL> getDbDependingOnNode(NodeTree node) {

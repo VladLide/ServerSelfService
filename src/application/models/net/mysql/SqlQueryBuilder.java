@@ -29,8 +29,31 @@ public class SqlQueryBuilder {
 					builder.append(")");
 				}
 			}
+		} else if (columns.length == 1 && "".equals(columns[0])) {
+			return this;
 		} else {
 			builder.append(columns[0]);
+		}
+
+		builder.append(" ");
+
+		return this;
+	}
+
+	public SqlQueryBuilder count(String... columns) {
+		builder.append("count(");
+		if (columns.length == 1 && "*".equals(columns[0])) {
+			builder.append(columns[0]).append(")");
+		} else {
+			for (int i = 0; i < columns.length; i++) {
+				builder.append(columns[i]);
+
+				if (i != columns.length - 1) {
+					builder.append(", ");
+				} else {
+					builder.append(")");
+				}
+			}
 		}
 
 		builder.append(" ");
