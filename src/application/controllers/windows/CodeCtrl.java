@@ -239,7 +239,7 @@ public class CodeCtrl {
 				TextBox.alertOpenDialog(AlertType.WARNING, "warningName");
 		} else
 			TextBox.alertOpenDialog(AlertType.ERROR, "editBarcodeNo");
-		this.load();
+		this.update();
 	}
 
 	public void loadBarcode() {
@@ -374,7 +374,6 @@ public class CodeCtrl {
         	    save.setDisable(true);
     		}
 		} );
-    	if (item != null) dataTable.getSelectionModel().select(item);
     }
 
 	public Codes getItem() {

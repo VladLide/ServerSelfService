@@ -68,7 +68,7 @@ public class ChooseCtrl {
 		dataTable.getItems().clear();
 		dataTable.getColumns().clear();
 		ObservableList<Object> items = FXCollections.observableArrayList();
-		switch (node.getType()) {
+		switch (type) {
 		case "products": {
 			if (node.getLevel() == 2) {
 				if (MainCtrl.getDB().isDBConnection()) {

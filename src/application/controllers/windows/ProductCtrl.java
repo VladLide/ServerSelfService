@@ -50,7 +50,7 @@ public class ProductCtrl {
 	private boolean firstPass = true;
 	private boolean beenDeleted = false;
 	private int offset = 0;
-	private Goods item = null;
+	private Goods item = new Goods();
 	private File file = null;
 	private String ipAddress;
 	private PlaceType placeType;
@@ -123,7 +123,6 @@ public class ProductCtrl {
 	}
 
 	public void show() {
-		load();
 		this.stage.show();
 		setUpScrollBar();
 	}
@@ -221,7 +220,6 @@ public class ProductCtrl {
 						plu.setDataBlob(null);
 					if (plu.save(db) > 0) {
 						TextBox.alertOpenDialog(AlertType.INFORMATION, "addGoodsYes");
-						load();
 						MainWindowCtrl.setLog(
 								Helper.formatOutput(
 										Operation.CREATE,
@@ -283,6 +281,7 @@ public class ProductCtrl {
 						);
 					}
 				}
+				update();
 			}
 		} catch (Exception e) {
 			TextBox.alertOpenDialog(AlertType.ERROR, "saveGoodsNo", e.getMessage());
@@ -309,7 +308,7 @@ public class ProductCtrl {
 	}
 
 	public void load() {
-		if (item == null) clearLoad();
+		clearLoad();
 		dataTable.getColumns().addAll(loadDataTable(ProductInfo.dataTableColums));
 		showList.addAll(FXCollections.observableArrayList(
 				Helper.getGoods(db, STEP, 0, type)
@@ -330,6 +329,14 @@ public class ProductCtrl {
 		expirationDate.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		code.setOnAction(event -> save.setDisable(false));
 
+	}
+
+	public void update() {
+		clearLoad();
+		showList.addAll(FXCollections.observableArrayList(
+				Helper.getGoods(db, STEP, 0, type)
+						.orElseThrow(type::getNullPointerException)));
+		dataTable.setItems(showList);
 	}
 
 	private void setUpScrollBar() {
@@ -410,6 +417,7 @@ public class ProductCtrl {
 
 	@FXML
 	void initialize() {
+		load();
 		clear.setOnAction(event -> clearLoad());
 		delete.setOnAction(event -> deleteGoods());
 		save.setOnAction(event -> saveGoods());
@@ -569,7 +577,7 @@ public class ProductCtrl {
 			loadImage(imgTemplate, "tpl");
 		}
 		save.setDisable(true);
-		if (item != null)
+		if (!newItem)
 			dataTable.getSelectionModel().select(item);
 	}
 

@@ -178,9 +178,10 @@ public class ContentCtrl {
 			default:
 				break;
 		}
-
-		dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
-		dataTable.setItems(showList);
+		if(showList.size()>0) {
+			dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
+			dataTable.setItems(showList);
+		}
 
 		setUpScrollBar();
 	}
