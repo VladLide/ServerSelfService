@@ -179,29 +179,16 @@ public class ContentCtrl {
 			default:
 				break;
 		}
-		if(showList.size()>0) {
-			dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
+
+		dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
+		//if we have any data from database load it to the table
+		if(!showList.isEmpty()) {
 			dataTable.setItems(showList);
 		}
 
 		setUpScrollBar();
-
-		//todo move to the better place
-		if (db != null) {
-			SqlQueryBuilder builder = new SqlQueryBuilder(db);
-			tableHasMore = true;
-			try {
-				ResultSet set = builder.select("").count("*").from("goods").execute();
-				while (set.next()) {
-					databaseTableSize = set.getInt(1);
-				}
-				logger.info("Table size {}", databaseTableSize);
-			} catch (SQLException e) {
-				logger.error(e.getMessage(), e);
-			}
-		}
+		getNumberOfItemsInTable();
 	}
-
 
 	public void operationsData(ItemContent item, boolean del) {
 		MainWindowCtrl mainWindowCtrl = MainWindowCtrl.getInstance();
@@ -485,7 +472,13 @@ public class ContentCtrl {
 		return pack;
 	}
 
-
+	/**
+	 * Set up scrollbar functions
+	 * On scrollbar reaching end current items will be deleted and new added to the table, position of block
+	 * on scroll bar will be set to 0
+	 * If any items were deleted we can load them if scrollbar block reach 0.05 of scrollbar length and it
+	 * moved further than 0.1, before loading old items new one will be deleted
+	 */
 	private void setUpScrollBar() {
 		int numberOfItemsToContain = STEP;
 		ScrollBar scrollBar = Helper.getDataTableScrollBar(dataTable)
@@ -496,18 +489,26 @@ public class ContentCtrl {
 			scrollBar.removeEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
 		});
 
+		//will work only if scroll using mouse wheel or touchpad but not by clicking on scrollbar and dragging it
 		dataTable.addEventFilter(ScrollEvent.ANY, event -> addMore = true);
+
 		scrollBar.valueProperty().addListener((observable, oldValue, newValue) -> {
 			double position = scrollBar.getValue();
 
+			/*
+			if block is at the and addMore and table has more -> add more items
+			else if block is at the beginning and addMore and we have scrolled to the end before and we have scrolled further
+				than 10% -> delete current items and add items which were before them
+			else if block is further than 10% and addMore and we have scrolled to the end before -> we can now add
+				item that were before
+			 */
 			if (position == scrollBar.getMax() && addMore && tableHasMore) {
-				logger.info("Adding at the end");
+				//stop mouse from moving scrollbar block until mouse release it
 				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
 
 				addAtTheEnd(scrollBar);
 
 				if (showList.size() > numberOfItemsToContain) {
-					logger.info("Removing first {} items", numberOfItemsToContain);
 					firstPass = true;
 					beenDeleted = true;
 					showList.remove(0, showList.size() - numberOfItemsToContain);
@@ -516,17 +517,13 @@ public class ContentCtrl {
 
 				addMore = false;
 			} else if (position <= 0.05 && addMore && beenDeleted && !firstPass) {
-				logger.info("Adding at the beginning");
 				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
 
 				addAtTheBeginning(scrollBar);
 
 				if (showList.size() > numberOfItemsToContain) {
-					logger.info("Removing items and leaving only first {}", numberOfItemsToContain);
-					logger.info("Size before deletion {}", showList.size());
 					showList.remove(numberOfItemsToContain, showList.size());
-					logger.info("Size after deletion {}", showList.size());
-					scrollBar.setValue(0.99);
+					scrollBar.setValue(0.99);//if set to 1.0 it will trigger adding items at the end
 				}
 
 			} else if (position >= 0.1 && addMore && beenDeleted) {
@@ -535,6 +532,11 @@ public class ContentCtrl {
 		});
 	}
 
+	/**
+	 * Will add items which were on before we added new
+	 * or if showList.get(0).getNumber() - STEP + commonObjectsBetweenPages < 0 don't add any
+	 * @param scrollBar object at which we will set new block position
+	 */
 	private void addAtTheBeginning(ScrollBar scrollBar) {
 		if (showList.get(0).getNumber() - STEP + commonObjectsBetweenPages >= 0) {
 			int limit = STEP;
@@ -552,13 +554,18 @@ public class ContentCtrl {
 		}
 	}
 
+	/**
+	 * Will add new items
+	 * or if there are no items to add don't add any
+	 * @param scrollBar object at which we will set new block position
+	 */
 	private void addAtTheEnd(ScrollBar scrollBar) {
-		if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize) {
+		if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize
+				|| databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP) {
 			double targetValue = scrollBar.getValue() * showList.size();
 			int limit = STEP;
 			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
 			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
-			logger.info("Limit {}, offset {}, initialIndex {}", limit, offset, initialIndex);
 
 			showList.addAll(ItemContent
 					.get(FXCollections.observableArrayList(
@@ -567,31 +574,18 @@ public class ContentCtrl {
 			//we are setting value, but later after deletion items we reset it to another, so this part at this time
 			// doesn't do anything but, if we load more than delete we will need this
 			double value = targetValue / showList.size();
-			logger.debug("Setting value {}", value);
 			scrollBar.setValue(value);
-		} else if (databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP) {
-			//todo fix code repeating
-			double targetValue = scrollBar.getValue() * showList.size();
-			int limit = STEP;
-			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
-			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
-			logger.info("Limit {}, offset {}, initialIndex {}", limit, offset, initialIndex);
-
-			showList.addAll(ItemContent
-					.get(FXCollections.observableArrayList(
-							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
-							initialIndex));
-			//we are setting value, but later after deletion items we reset it to another, so this part at this time
-			// doesn't do anything but, if we load more than delete we will need this
-			double value = targetValue / showList.size();
-			logger.debug("Setting value {}", value);
-			scrollBar.setValue(value);
-			tableHasMore = false;
 		} else {
 			tableHasMore = false;
 		}
 	}
 
+	/**
+	 * Get database, if node level is 2 we will get db from MainCtrl,
+	 * else convert node to the scaleItemMenu and get its db
+	 * @param node is item depending on which we will get db
+	 * @return db or if not is not on level 2 and were not able to get it from scaleItemMenu return null
+	 */
 	private Optional<MySQL> getDbDependingOnNode(NodeTree node) {
 		if (node.getLevel() == 2 && MainCtrl.getDB().isDBConnection()) {
 			return Optional.of(MainCtrl.getDB());
@@ -603,6 +597,27 @@ public class ContentCtrl {
 		}
 
 		return Optional.empty();
+	}
+
+	/**
+	 * Will get number of item is table so later we won't try to load more item than we have in table
+	 */
+	private void getNumberOfItemsInTable() {
+		if (db != null) {
+			SqlQueryBuilder builder = new SqlQueryBuilder(db);
+			tableHasMore = true;
+			try {
+				//select count(*) from tableName;
+				ResultSet set = builder.select("").count("*").from(type.getTableName()).execute();
+				//get number of items from result set
+				while (set.next()) {
+					databaseTableSize = set.getInt(1);
+				}
+				logger.info("Table size {}", databaseTableSize);
+			} catch (SQLException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
 	}
 }
 
