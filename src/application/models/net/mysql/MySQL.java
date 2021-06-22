@@ -6,6 +6,8 @@ import application.models.net.PackingDBValue;
 import javafx.scene.control.Alert.AlertType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -23,12 +25,13 @@ public class MySQL {
 	private static final String TABLE_REGEX = "\\$\\{table\\}";
 	private static final String KEYS_REGEX = "\\$\\{keys\\}";
 	private static final String VALUES_REGEX = "\\$\\{values\\}";
+	private final Logger logger = LogManager.getLogger(MySQL.class);
 
 	public MySQL(Integer id) {
 		try {
 			config = new ConfigNet(id);
 		} catch (Exception e) {
-			// TODO: handle exception
+			logger.error(String.format("Error while creating ConfigNet with id %d", id), e);
 		}
 	}
 
@@ -42,21 +45,11 @@ public class MySQL {
 
 				dbConnection = DriverManager.getConnection(connectionString, config.getLogin(), config.getPass());
 			} catch (SQLException e) {
-				try {
-					if (config.getHost().compareToIgnoreCase("localhost") == 0
-							|| config.getHost().compareToIgnoreCase("127.0.0.1") == 0)
-						TextBox.alertOpenDialogException(AlertType.INFORMATION, "connectNoBD", e.getMessage());
-				} catch (Exception e1) {
-					dbConnection = null;
-				}
+				logger.error("Error obtaining database", e);
+				TextBox.alertOpenDialogException(AlertType.INFORMATION, "connectNoBD", e.getMessage());
 			} catch (ClassNotFoundException e) {
-				try {
-					if (config.getHost().compareToIgnoreCase("localhost") == 0
-							|| config.getHost().compareToIgnoreCase("127.0.0.1") == 0)
-						TextBox.alertOpenDialogException(AlertType.INFORMATION, "connectNoDriverBD", e.getMessage());
-				} catch (Exception e1) {
-					dbConnection = null;
-				}
+				logger.error("Error obtaining database driver", e);
+				TextBox.alertOpenDialogException(AlertType.INFORMATION, "connectNoDriverBD", e.getMessage());
 			}
 		}
 		return dbConnection;
@@ -70,6 +63,7 @@ public class MySQL {
 			this.dbConnection = null;
 			getDBConnection();
 		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
 		}
 	}
 
