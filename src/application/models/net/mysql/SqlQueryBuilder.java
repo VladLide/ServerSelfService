@@ -6,13 +6,14 @@ import org.apache.logging.log4j.Logger;
 import java.sql.ResultSet;
 
 public class SqlQueryBuilder {
-	private MySQL db;
-	private StringBuilder builder;
-	private Logger logger = LogManager.getLogger(SqlQueryBuilder.class);
+	private final MySQL db;
+	private final StringBuilder builder;
+	private final Logger logger;
 
 	public SqlQueryBuilder(MySQL db) {
 		this.db = db;
 		this.builder = new StringBuilder();
+		logger = LogManager.getLogger(SqlQueryBuilder.class);
 	}
 
 	public SqlQueryBuilder select(String... columns) {

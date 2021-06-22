@@ -180,9 +180,11 @@ public class ContentCtrl {
 				break;
 		}
 
-		dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
 		//if we have any data from database load it to the table
 		if(!showList.isEmpty()) {
+			//line below must be in if cause if we just click on scale it tries to load some data and crashes,
+			// so load it only if we got data from database
+			dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
 			dataTable.setItems(showList);
 		}
 
