@@ -62,7 +62,7 @@ public class SendObjectInScale extends Task<Void> {
 					return;
 				}
 
-				String s = send(packItem, scaleItemMenu.getDB());
+				String s = send(pack.getCommand(), packItem, scaleItemMenu.getDB());
 
 				if (s.length() > 0)
 					countSend++;
@@ -94,22 +94,33 @@ public class SendObjectInScale extends Task<Void> {
 		updateMessage(successMessage);
 	}
 
-	private String send(Object obj, MySQL db) {
+	private String send(int command, Object obj, MySQL db) {
 		switch (obj.getClass().getSimpleName().toLowerCase(Locale.ROOT)) {
 			case "goods": {
 				Goods goods = (Goods) obj;
-				goods.save(db);
+				if(command < 3) {
+					goods.save(db);
+				} else {
+					goods.delete(db);
+				}
 				return goods.getId() + " - " + goods.getName();
 			}
 			case "templates": {
 				Templates tmp = (Templates) obj;
-				tmp.save(db);
+				if(command < 3) {
+					tmp.save(db);
+				} else {
+					tmp.delete(db);
+				}
 				return tmp.getId() + " - " + tmp.getName();
 			}
 			case "codes": {
 				Codes tmp = (Codes) obj;
-				tmp.save(db);
-
+				if(command < 3) {
+					tmp.save(db);
+				} else {
+					tmp.delete(db);
+				}
 				return tmp.getId() + " - " + tmp.getName();
 			}
 			case "sections": {

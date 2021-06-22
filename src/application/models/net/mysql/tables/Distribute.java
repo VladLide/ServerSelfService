@@ -18,6 +18,7 @@ public class Distribute {
 	private int id_barcodes = 0;
 	private float price = 0.0F;
 	private String description = "";
+	private boolean batch = false;
 
 	public static String getTable() {
 		String table = "distribute";
@@ -122,7 +123,7 @@ public class Distribute {
 		return unique_item;
 	}
 
-	public void setUnique_item(int unique_item) {
+	public void setUnique_item(Integer unique_item) {
 		this.unique_item = unique_item;
 	}
 
@@ -172,6 +173,14 @@ public class Distribute {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public boolean isBatch() {
+		return batch;
+	}
+
+	public void setBatch(boolean batch) {
+		this.batch = batch;
 	}
 
 }
