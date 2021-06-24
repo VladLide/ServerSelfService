@@ -20,4 +20,8 @@ public enum ScaleStatus {
 	public String getMessage() {
 		return message;
 	}
+
+	public static boolean getStatus(Object other) {
+		return NO_PRODUCTS_AT_SCALES==other||UPDATING_DONT_SHUTDOWN==other||PRODUCTS_AT_DATABASE_ARE_UP_TO_DATE==other;
+	}
 }

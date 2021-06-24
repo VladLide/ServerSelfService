@@ -30,12 +30,15 @@ public class ContentInfo {
 				FXCollections.observableArrayList(new String[] { "CheckBox", "", "checkBox" },
 						new String[] { "Integer", "№", "number" }, new String[] { "Integer", "Код товару", "code" },
 						new String[] { "Integer", "Номер кнопки", "id" }, new String[] { "String", "Назва", "name" },
-						new String[] { "String", "Тип", "type" }, new String[] { "String", "Ціна", "price" }));
+						new String[] { "String", "Тип", "type" }, new String[] { "String", "Ціна", "price" },
+						new String[] { "String", "Категорія", "name_s"},new String[] { "String", "Етикетка", "name_t"},
+						new String[] { "String", "Кодування", "name_b"}));
 		columnsContent.put("sections",
 				FXCollections.observableArrayList(new String[] { "CheckBox", "", "checkBox" },
 						new String[] { "Integer", "№", "number" }, new String[] { "Integer", "Номер", "id" },
-						new String[] { "String", "Назва", "name" }, new String[] { "String", "З", "name_s" },
-						new String[] { "String", "До", "name_t" }, new String[] { "String", "Опис", "ingredients" }));
+						new String[] { "Integer", "Номер категорії вище", "code" }, new String[] { "String", "Назва", "name" },
+						new String[] { "String", "З", "name_s" }, new String[] { "String", "До", "name_t" },
+						new String[] { "String", "Опис", "ingredients" }));
 		columnsContent.put("templates",
 				FXCollections.observableArrayList(new String[] { "CheckBox", "", "checkBox" },
 						new String[] { "Integer", "№", "number" }, new String[] { "Integer", "Номер", "id" },

@@ -863,7 +863,7 @@ public class Templates {
 				break;
 			}
 			}
-			image = new Image(is, panel.getWidth(), panel.getHeight(), false, true);
+			image = new Image(is, panel.getWidth(), panel.getHeight(), true, true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

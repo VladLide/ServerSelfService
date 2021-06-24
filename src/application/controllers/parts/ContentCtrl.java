@@ -425,11 +425,12 @@ public class ContentCtrl {
 			choose.load(node, "sections");
 			Sections sections = (Sections) choose.show();
 			if (sections != null) {
+				db = getDbDependingOnNode(node).orElse(null);
 				dataTable.getItems().forEach(value -> {
 					if (value.isSelected()) {
 						Goods item = (Goods) value.getObject();
 						item.setId_sections(sections.getId());
-						item.save(MainCtrl.getDB());
+						item.save(db);
 					}
 				});
 			}
@@ -439,11 +440,12 @@ public class ContentCtrl {
 			choose.load(node, "templateCodes");
 			Codes code = (Codes) choose.show();
 			if (code != null) {
+				db = getDbDependingOnNode(node).orElse(null);
 				dataTable.getItems().forEach(itemContent -> {
 					if (itemContent.isSelected()) {
 						Goods item = (Goods) itemContent.getObject();
 						item.setId_barcodes(code.getId());
-						item.save(MainCtrl.getDB());
+						item.save(db);
 					}
 				});
 			}
@@ -453,11 +455,12 @@ public class ContentCtrl {
 			choose.load(node, "templates");
 			Templates template = (Templates) choose.show();
 			if (template != null) {
+				db = getDbDependingOnNode(node).orElse(null);
 				dataTable.getItems().forEach(value -> {
 					if (value.isSelected()) {
 						Goods item = (Goods) value.getObject();
 						item.setId_templates(template.getId());
-						item.save(MainCtrl.getDB());
+						item.save(db);
 					}
 				});
 			}
@@ -472,6 +475,10 @@ public class ContentCtrl {
 
 	public PackageSend getPack() {
 		return pack;
+	}
+
+	public MySQL getDbInSelectNode() {
+		return getDbDependingOnNode(node).orElse(null);
 	}
 
 	/**

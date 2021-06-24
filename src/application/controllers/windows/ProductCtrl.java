@@ -152,7 +152,7 @@ public class ProductCtrl {
 						BackgroundSize.DEFAULT.getWidth(),
 						BackgroundSize.DEFAULT.getHeight(),
 						true,
-						false,
+						true,
 						true,
 						false);
 				BackgroundImage backgroundImage = new BackgroundImage(image,
@@ -181,7 +181,7 @@ public class ProductCtrl {
 										BackgroundSize.DEFAULT.getWidth(),
 										BackgroundSize.DEFAULT.getHeight(),
 										true,
-										false,
+										true,
 										true,
 										false))));
 			} catch (Exception e) {
@@ -316,14 +316,14 @@ public class ProductCtrl {
 	public void load() {
 		clearLoad();
 		dataTable.getColumns().addAll(loadDataTable(ProductInfo.dataTableColums));
-		showList.addAll(FXCollections.observableArrayList(
+		showList.setAll(FXCollections.observableArrayList(
 				Helper.getGoods(db, STEP, 0, type)
 						.orElseThrow(type::getNullPointerException)));
 		dataTable.setItems(showList);
 
 		template.setItems(Templates.getList(0, "", true, db));
 		code.setItems(Codes.getList(0, "", db));
-		section.setItems(Sections.getList(0, 0, -1, "", false, db));
+		section.setItems(Sections.getList(0, -1, 0, "", false, db));
 
 		name.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		number.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
@@ -339,7 +339,7 @@ public class ProductCtrl {
 
 	public void update() {
 		clearLoad();
-		showList.addAll(FXCollections.observableArrayList(
+		showList.setAll(FXCollections.observableArrayList(
 				Helper.getGoods(db, STEP, 0, type)
 						.orElseThrow(type::getNullPointerException)));
 		dataTable.setItems(showList);
@@ -527,7 +527,7 @@ public class ProductCtrl {
 	private void deleteGoods() {
 		Goods goods = dataTable.getSelectionModel().getSelectedItem();
 		ButtonType buttonType = TextBox
-				.alertOpenDialog(AlertType.CONFIRMATION, "deleteBarcode?", goods.getName())
+				.alertOpenDialog(AlertType.CONFIRMATION, "deleteGoods?", goods.getName())
 				.orElseThrow(() -> new NullPointerException("ButtonType is null"));
 		boolean deleteGoods = ButtonType.OK.equals(buttonType);
 		boolean goodsIsDeleted = false;
@@ -537,7 +537,7 @@ public class ProductCtrl {
 		}
 
 		if (deleteGoods && goodsIsDeleted) {
-			TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteBarcodeYes");
+			TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteGoodsYes");
 			MainWindowCtrl.setLog(
 					Helper.formatOutput(
 							Operation.DELETE,
@@ -551,7 +551,7 @@ public class ProductCtrl {
 			);
 			clearLoad();
 		} else if (deleteGoods) {
-			TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");
+			TextBox.alertOpenDialog(AlertType.WARNING, "deleteGoodsNo");
 
 			MainWindowCtrl.setLog(
 					Helper.formatOutput(
@@ -565,6 +565,7 @@ public class ProductCtrl {
 					)
 			);
 		}
+		update();
 	}
 
 	public void setItem(Goods product) {
@@ -579,7 +580,7 @@ public class ProductCtrl {
 			price.setText(Float.toString(item.getPrice()));
 			unit.setValue(ProductInfo.unit.get(item.getType()));
 			expirationDate.setText(Integer.toString(item.getBefore_validity()));
-			template.setValue((item.getId_templates() > 0) ? Templates.get(item.getId_templates(), "", false, db) : null);
+			template.setValue((item.getId_templates() > 0) ? Templates.get(item.getId_templates(), "", true, db) : null);
 			code.setValue(Codes.get(item.getId_barcodes(), "", db));
 			loadImage(img, "img");
 			loadImage(imgTemplate, "tpl");

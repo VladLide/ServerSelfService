@@ -1,5 +1,7 @@
 package application.models.objectinfo;
 
+import application.controllers.windows.MainWindowCtrl;
+import application.models.net.mysql.MySQL;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Codes;
 import application.models.net.mysql.tables.Goods;
@@ -49,6 +51,7 @@ public class ItemContent {
 				case "Sections": {
 					Sections val = (Sections) item.getObject();
 					item.setId(val.getId());
+					item.setCode(val.getId_up());
 					item.setName(val.getName());
 					item.setName_s(val.getNumber_s() + "");
 					item.setName_t(val.getNumber_po() + "");
@@ -76,6 +79,16 @@ public class ItemContent {
 					item.setName(val.getName());
 					item.setPrice(val.getPrice());
 					item.setType(val.getType());
+					MySQL db = MainWindowCtrl.getContentCtrl().getDbInSelectNode();
+					item.setName_s(
+							Sections.get(val.getId_sections(), -1, 0, "", false, db).getName()
+					);
+					item.setName_t(
+							Templates.get(val.getId_templates(), "", false, db).getName()
+					);
+					item.setName_b(
+							Codes.get(val.getId_barcodes(), "", db).getName()
+					);
 					break;
 				}
 			}

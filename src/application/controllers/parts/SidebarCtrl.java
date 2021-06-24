@@ -9,13 +9,17 @@ import application.models.Configs;
 import application.models.Utils;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Scales;
+import application.models.objectinfo.Info2Col;
+import application.models.objectinfo.ItemContent;
 import application.models.objectinfo.NodeTree;
 import application.views.languages.uk.parts.SidebarInfo;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,7 +44,7 @@ public class SidebarCtrl {
 	@FXML
 	private URL location = getClass().getResource(Utils.getView("part", "Sidebar"));
 	@FXML
-	private TreeTableView<?> filter;
+	private TreeTableView<Info2Col> filter;
 	@FXML
 	private AnchorPane menuPane;
 	@FXML
@@ -151,6 +155,10 @@ public class SidebarCtrl {
 		menu.setShowRoot(false);
 
 		setStatusToDefaultValue(scales);
+	}
+	
+	public void loadFilter() {
+		
 	}
 
 	public void addItemMenu(ScaleItemMenu scale) {
@@ -346,15 +354,13 @@ public class SidebarCtrl {
 				.stream()
 				.filter(scale ->
 						ScaleStatus
-								.PRODUCTS_AT_DATABASE_ARE_UP_TO_DATE
-								.equals(scale.getStatus()))
+								.getStatus(scale.getStatus()))
 				.count();
 		long numberOfOfflineScales = scales
 				.stream()
 				.filter(scale ->
-						ScaleStatus
-								.NO_CONNECTION
-								.equals(scale.getStatus()))
+						!ScaleStatus
+								.getStatus(scale.getStatus()))
 				.count();
 		setStatus(String.format("%d scale(s), %d online, %d offline",
 				numberOfScales,
@@ -376,5 +382,15 @@ public class SidebarCtrl {
 				scale.getId(),
 				scale.getStatus().getMessage()
 		));
+	}
+	
+	public static ObservableList<TableColumn<Info2Col, ?>> loadTable(ObservableList<String[]> colInfo) {
+		ObservableList<TableColumn<Info2Col, ?>> col = FXCollections.observableArrayList();
+		colInfo.forEach(value -> {
+			TableColumn<Info2Col, ?> item = new TableColumn<>(value[1]);
+			item.setCellValueFactory(new PropertyValueFactory<>(value[2]));
+			col.add(item);
+		});
+		return col;
 	}
 }

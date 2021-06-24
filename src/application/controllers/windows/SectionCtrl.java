@@ -92,7 +92,6 @@ public class SectionCtrl {
 	}
 
 	public void show() {
-		load();
 		this.stage.show();
 	}
 
@@ -223,7 +222,6 @@ public class SectionCtrl {
 									)
 							);
 							TextBox.alertOpenDialog(AlertType.INFORMATION, "addSectionYes");
-							load();
 						} else {
 							MainWindowCtrl.setLog(
 									Helper.formatOutput(
@@ -254,7 +252,6 @@ public class SectionCtrl {
 											OperationStatus.SUCCESS
 									)
 							);
-							this.load();
 						} else {
 							MainWindowCtrl.setLog(
 									Helper.formatOutput(
@@ -270,6 +267,7 @@ public class SectionCtrl {
 							TextBox.alertOpenDialog(AlertType.WARNING, "editSectionNo");
 						}
 					}
+					update();
 				} catch (Exception e) {
 					logger.error(e.getMessage(), e);
 				}
@@ -295,6 +293,15 @@ public class SectionCtrl {
 	public void load() {
 		if (item == null) clearLoad();
 		dataTreeTable.getColumns().addAll(loadDataTable(SectionInfo.getColumns("sections")));
+		loadData();
+		ObservableList<String> upSections = FXCollections.observableArrayList();
+		upSections.add(0, "");
+		upSections.addAll(Sections.getLName(db));
+		up.setItems(upSections);
+	}
+
+	public void update() {
+		if (item == null) clearLoad();
 		loadData();
 		ObservableList<String> upSections = FXCollections.observableArrayList();
 		upSections.add(0, "");
@@ -359,7 +366,7 @@ public class SectionCtrl {
 										OperationStatus.SUCCESS
 								)
 						);
-						this.load();
+						update();
 					} else {
 						MainWindowCtrl.setLog(
 								Helper.formatOutput(
