@@ -573,7 +573,7 @@ public class ProductCtrl {
 		unit.setItems(ProductInfo.unit);
 		if (product != null) {
 			name.setText(item.getName());
-			section.setValue((item.getId_sections() > 0) ? Sections.get(item.getId_sections(), 0, -1, "", false, db) : null);
+			section.setValue((item.getId_sections() > 0) ? Sections.get(item.getId_sections(), -1, 0, "", false, db) : null);
 			number.setText(item.getNumber() + "");
 			pre_code.setText(item.getPre_code() + "");
 			ingredients.setText(item.getIngredients());
