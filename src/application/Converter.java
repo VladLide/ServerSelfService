@@ -1,9 +1,6 @@
 package application;
 
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Sections;
-import application.models.net.mysql.tables.Templates;
+import application.models.net.mysql.tables.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -67,10 +64,19 @@ public final class Converter {
 		List<Templates> templatesList = new ArrayList<>();
 
 		while (set.next()) {
-			//todo image is always false, fix it
 			templatesList.add(new Templates(set));
 		}
 
 		return templatesList;
+	}
+
+	public static List<Scales> fromResultSetToScalesList(ResultSet set) throws SQLException {
+		List<Scales> scalesList = new ArrayList<>();
+
+		while (set.next()) {
+			scalesList.add(new Scales(set));
+		}
+
+		return scalesList;
 	}
 }

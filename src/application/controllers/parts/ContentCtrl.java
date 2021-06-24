@@ -12,10 +12,7 @@ import application.models.Utils;
 import application.models.net.mysql.MySQL;
 import application.models.net.mysql.SqlQueryBuilder;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Sections;
-import application.models.net.mysql.tables.Templates;
+import application.models.net.mysql.tables.*;
 import application.models.objectinfo.ItemContent;
 import application.models.objectinfo.NodeTree;
 import application.views.languages.uk.parts.ContentInfo;
@@ -606,7 +603,7 @@ public class ContentCtrl {
 	 */
 	private void getNumberOfItemsInTable() {
 		if (db != null) {
-			SqlQueryBuilder builder = new SqlQueryBuilder(db);
+			SqlQueryBuilder builder = new SqlQueryBuilder(db, type.getTableName());
 			tableHasMore = true;
 			try {
 				//select count(*) from tableName;

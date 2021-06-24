@@ -4,6 +4,7 @@ import application.controllers.windows.MainWindowCtrl;
 import application.models.PackageSend;
 import application.models.net.mysql.MySQL;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.mysql.tables.Distribute;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -50,6 +51,7 @@ public class MainCtrl {
 	}
 
 	public static void startRefresh() {
+		Distribute distribute = new Distribute(0,0,0,0,0);
 		MainCtrl me = getInstance();
 		me.refresh = new Timer();
 		me.refresh.schedule(new TimerTask() {
@@ -59,6 +61,7 @@ public class MainCtrl {
 					Platform.runLater(() -> {
 						MainWindowCtrl.getFooterCtrl().startTask(MainCtrl.getPacks().get(0));
 						MainCtrl.getPacks().remove(0);
+						distribute.update();
 					});
 				}
 			}

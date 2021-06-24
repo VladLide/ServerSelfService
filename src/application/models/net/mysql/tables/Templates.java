@@ -1,47 +1,13 @@
 package application.models.net.mysql.tables;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InvalidClassException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Blob;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.imageio.ImageIO;
-import javax.sql.rowset.serial.SerialBlob;
-import javax.sql.rowset.serial.SerialException;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.SerializationUtils;
-
-import com.google.zxing.WriterException;
-
 import application.controllers.parts.TemplatePanelCtrl;
 import application.controllers.windows.TemplateCtrl;
 import application.models.TextBox;
 import application.models.net.PackingDBValue;
 import application.models.net.mysql.MySQL;
-import application.models.template.FontItem;
-import application.models.template.Item;
-import application.models.template.OptionsItem;
-import application.models.template.PaneObj;
-import application.models.template.Point;
-import application.models.template.SaveObj;
-import application.models.template.TemplatePanel;
+import application.models.template.*;
 import application.views.languages.uk.windows.TemplateInfo;
+import com.google.zxing.WriterException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
@@ -52,15 +18,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
@@ -68,6 +26,23 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SerializationUtils;
+
+import javax.imageio.ImageIO;
+import javax.sql.rowset.serial.SerialBlob;
+import javax.sql.rowset.serial.SerialException;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.Blob;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Templates {
 	private int id = 0;
@@ -112,7 +87,8 @@ public class Templates {
 		int i = 0;
 		for (Field f : me.getClass().getDeclaredFields()) {
 			try {
-				if(!img&&(f.getName()=="data"||f.getName()=="img_data"||f.getName()=="background_data")) continue;
+				if(!img&&(f.getName()=="data"||f.getName()=="img_data"||f.getName()=="background_data"))
+					continue;
 				// if(f.getName()=="id") continue;
 				String type = f.getType().getTypeName().replace(".", " ");
 				if (type.split(" ").length > 0) {

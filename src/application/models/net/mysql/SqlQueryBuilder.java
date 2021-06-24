@@ -4,15 +4,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.ResultSet;
+import java.util.Map;
+import java.util.Set;
 
 public class SqlQueryBuilder {
 	private final MySQL db;
 	private final StringBuilder builder;
 	private final Logger logger;
+	private String table;
 
-	public SqlQueryBuilder(MySQL db) {
+	public SqlQueryBuilder(MySQL db, String table) {
 		this.db = db;
 		this.builder = new StringBuilder();
+		this.table = table;
 		logger = LogManager.getLogger(SqlQueryBuilder.class);
 	}
 
@@ -38,6 +42,27 @@ public class SqlQueryBuilder {
 
 		builder.append(" ");
 
+		return this;
+	}
+
+	public SqlQueryBuilder where(Map<String, String> map) {
+		builder.append("where").append(" ");
+		Set<Map.Entry<String, String>> entries = map.entrySet();
+		int counter = 0;
+
+		for (Map.Entry<String, String> entry : entries) {
+			builder.append(table)
+					.append(".")
+					.append(entry.getKey())
+					.append("=")
+					.append(entry.getValue());
+			if (counter != entries.size() - 1) {
+				builder.append(" ").append("and").append(" ");
+			}
+			counter++;
+		}
+
+		builder.append(" ");
 		return this;
 	}
 
@@ -84,10 +109,9 @@ public class SqlQueryBuilder {
 
 	public ResultSet execute() {
 		builder.append(";");
-		ResultSet resultSet = db.getSelect(builder.toString());
-
 		logger.info("Sql query: {}", builder);
 
-		return resultSet;
+		return db.getSelect(builder.toString());
 	}
+
 }

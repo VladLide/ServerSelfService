@@ -440,4 +440,8 @@ public class Utils {
 		String[] type = obj.getClass().getTypeName().replace(".", " ").split(" ");
 		return type[type.length - 1];
 	}
+
+	public static String getFullTypeName(Object object) {
+		return object.getClass().getTypeName();
+	}
 }
