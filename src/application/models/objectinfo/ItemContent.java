@@ -80,14 +80,17 @@ public class ItemContent {
 					item.setPrice(val.getPrice());
 					item.setType(val.getType());
 					MySQL db = MainWindowCtrl.getContentCtrl().getDbInSelectNode();
+					Sections sections = (val.getId_sections() > 0) ? Sections.get(val.getId_sections(), -1, 0, "", false, db) : null;
 					item.setName_s(
-							Sections.get(val.getId_sections(), -1, 0, "", false, db).getName()
+							(sections!=null) ? sections.getName() : ""
 					);
+					Templates templates = (val.getId_templates() > 0) ? Templates.get(val.getId_templates(), "", false, db) : null;
 					item.setName_t(
-							Templates.get(val.getId_templates(), "", false, db).getName()
+							(templates!=null) ? templates.getName() : ""
 					);
+					Codes codes= (val.getId_barcodes() > 0) ? Codes.get(val.getId_barcodes(), "", db) : null;
 					item.setName_b(
-							Codes.get(val.getId_barcodes(), "", db).getName()
+							(codes!=null) ? codes.getName() : ""
 					);
 					break;
 				}
