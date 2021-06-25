@@ -1,37 +1,40 @@
 package application.controllers.parts;
 
+import application.Converter;
+import application.Helper;
 import application.Marquee;
+import application.enums.ObjectType;
 import application.enums.ScaleStatus;
 import application.controllers.MainCtrl;
 import application.controllers.windows.MainWindowCtrl;
 import application.controllers.windows.ScaleCtrl;
 import application.models.Configs;
-import application.models.EditingCell;
 import application.models.Utils;
+import application.models.net.mysql.MySQL;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.mysql.tables.Scales;
-import application.models.objectinfo.Info2Col;
-import application.models.objectinfo.ItemContent;
+import application.models.net.mysql.tables.*;
 import application.models.objectinfo.NodeTree;
 import application.views.languages.uk.parts.SidebarInfo;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTreeTableCell;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.util.Callback;
-
+import javafx.scene.layout.Pane;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class SidebarCtrl {
@@ -42,13 +45,14 @@ public class SidebarCtrl {
 	private final Logger logger = LogManager.getLogger(SidebarCtrl.class);
 	private Marquee marquee;
 	private Thread labelThread;
+	private TreeItem<NodeTree> selectedItem;
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Sidebar");
 	@FXML
 	private URL location = getClass().getResource(Utils.getView("part", "Sidebar"));
 	@FXML
-	private TreeTableView<Info2Col> filter;
+	private TreeTableView<?> filter;
 	@FXML
 	private AnchorPane menuPane;
 	@FXML
@@ -69,6 +73,10 @@ public class SidebarCtrl {
 	private MenuItem deleteCM;
 	@FXML
 	private ContextMenu sidebarContextMenu;
+	@FXML
+	private TextField searchBar;
+	@FXML
+	private Pane searchBarPane;
 
 	public SidebarCtrl(AnchorPane anchorPane) {
 		try {
@@ -107,20 +115,20 @@ public class SidebarCtrl {
 							root.getValue()));
 			main.setExpanded(true);
 			switch (mainNode[0]) {
-			case "scales": {
-				if (!scales.isEmpty()) {
-					scales.forEach(scale -> {
-						TreeItem<NodeTree> scaleNode = new TreeItem<>(
-								new NodeTree(
-										scale.getName() + "-" + scale.getId(),
-										"ScaleInfo",
-										2,
-										scale,
-										main.getValue()
-								),
-								scale.getImg()
-						);
-						SidebarInfo.menuScale.forEach(value -> {
+				case "scales": {
+					if (!scales.isEmpty()) {
+						scales.forEach(scale -> {
+							TreeItem<NodeTree> scaleNode = new TreeItem<>(
+									new NodeTree(
+											scale.getName() + "-" + scale.getId(),
+											"ScaleInfo",
+											2,
+											scale,
+											main.getValue()
+									),
+									scale.getImg()
+							);
+							SidebarInfo.menuScale.forEach(value -> {
 								TreeItem<NodeTree> node = new TreeItem<>(
 										new NodeTree(
 												value[1],
@@ -130,14 +138,14 @@ public class SidebarCtrl {
 												scaleNode.getValue()
 										)
 								);
-							scaleNode.getChildren().add(node);
+								scaleNode.getChildren().add(node);
+							});
+							main.getChildren().add(scaleNode);
 						});
-						main.getChildren().add(scaleNode);
-					});
+					}
+					break;
 				}
-				break;
-			}
-			case "editors": {
+				case "editors": {
 					SidebarInfo.menuEditors.forEach(value -> {
 						TreeItem<NodeTree> node = new TreeItem<>(
 								new NodeTree(
@@ -146,10 +154,10 @@ public class SidebarCtrl {
 										2,
 										value[0],
 										main.getValue()));
-					main.getChildren().add(node);
-				});
-				break;
-			}
+						main.getChildren().add(node);
+					});
+					break;
+				}
 				default:
 					throw new IllegalArgumentException("Wrong menu item");
 			}
@@ -159,18 +167,6 @@ public class SidebarCtrl {
 		menu.setShowRoot(false);
 
 		setStatusToDefaultValue(scales);
-	}
-	
-	public void loadFilter() {
-		/*TreeTableColumn<Info2Col, String> col1 = new TreeTableColumn<>("");
-		TreeTableColumn<Info2Col, String> сol2 = new TreeTableColumn<>("");
-		сol2.setCellFactory(TextFieldTreeTableCell.forTreeTableColumn());
-		сol2.setOnEditCommit(value -> {
-			Info2Col item = value.
-			
-		});
-		TreeItem<Info2Col> root = new TreeItem<>(new Info2Col("Пошук:", "", 0));
-		filter.setRoot(root);*/
 	}
 
 	public void addItemMenu(ScaleItemMenu scale) {
@@ -199,23 +195,23 @@ public class SidebarCtrl {
 
 	public void openItemTree(NodeTree node) {
 		switch (node.getLevel()) {
-		case 1: {
-			//openTableScales();
-			break;
-		}
-		case 2: {
-			//openTableInfoScale();
-			//openTableRedactorDataServer
-			MainWindowCtrl.getContentCtrl().showTableRedactorData(node);
-			break;
-		}
-		case 3: {
-			MainWindowCtrl.getContentCtrl().showTableRedactorData(node);
-			//openTableRedactorDataScales();
-			break;
-		}
-		default:
-			break;
+			case 1: {
+				//openTableScales();
+				break;
+			}
+			case 2: {
+				//openTableInfoScale();
+				//openTableRedactorDataServer
+				MainWindowCtrl.getContentCtrl().showTableRedactorData(node);
+				break;
+			}
+			case 3: {
+				MainWindowCtrl.getContentCtrl().showTableRedactorData(node);
+				//openTableRedactorDataScales();
+				break;
+			}
+			default:
+				break;
 		}
 	}
 
@@ -253,6 +249,8 @@ public class SidebarCtrl {
 					node = node.getParent();
 				}
 				MainWindowCtrl.setURL(builder.toString());
+
+				selectedItem = node;
 			}
 		});
 		menu.setOnContextMenuRequested(event -> {
@@ -307,6 +305,101 @@ public class SidebarCtrl {
 			item.getParent().getChildren().remove(item);
 			menu.refresh();
 		});
+
+		searchBar.prefWidthProperty().bind(searchBarPane.widthProperty());
+		searchBar.setOnKeyPressed(this::search);
+	}
+
+	private void search(KeyEvent event) {
+		String inputText = getTextFromSearchBar(event);
+		MySQL db = MainWindowCtrl.getContentCtrl().getDbInSelectNode();
+		ObjectType type;
+		List<Object> searchResult = new ArrayList<>();
+		if (db != null && ((type = MainWindowCtrl.getContentCtrl().getType()) != null)) {
+			boolean isNumeric = Helper.isNumeric(inputText);
+			String tableName = type.getTableName();
+			String shortName = String.valueOf(tableName.charAt(0));
+			String columnCode = "%column%";
+			String orderByColumn = type.getOrderByColumn();
+			//to finish request string you need to replace %column% with column
+			String requestButNotFinished = "select * from %table% as %short% where %short%.%column% like '%like%%' order by %order%"
+					.replace("%table%", type.getTableName())
+					.replace("%short%", shortName)
+					.replace("%like%", inputText)
+					.replace("%order%", orderByColumn);
+			ResultSet select;
+			String columnName = isNumeric ? "id" : "name";
+
+			try {
+				switch (type) {
+					case PRODUCTS: {
+						List<Goods> goods;
+						columnName = isNumeric ? "code" : "name";
+						String request = requestButNotFinished.replace(columnCode, columnName);
+
+						select = db.getSelect(request);
+						goods = Converter.fromResultSetToGoodsList(select);
+
+						if (goods.isEmpty() && isNumeric) {
+							columnName = "pre_code";
+							request = requestButNotFinished.replace("%column%", columnName);
+							select = db.getSelect(request);
+							goods = Converter.fromResultSetToGoodsList(select);
+						}
+
+						searchResult = new ArrayList<>(goods);
+						break;
+					}
+					case SECTIONS: {
+						List<Sections> sections;
+						String request = requestButNotFinished.replace(columnCode, columnName);
+
+						select = db.getSelect(request);
+						sections = Converter.fromResultSetToSectionsList(select);
+						searchResult = new ArrayList<>(sections);
+						break;
+					}
+					case TEMPLATES: {
+						List<Templates> templates;
+						String request = requestButNotFinished.replace(columnCode, columnName);
+
+						select = db.getSelect(request);
+						templates = Converter.fromResultSetToTemplatesList(select);
+						searchResult = new ArrayList<>(templates);
+						break;
+					}
+					case TEMPLATES_CODES: {
+						List<Codes> codes;
+						String request = requestButNotFinished.replace(columnCode, columnName);
+
+						select = db.getSelect(request);
+						codes = Converter.fromResultSetToCodesList(select);
+						searchResult = new ArrayList<>(codes);
+						break;
+					}
+					default:
+						throw new IllegalArgumentException("Wrong type of object");
+				}
+			} catch (SQLException | IllegalArgumentException e) {
+				logger.error(e.getMessage(), e);
+			}
+
+			MainWindowCtrl.getContentCtrl().setShowList(searchResult);
+		}
+	}
+
+	private String getTextFromSearchBar(KeyEvent event) {
+		String fromSearchBar = searchBar.getText();
+
+		if (KeyCode.BACK_SPACE.equals(event.getCode()) && fromSearchBar.length() > 0) {
+			return fromSearchBar.substring(0, fromSearchBar.length() - 1);
+		} else if (KeyCode.BACK_SPACE.equals(event.getCode())) {
+			return "";
+		} else if (!KeyCode.ENTER.equals(event.getCode())) {
+			return fromSearchBar + event.getText();
+		} else {
+			return fromSearchBar;
+		}
 	}
 
 	public TreeView<NodeTree> getMenu() {
@@ -366,13 +459,15 @@ public class SidebarCtrl {
 				.stream()
 				.filter(scale ->
 						ScaleStatus
-								.getStatus(scale.getStatus()))
+								.PRODUCTS_AT_DATABASE_ARE_UP_TO_DATE
+								.equals(scale.getStatus()))
 				.count();
 		long numberOfOfflineScales = scales
 				.stream()
 				.filter(scale ->
-						!ScaleStatus
-								.getStatus(scale.getStatus()))
+						ScaleStatus
+								.NO_CONNECTION
+								.equals(scale.getStatus()))
 				.count();
 		setStatus(String.format("%d scale(s), %d online, %d offline",
 				numberOfScales,
@@ -394,15 +489,5 @@ public class SidebarCtrl {
 				scale.getId(),
 				scale.getStatus().getMessage()
 		));
-	}
-	
-	public static ObservableList<TableColumn<Info2Col, ?>> loadTable(ObservableList<String[]> colInfo) {
-		ObservableList<TableColumn<Info2Col, ?>> col = FXCollections.observableArrayList();
-		colInfo.forEach(value -> {
-			TableColumn<Info2Col, ?> item = new TableColumn<>(value[1]);
-			item.setCellValueFactory(new PropertyValueFactory<>(value[2]));
-			col.add(item);
-		});
-		return col;
 	}
 }

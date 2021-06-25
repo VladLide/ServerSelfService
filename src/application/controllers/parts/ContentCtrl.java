@@ -12,10 +12,7 @@ import application.models.Utils;
 import application.models.net.mysql.MySQL;
 import application.models.net.mysql.SqlQueryBuilder;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Sections;
-import application.models.net.mysql.tables.Templates;
+import application.models.net.mysql.tables.*;
 import application.models.objectinfo.ItemContent;
 import application.models.objectinfo.NodeTree;
 import application.views.languages.uk.parts.ContentInfo;
@@ -40,6 +37,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -186,8 +184,9 @@ public class ContentCtrl {
 			// so load it only if we got data from database
 			dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
 			dataTable.setItems(showList);
-			setUpScrollBar();
 		}
+
+		setUpScrollBar();
 		getNumberOfItemsInTable();
 	}
 
@@ -424,12 +423,11 @@ public class ContentCtrl {
 			choose.load(node, "sections");
 			Sections sections = (Sections) choose.show();
 			if (sections != null) {
-				db = getDbDependingOnNode(node).orElse(null);
 				dataTable.getItems().forEach(value -> {
 					if (value.isSelected()) {
 						Goods item = (Goods) value.getObject();
 						item.setId_sections(sections.getId());
-						item.save(db);
+						item.save(MainCtrl.getDB());
 					}
 				});
 			}
@@ -439,12 +437,11 @@ public class ContentCtrl {
 			choose.load(node, "templateCodes");
 			Codes code = (Codes) choose.show();
 			if (code != null) {
-				db = getDbDependingOnNode(node).orElse(null);
 				dataTable.getItems().forEach(itemContent -> {
 					if (itemContent.isSelected()) {
 						Goods item = (Goods) itemContent.getObject();
 						item.setId_barcodes(code.getId());
-						item.save(db);
+						item.save(MainCtrl.getDB());
 					}
 				});
 			}
@@ -454,12 +451,11 @@ public class ContentCtrl {
 			choose.load(node, "templates");
 			Templates template = (Templates) choose.show();
 			if (template != null) {
-				db = getDbDependingOnNode(node).orElse(null);
 				dataTable.getItems().forEach(value -> {
 					if (value.isSelected()) {
 						Goods item = (Goods) value.getObject();
 						item.setId_templates(template.getId());
-						item.save(db);
+						item.save(MainCtrl.getDB());
 					}
 				});
 			}
@@ -474,10 +470,6 @@ public class ContentCtrl {
 
 	public PackageSend getPack() {
 		return pack;
-	}
-
-	public MySQL getDbInSelectNode() {
-		return getDbDependingOnNode(node).orElse(null);
 	}
 
 	/**
@@ -503,10 +495,6 @@ public class ContentCtrl {
 		scrollBar.valueProperty().addListener((observable, oldValue, newValue) -> {
 			double position = scrollBar.getValue();
 
-			tableHasMore = showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize
-					|| (databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP
-					&& databaseTableSize - showList.get(showList.size() - 1).getNumber() > 0);
-
 			/*
 			if block is at the and addMore and table has more -> add more items
 			else if block is at the beginning and addMore and we have scrolled to the end before and we have scrolled further
@@ -519,18 +507,25 @@ public class ContentCtrl {
 				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
 
 				addAtTheEnd(scrollBar);
-				scrollBar.setValue(0);
+
+				if (showList.size() > numberOfItemsToContain) {
+					firstPass = true;
+					beenDeleted = true;
+					showList.remove(0, showList.size() - numberOfItemsToContain);
+					scrollBar.setValue(0);
+				}
 
 				addMore = false;
-				firstPass = true;
-				beenDeleted = true;
 			} else if (position <= 0.05 && addMore && beenDeleted && !firstPass) {
 				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
 
-				if (addAtTheBeginning(scrollBar))
-					scrollBar.setValue(0.99);
+				addAtTheBeginning(scrollBar);
 
-//				tableHasMore = true;
+				if (showList.size() > numberOfItemsToContain) {
+					showList.remove(numberOfItemsToContain, showList.size());
+					scrollBar.setValue(0.99);//if set to 1.0 it will trigger adding items at the end
+				}
+
 			} else if (position >= 0.1 && addMore && beenDeleted) {
 				firstPass = false;
 			}
@@ -540,40 +535,49 @@ public class ContentCtrl {
 	/**
 	 * Will add items which were on before we added new
 	 * or if showList.get(0).getNumber() - STEP + commonObjectsBetweenPages < 0 don't add any
-	 *
 	 * @param scrollBar object at which we will set new block position
 	 */
-	private boolean addAtTheBeginning(ScrollBar scrollBar) {
+	private void addAtTheBeginning(ScrollBar scrollBar) {
 		if (showList.get(0).getNumber() - STEP + commonObjectsBetweenPages >= 0) {
 			int limit = STEP;
-			int offset = showList.get(0).getNumber() - STEP + commonObjectsBetweenPages - 1;
+			int offset = showList.get(0).getNumber() - STEP + commonObjectsBetweenPages;
 			int initialIndex = showList.get(0).getNumber() - STEP + commonObjectsBetweenPages;
-			showList.setAll(ItemContent
+			showList.addAll(0, ItemContent
 					.get(FXCollections.observableArrayList(
 							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
 							initialIndex));
-			return true;
+			double value = (1.0 / showList.size()) * STEP;
+			logger.debug("Setting value to {}", value);
+			scrollBar.setValue(value);
 		} else {
 			beenDeleted = false;
-			return false;
 		}
 	}
 
 	/**
 	 * Will add new items
 	 * or if there are no items to add don't add any
-	 *
 	 * @param scrollBar object at which we will set new block position
 	 */
 	private void addAtTheEnd(ScrollBar scrollBar) {
-		int limit = STEP;
-		int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
-		int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
-		ObservableList<ItemContent> itemContents = ItemContent
-				.get(FXCollections.observableArrayList(
-						Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
-						initialIndex);
-		showList.setAll(itemContents);
+		if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize
+				|| databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP) {
+			double targetValue = scrollBar.getValue() * showList.size();
+			int limit = STEP;
+			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
+			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
+
+			showList.addAll(ItemContent
+					.get(FXCollections.observableArrayList(
+							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
+							initialIndex));
+			//we are setting value, but later after deletion items we reset it to another, so this part at this time
+			// doesn't do anything but, if we load more than delete we will need this
+			double value = targetValue / showList.size();
+			scrollBar.setValue(value);
+		} else {
+			tableHasMore = false;
+		}
 	}
 
 	/**
@@ -583,12 +587,14 @@ public class ContentCtrl {
 	 * @return db or if not is not on level 2 and were not able to get it from scaleItemMenu return null
 	 */
 	private Optional<MySQL> getDbDependingOnNode(NodeTree node) {
-		if (node.getLevel() == 2 && MainCtrl.getDB().isDBConnection()) {
-			return Optional.of(MainCtrl.getDB());
-		} else {
-			ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
-			if (scale.getScale().getUpdate() >= 0 && scale.getDB().isDBConnection()) {
-				return Optional.of(scale.getDB());
+		if (node != null) {
+			if (node.getLevel() == 2 && MainCtrl.getDB().isDBConnection()) {
+				return Optional.of(MainCtrl.getDB());
+			} else {
+				ScaleItemMenu scale = (ScaleItemMenu) node.getUpObject().getObject();
+				if (scale.getScale().getUpdate() >= 0 && scale.getDB().isDBConnection()) {
+					return Optional.of(scale.getDB());
+				}
 			}
 		}
 
@@ -600,7 +606,7 @@ public class ContentCtrl {
 	 */
 	private void getNumberOfItemsInTable() {
 		if (db != null) {
-			SqlQueryBuilder builder = new SqlQueryBuilder(db);
+			SqlQueryBuilder builder = new SqlQueryBuilder(db, type.getTableName());
 			tableHasMore = true;
 			try {
 				//select count(*) from tableName;
@@ -614,6 +620,18 @@ public class ContentCtrl {
 				logger.error(e.getMessage(), e);
 			}
 		}
+	}
+
+	public MySQL getDbInSelectNode() {
+		return getDbDependingOnNode(node).orElse(null);
+	}
+
+	public ObjectType getType() {
+		return type;
+	}
+
+	public void setShowList(List<Object> list) {
+		showList.setAll(ItemContent.get(FXCollections.observableArrayList(list)));
 	}
 }
 

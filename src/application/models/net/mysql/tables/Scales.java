@@ -1,5 +1,11 @@
 package application.models.net.mysql.tables;
 
+import application.models.TextBox;
+import application.models.net.PackingDBValue;
+import application.models.net.mysql.MySQL;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,12 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import application.models.TextBox;
-import application.models.net.PackingDBValue;
-import application.models.net.mysql.MySQL;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 public class Scales {
 	private int id = 0;

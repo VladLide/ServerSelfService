@@ -482,7 +482,7 @@ public class ProductCtrl {
 		ObservableList<Goods> items = Goods.getList(0, 0, "", 0, 0, db);
 		if (!text.trim().isEmpty()) {
 			List<Goods> collect;
-			if (isNumeric(text)) {
+			if (Helper.isNumeric(text)) {
 				int integer = Integer.parseInt(text);
 				collect = items
 						.stream()
@@ -638,17 +638,8 @@ public class ProductCtrl {
 		}
 	}
 
-	private boolean isNumeric(String string) {
-		try {
-			Integer.parseInt(string);
-			return true;
-		} catch (NumberFormatException e) {
-			return false;
-		}
-	}
-
 	private int getNumberForGoods() {
-		if (isNumeric(number.getText())) {
+		if (Helper.isNumeric(number.getText())) {
 			return Integer.parseInt(number.getText());
 		} else {
 			if (item != null) {

@@ -1,18 +1,14 @@
 package application.models;
 
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Timer;
-import java.util.TimerTask;
-
+import application.controllers.MainCtrl;
 import application.models.net.mysql.MySQL;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Scales;
-import javafx.application.Platform;
+import application.models.net.mysql.tables.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class RefreshSend {
 	private Timer refreshTimer = null;
@@ -27,75 +23,77 @@ public class RefreshSend {
 		if (this.refreshTimer == null) {
 			this.refreshTimer = new Timer();
 		}
-    	/*this.refreshTimer.schedule(new TimerTask() {
+		this.refreshTimer.schedule(new TimerTask() {
 			@Override
-            public void run() {
-				RefreshSend.updateServer(scales,db);
-				scales.forEach(scale->{
-					try {
-						scale.getScale().getDb().getDBConnection().close();
-						scale.getScale().getDb().dbConnection = null;
-					} catch (NullPointerException e) {
-						System.out.println(scale.getScale().getId()+" name: "+scale.getScale().getName()+" addres: "+scale.getScale().getIp_address()+" - "+e.getMessage());
-					} catch (SQLException e) {
-						System.out.println(scale.getScale().getId()+" name: "+scale.getScale().getName()+" addres: "+scale.getScale().getIp_address()+" - "+e.getMessage());
-					}
-				});
-				scales = ScaleInfo.get(admin);
-				scales.forEach(scale->{
-					scale.connect();
-				});
-				ObservableList<ScaleInfo> scaleInfo = ScaleInfo.get(admin);
-				if(scales.size()!=0) {
-					ObservableList<ScaleInfo> scaleInfoTMP = scales;
-					for(int i = 0 ; i<scaleInfo.size();i++) {
-						scaleInfo.get(i).getCheckBox().setSelected(scaleInfoTMP.get(i).getCheckBox().isSelected());
-					}
-				}
-				scales = scaleInfo;
-				Platform.runLater(()-> {
-					admin.loadInfoDBScales();
-				});
+			public void run() {
+//				RefreshSend.updateServer(scales, db);
+
 			}
-    	},0,10000);*/
+		}, 0, 10000);
 	}
-	/*public static boolean updateServer(ObservableList<ScaleInfo> scales, MySQL db) {
-		ObservableList<Goods> plu = Goods.getGoodsLoad(db);
-		if(plu.size()!=0) {
-			plu.forEach(value->{
-				int curId = value.getId();
-				Scales scale = RefreshSend.get(scales,value.getId_scales());
-				value.setId(0);
-				int id = 0;
-				if(scale!=null)if(scale.getDb().dbConnection!=null) {
-					id = value.save(scale.getDb());
-					ZonedDateTime timetmp = ZonedDateTime.now();
-					scale.setDate_update(LocalDateTime.parse(timetmp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))+ "T" +timetmp.format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
-					scale.save(db);
-				}
-				value.save(db);
-				/*if(scale!=null) {
-					if(scale.getUpdate()==2) {
-						scale.setUpdate(0);
-						scale.save();
-						new ScalesServer(scale,db).save();
-					}
-				}/
-				if(id>0)value.del(curId,db);
+
+	public static boolean updateServer(/*ObservableList<ScaleInfo> scales*/ MySQL db) {
+		List<Distribute> distribute = Distribute.getList(0, 0, null, 0, db);
+		if (!distribute.isEmpty()) {
+			ObservableList<Object> arr = FXCollections.observableArrayList();
+			PackageSend pack = new PackageSend();
+			distribute.forEach(itemSend -> {
+				TypeTable type = TypeTable.get(itemSend.getId_type_table(), "", "", db);
+				Object object = getObj(type, itemSend);
 			});
-			return true;
-		}else {
-			return false;
+		}
+		return false;
+	}
+
+	private static Object getObj(TypeTable type, Distribute item) {
+		MySQL db = MainCtrl.getDB();
+		Integer unique_item = item.getUnique_item();
+		if (unique_item == null) return null;
+		switch (type.getType()) {
+			case "scales": {
+				return Scales.get(unique_item, "", db);
+			}
+			case "sections": {
+				return Sections.get(unique_item, 0, -1, "", true, db);
+			}
+			case "goods": {
+				Goods plu = Goods.get(0, unique_item, "", 0, 0, db);
+				if (plu != null) {
+					plu.setId_barcodes(item.getId_barcodes());
+					plu.setId_templates(item.getId_templates());
+					plu.setPrice(item.getPrice());
+				}
+				return plu;
+			}
+			case "templates": {
+				return Templates.get(unique_item, "", true, db);
+			}
+			case "codes": {
+				return Codes.get(unique_item, "", db);
+			}
+			case "users": {
+				return Users.get(unique_item, "", "", "", "", db);
+			}
+			case "access": {
+				return null;
+			}
+			case "stocks": {
+				return Stocks.get(unique_item, db);
+			}
+			case "objects_tara": {
+				return ObjectsTara.get(0, unique_item, "", db);
+			}
+			case "bots_telegram": {
+				return BotsTelegram.get(unique_item, "", "", "", -1, db);
+			}
+			case "users_telegram": {
+				return UsersTelegram.get(unique_item, "", "", "", db);
+			}
+			default:
+				return null;
 		}
 	}
-	public static Scales get(ObservableList<ScaleInfo> scales, int id) {
-		for(ScaleInfo value : scales) {
-			if(value.getId()==id) {
-				return value.getScale();
-			}
-		}
-		return null;
-	}*/
+
 	public void close() {
 		this.refreshTimer.cancel();
 	}

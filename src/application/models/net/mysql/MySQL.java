@@ -78,31 +78,31 @@ public class MySQL {
 	public static String Query(String tableName, String[] columns, String type) {
 		String query = "";
 		switch (type) {
-		case "insert": {
-			String questionmarks = StringUtils.repeat("?,", columns.length);
-			questionmarks = (String) questionmarks.subSequence(0, questionmarks.length() - 1);
-			query = SQL_INSERT.replaceFirst(TABLE_REGEX, tableName);
-			query = query.replaceFirst(KEYS_REGEX, StringUtils.join(columns, ","));
-			query = query.replaceFirst(VALUES_REGEX, questionmarks);
-			query = query + " ON DUPLICATE KEY UPDATE " + StringUtils.join(columns, " = ? , ") + " = ?";
-			break;
-		}
-		case "update": {
-			String questionmarks = StringUtils.join(columns, " = ?, ") + " = ? ";
-			questionmarks = (String) questionmarks.subSequence(0, questionmarks.length());
-			query = SQL_UPDATE.replaceFirst(TABLE_REGEX, tableName);
-			query = query.replaceFirst(VALUES_REGEX, questionmarks);
-			break;
-		}
-		case "select": {
-			break;
-		}
-		case "delete": {
-			break;
-		}
-		default: {
-			System.out.println("Query: type was not found: " + type);
-		}
+			case "insert": {
+				String questionmarks = StringUtils.repeat("?,", columns.length);
+				questionmarks = (String) questionmarks.subSequence(0, questionmarks.length() - 1);
+				query = SQL_INSERT.replaceFirst(TABLE_REGEX, tableName);
+				query = query.replaceFirst(KEYS_REGEX, StringUtils.join(columns, ","));
+				query = query.replaceFirst(VALUES_REGEX, questionmarks);
+				query = query + " ON DUPLICATE KEY UPDATE " + StringUtils.join(columns, " = ? , ") + " = ?";
+				break;
+			}
+			case "update": {
+				String questionmarks = StringUtils.join(columns, " = ?, ") + " = ? ";
+				questionmarks = (String) questionmarks.subSequence(0, questionmarks.length());
+				query = SQL_UPDATE.replaceFirst(TABLE_REGEX, tableName);
+				query = query.replaceFirst(VALUES_REGEX, questionmarks);
+				break;
+			}
+			case "select": {
+				break;
+			}
+			case "delete": {
+				break;
+			}
+			default: {
+				System.out.println("Query: type was not found: " + type);
+			}
 		}
 		// System.out.println("Query: " + query);
 		return query;
@@ -117,54 +117,7 @@ public class MySQL {
 				int index = 1;
 				int count = (sql.matches("^INSERT.*")) ? value.length * 2 : value.length;
 				do {
-					for (PackingDBValue string : value) {
-						switch (string.type) {
-						case "I": {
-							if (string.data == null)
-								pstm.setInt(index++, 0);
-							else
-								pstm.setInt(index++, (int) string.data);
-							break;
-						}
-						case "S": {
-							if (string.data == null)
-								pstm.setString(index++, "NULL");
-							else
-								pstm.setString(index++, (String) string.data);
-							break;
-						}
-						case "F": {
-							if (string.data == null)
-								pstm.setFloat(index++, 0);
-							else
-								pstm.setFloat(index++, (Float) string.data);
-							break;
-						}
-						case "D": {
-							if (string.data == null)
-								pstm.setDouble(index++, 0);
-							else
-								pstm.setDouble(index++, (Double) string.data);
-							break;
-						}
-						case "B": {
-							if (string.data == null) {
-								pstm.setBlob(index++, (Blob) null);
-							} else
-								pstm.setBlob(index++, (Blob) string.data);
-							break;
-						}
-						case "DT": {
-							if (string.data == null) {
-								pstm.setTimestamp(index++,
-										Timestamp.valueOf(LocalDateTime.parse("2000-01-01T00:00:00")));
-							} else
-								pstm.setTimestamp(index++, Timestamp.valueOf((LocalDateTime) string.data));
-							break;
-						}
-						}
-						// System.out.println(string.type);
-					}
+					index = fillPstm(value, pstm, index);
 				} while (index < count);
 				result = pstm.executeUpdate();
 			}
@@ -194,7 +147,58 @@ public class MySQL {
 		return result;
 	}
 
-	public int[] execute(String sql, String[] columns, PackingDBValue[] value, ResultSet res) {
+	private int fillPstm(PackingDBValue[] value, PreparedStatement pstm, int index) throws SQLException {
+		for (PackingDBValue string : value) {
+			switch (string.type) {
+				case "I": {
+					if (string.data == null)
+						pstm.setInt(index++, 0);
+					else
+						pstm.setInt(index++, (int) string.data);
+					break;
+				}
+				case "S": {
+					if (string.data == null)
+						pstm.setString(index++, "NULL");
+					else
+						pstm.setString(index++, (String) string.data);
+					break;
+				}
+				case "F": {
+					if (string.data == null)
+						pstm.setFloat(index++, 0);
+					else
+						pstm.setFloat(index++, (Float) string.data);
+					break;
+				}
+				case "D": {
+					if (string.data == null)
+						pstm.setDouble(index++, 0);
+					else
+						pstm.setDouble(index++, (Double) string.data);
+					break;
+				}
+				case "B": {
+					if (string.data == null) {
+						pstm.setBlob(index++, (Blob) null);
+					} else
+						pstm.setBlob(index++, (Blob) string.data);
+					break;
+				}
+				case "DT": {
+					if (string.data == null) {
+						pstm.setTimestamp(index++,
+								Timestamp.valueOf(LocalDateTime.parse("2000-01-01T00:00:00")));
+					} else
+						pstm.setTimestamp(index++, Timestamp.valueOf((LocalDateTime) string.data));
+					break;
+				}
+			}
+		}
+		return index;
+	}
+
+	public int[] execute(String sql, List<PackingDBValue[]> list) {
 		int[] result = {};
 		PreparedStatement pstm;
 		try {
@@ -204,57 +208,11 @@ public class MySQL {
 				pstm = con.prepareStatement(sql);
 				final int batchSize = 1000;
 				int count = 0;
-				while (res.next()) {
+				for (PackingDBValue[] value : list) {
 					int index = 1;
 					int count1 = (sql.matches("^INSERT.*")) ? value.length * 2 : value.length;
 					do {
-						for (PackingDBValue item : value) {
-							switch (item.type) {
-							case "I": {
-								if (item.data == null)
-									pstm.setInt(index++, 0);
-								else
-									pstm.setInt(index++, res.getInt(res.findColumn(item.column)));
-								break;
-							}
-							case "S": {
-								if (item.data == null)
-									pstm.setString(index++, "NULL");
-								else
-									pstm.setString(index++, res.getString(res.findColumn(item.column)));
-								break;
-							}
-							case "F": {
-								if (item.data == null)
-									pstm.setFloat(index++, 0);
-								else
-									pstm.setFloat(index++, res.getFloat(res.findColumn(item.column)));
-								break;
-							}
-							case "D": {
-								if (item.data == null)
-									pstm.setDouble(index++, 0);
-								else
-									pstm.setDouble(index++, res.getDouble(res.findColumn(item.column)));
-								break;
-							}
-							case "B": {
-								if (item.data == null) {
-									pstm.setBlob(index++, (Blob) null);
-								} else
-									pstm.setBlob(index++, res.getBlob(res.findColumn(item.column)));
-								break;
-							}
-							case "DT": {
-								if (item.data == null) {
-									pstm.setTimestamp(index++,
-											Timestamp.valueOf(LocalDateTime.parse("2000-01-01T00:00:00")));
-								} else
-									pstm.setTimestamp(index++, res.getTimestamp(res.findColumn(item.column)));
-								break;
-							}
-							}
-						}
+						index = fillPstm(value, pstm, index);
 					} while (index < count1);
 					pstm.addBatch();
 					if (++count % batchSize == 0) {
@@ -293,13 +251,14 @@ public class MySQL {
 		return result;
 	}
 
-	public int[] insertAll(String table, String[] columns, PackingDBValue[] value, ResultSet resul) {
+	public int[] insertAll(String table, String[] columns, List<PackingDBValue[]> value) {
 		int[] result = {};
-		if (columns.length != value.length) {
-			return result;
-		}
+		//todo fix if comparison
+//		if (columns.length != value.get(0).length) {
+//			return result;
+//		}
 		String sql = MySQL.Query(table, columns, "insert");
-		result = this.execute(sql, columns, value, resul);
+		result = this.execute(sql, value);
 		// System.out.println(result);
 		return result;
 	}
@@ -317,6 +276,17 @@ public class MySQL {
 		result = this.execute(sql, value);
 		// System.out.println(result);
 		return result;
+	}
+
+	public int[] updateAll(String table,
+	                       String[] columns,
+	                       List<PackingDBValue[]> values,
+	                       String[] where) {
+		String sql = MySQL.Query(table, columns, "update");
+		if (where.length != 0)
+			sql += "WHERE " + StringUtils.join(where, ",");
+
+		return execute(sql, values);
 	}
 
 	public int delete(String table, String id) {
@@ -368,7 +338,7 @@ public class MySQL {
 		return result;
 	}
 
-	public List<List<String>> getSelect(List<String> select, String table, List<String> where) {
+	public List<List<String>> getSelect() {
 		List<List<String>> result = new ArrayList<List<String>>();
 		String sql = "SELECT " + StringUtils.join(select, ",");
 		if (select.size() == 0)

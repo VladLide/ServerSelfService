@@ -16,10 +16,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 //todo add javadoc comments to methods
 
@@ -114,7 +111,7 @@ public final class Helper {
 	                                             int limit,
 	                                             int offset,
 	                                             ObjectType type) {
-		SqlQueryBuilder queryBuilder = new SqlQueryBuilder(db);
+		SqlQueryBuilder queryBuilder = new SqlQueryBuilder(db, type.getTableName());
 		List<Object> list = null;
 		try {
 			ResultSet resultSet = queryBuilder.select("*")
@@ -156,7 +153,7 @@ public final class Helper {
 	                                   int limit,
 	                                   int offset,
 	                                   ObjectType type) {
-		SqlQueryBuilder queryBuilder = new SqlQueryBuilder(db);
+		SqlQueryBuilder queryBuilder = new SqlQueryBuilder(db, type.getTableName());
 		ResultSet resultSet = queryBuilder.select("*")
 				.from(type.getTableName())
 				.orderBy(type.getTableName(), type.getOrderByColumn())
@@ -182,6 +179,19 @@ public final class Helper {
 		}
 
 		return Optional.ofNullable(scrollbar);
+	}
+
+	public static Optional<Class<?>> getClassByFullName(String name) throws ClassNotFoundException {
+		return Optional.of(Class.forName(name));
+	}
+
+	public static boolean isNumeric(String string) {
+		try {
+			Integer.parseInt(string);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
 	}
 }
 

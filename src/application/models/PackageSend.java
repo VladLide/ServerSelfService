@@ -6,6 +6,7 @@ import javafx.collections.ObservableList;
 
 public class PackageSend {
 	private ObservableList<ScaleItemMenu> connectSend = FXCollections.observableArrayList();
+	private int command = 1;
 	private String type = "";
 	private ObservableList<Object> items = FXCollections.observableArrayList();
 
@@ -33,6 +34,14 @@ public class PackageSend {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public int getCommand() {
+		return command;
+	}
+
+	public void setCommand(int command) {
+		this.command = command;
 	}
 
 }
