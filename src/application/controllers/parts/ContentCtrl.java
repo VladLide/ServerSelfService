@@ -504,6 +504,10 @@ public class ContentCtrl {
 		scrollBar.valueProperty().addListener((observable, oldValue, newValue) -> {
 			double position = scrollBar.getValue();
 
+			tableHasMore = showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize
+					|| (databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP
+					&& databaseTableSize - showList.get(showList.size() - 1).getNumber() > 0);
+
 			/*
 			if block is at the and addMore and table has more -> add more items
 			else if block is at the beginning and addMore and we have scrolled to the end before and we have scrolled further
@@ -516,25 +520,18 @@ public class ContentCtrl {
 				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
 
 				addAtTheEnd(scrollBar);
-
-				if (showList.size() > numberOfItemsToContain) {
-					firstPass = true;
-					beenDeleted = true;
-					showList.remove(0, showList.size() - numberOfItemsToContain);
-					scrollBar.setValue(0);
-				}
+				scrollBar.setValue(0);
 
 				addMore = false;
+				firstPass = true;
+				beenDeleted = true;
 			} else if (position <= 0.05 && addMore && beenDeleted && !firstPass) {
 				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
 
-				addAtTheBeginning(scrollBar);
+				if (addAtTheBeginning(scrollBar))
+					scrollBar.setValue(0.99);
 
-				if (showList.size() > numberOfItemsToContain) {
-					showList.remove(numberOfItemsToContain, showList.size());
-					scrollBar.setValue(0.99);//if set to 1.0 it will trigger adding items at the end
-				}
-
+//				tableHasMore = true;
 			} else if (position >= 0.1 && addMore && beenDeleted) {
 				firstPass = false;
 			}
@@ -544,49 +541,40 @@ public class ContentCtrl {
 	/**
 	 * Will add items which were on before we added new
 	 * or if showList.get(0).getNumber() - STEP + commonObjectsBetweenPages < 0 don't add any
+	 *
 	 * @param scrollBar object at which we will set new block position
 	 */
-	private void addAtTheBeginning(ScrollBar scrollBar) {
+	private boolean addAtTheBeginning(ScrollBar scrollBar) {
 		if (showList.get(0).getNumber() - STEP + commonObjectsBetweenPages >= 0) {
 			int limit = STEP;
-			int offset = showList.get(0).getNumber() - STEP + commonObjectsBetweenPages;
+			int offset = showList.get(0).getNumber() - STEP + commonObjectsBetweenPages - 1;
 			int initialIndex = showList.get(0).getNumber() - STEP + commonObjectsBetweenPages;
-			showList.addAll(0, ItemContent
+			showList.setAll(ItemContent
 					.get(FXCollections.observableArrayList(
 							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
 							initialIndex));
-			double value = (1.0 / showList.size()) * STEP;
-			logger.debug("Setting value to {}", value);
-			scrollBar.setValue(value);
+			return true;
 		} else {
 			beenDeleted = false;
+			return false;
 		}
 	}
 
 	/**
 	 * Will add new items
 	 * or if there are no items to add don't add any
+	 *
 	 * @param scrollBar object at which we will set new block position
 	 */
 	private void addAtTheEnd(ScrollBar scrollBar) {
-		if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize
-				|| databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP) {
-			double targetValue = scrollBar.getValue() * showList.size();
-			int limit = STEP;
-			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
-			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
-
-			showList.addAll(ItemContent
-					.get(FXCollections.observableArrayList(
-							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
-							initialIndex));
-			//we are setting value, but later after deletion items we reset it to another, so this part at this time
-			// doesn't do anything but, if we load more than delete we will need this
-			double value = targetValue / showList.size();
-			scrollBar.setValue(value);
-		} else {
-			tableHasMore = false;
-		}
+		int limit = STEP;
+		int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
+		int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
+		ObservableList<ItemContent> itemContents = ItemContent
+				.get(FXCollections.observableArrayList(
+						Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
+						initialIndex);
+		showList.setAll(itemContents);
 	}
 
 	/**
