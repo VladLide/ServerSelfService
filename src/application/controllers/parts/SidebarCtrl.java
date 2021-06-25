@@ -6,6 +6,7 @@ import application.controllers.MainCtrl;
 import application.controllers.windows.MainWindowCtrl;
 import application.controllers.windows.ScaleCtrl;
 import application.models.Configs;
+import application.models.EditingCell;
 import application.models.Utils;
 import application.models.net.mysql.interface_tables.ScaleItemMenu;
 import application.models.net.mysql.tables.Scales;
@@ -20,7 +21,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.scene.layout.AnchorPane;
+import javafx.util.Callback;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -158,7 +162,15 @@ public class SidebarCtrl {
 	}
 	
 	public void loadFilter() {
-		
+		/*TreeTableColumn<Info2Col, String> col1 = new TreeTableColumn<>("");
+		TreeTableColumn<Info2Col, String> сol2 = new TreeTableColumn<>("");
+		сol2.setCellFactory(TextFieldTreeTableCell.forTreeTableColumn());
+		сol2.setOnEditCommit(value -> {
+			Info2Col item = value.
+			
+		});
+		TreeItem<Info2Col> root = new TreeItem<>(new Info2Col("Пошук:", "", 0));
+		filter.setRoot(root);*/
 	}
 
 	public void addItemMenu(ScaleItemMenu scale) {
