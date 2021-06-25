@@ -584,10 +584,11 @@ public class ProductCtrl {
 			code.setValue(Codes.get(item.getId_barcodes(), "", db));
 			loadImage(img, "img");
 			loadImage(imgTemplate, "tpl");
+			newItem = false;
 		}
-		save.setDisable(true);
 		if (!newItem)
 			dataTable.getSelectionModel().select(item);
+		save.setDisable(true);
 	}
 
 	public Goods getItem() {

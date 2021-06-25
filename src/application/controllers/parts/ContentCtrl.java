@@ -186,9 +186,8 @@ public class ContentCtrl {
 			// so load it only if we got data from database
 			dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
 			dataTable.setItems(showList);
+			setUpScrollBar();
 		}
-
-		setUpScrollBar();
 		getNumberOfItemsInTable();
 	}
 
