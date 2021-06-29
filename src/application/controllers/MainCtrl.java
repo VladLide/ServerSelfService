@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainCtrl {
 	private Timer refresh;
@@ -53,17 +54,26 @@ public class MainCtrl {
 	public static void startRefresh() {
 		Distribute distribute = new Distribute(0,0,0,0,0);
 		MainCtrl me = getInstance();
+
+		AtomicInteger timeout = new AtomicInteger(0);
+
 		me.refresh = new Timer();
 		me.refresh.schedule(new TimerTask() {
 			@Override
 			public void run() {
+				if (timeout.get() % 60000 == 0) {
+					distribute.update();
+					timeout.set(0);
+				}
+
 				if (MainCtrl.getPacks().size() > 0) {
 					Platform.runLater(() -> {
 						MainWindowCtrl.getFooterCtrl().startTask(MainCtrl.getPacks().get(0));
 						MainCtrl.getPacks().remove(0);
-						distribute.update();
 					});
 				}
+
+				timeout.incrementAndGet();
 			}
 		}, 0, 1000);
 	}
