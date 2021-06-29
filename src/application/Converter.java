@@ -54,7 +54,7 @@ public final class Converter {
 		List<Sections> sectionsList = new ArrayList<>();
 
 		while (set.next()) {
-			sectionsList.add(new Sections(set, false));
+			sectionsList.add(new Sections(set, true));
 		}
 
 		return sectionsList;

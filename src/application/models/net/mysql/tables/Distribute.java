@@ -200,24 +200,6 @@ public class Distribute {
 		}
 	}
 
-	private void updateItems(List<Object> list, MySQL db, TypeTable type) {
-		try {
-			String[] columns = getColumns(list.get(0), type)
-					.orElseThrow(() -> noColumns);
-			String[] where = getWhere(list.get(0), type)
-					.orElseThrow(() -> new NullPointerException("Was not able to obtain WHERE values"));
-			List<PackingDBValue[]> values = new ArrayList<>();
-
-			for (Object object : list) {
-				values.add(PackingDBValue.get(object).orElseThrow(() -> noValues));
-			}
-
-			db.updateAll(type.table, columns, values, where);
-		} catch (IllegalArgumentException | NullPointerException e) {
-			logger.error(e.getMessage(), e);
-		}
-	}
-
 	private void insertItems(List<Object> list, MySQL db, TypeTable type) {
 		try {
 			String[] columns = getColumns(list.get(0), type).orElseThrow(() -> noColumns);
