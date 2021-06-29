@@ -980,9 +980,11 @@ public class TemplateCtrl {
 						x = 0.0;
 					}
 
-					getClassOfObject(currentItem.getType())
-							.cast(currentItem.getItem())
-							.setTranslateX(x);
+					Node cast = getClassOfObject(currentItem.getType())
+							.cast(currentItem.getItem());
+					cast.setTranslateX(x);
+					currentItem.setPosition(new Point(cast.getTranslateX(), cast.getTranslateY()));
+
 					break;
 				}
 				case 15: {
@@ -994,9 +996,10 @@ public class TemplateCtrl {
 						y = 0.0;
 					}
 
-					getClassOfObject(currentItem.getType())
-							.cast(currentItem.getItem())
-							.setTranslateY(y);
+					Node cast = getClassOfObject(currentItem.getType())
+							.cast(currentItem.getItem());
+					cast.setTranslateY(y);
+					currentItem.setPosition(new Point(cast.getTranslateX(), cast.getTranslateY()));
 					break;
 				}
 			}
