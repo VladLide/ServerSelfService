@@ -349,14 +349,14 @@ public class CodeCtrl {
 						break;
 					}
 					case 1:{
-						if((1 < str.length() && str.length() <= 12)
+						if((0 < str.length() && str.length() <= 12)
 								&& (str.indexOf("C") < 0 ||str.lastIndexOf("C") == str.length()-1)) {
 							mask.setText(str+barcodeSymbol[index]);
 						}
 						break;
 					}
 					case 2:{
-						if((1 < str.length() && str.length() <= 12) 
+						if((0 < str.length() && str.length() <= 12)
 								&& (str.indexOf("U") < 0 || str.lastIndexOf("U") == str.length()-1)) {
 							mask.setText(str+barcodeSymbol[index]);
 						}
