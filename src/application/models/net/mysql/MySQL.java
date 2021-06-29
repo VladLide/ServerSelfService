@@ -338,7 +338,7 @@ public class MySQL {
 		return result;
 	}
 
-	public List<List<String>> getSelect() {
+	public List<List<String>> getSelect(List<String> select, String table, List<String> where) {
 		List<List<String>> result = new ArrayList<List<String>>();
 		String sql = "SELECT " + StringUtils.join(select, ",");
 		if (select.size() == 0)
