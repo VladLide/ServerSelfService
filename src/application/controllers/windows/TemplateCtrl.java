@@ -117,6 +117,8 @@ public class TemplateCtrl {
 	@FXML
 	private Button testPrint;
 	@FXML
+	private ToggleButton showBorders;
+	@FXML
 	private MenuBar topMenu;
 	@FXML
 	private MenuItem save;
@@ -230,7 +232,11 @@ public class TemplateCtrl {
 
 	public void removeBorder(Item item) {
 		if (item != null) {
-			getClassOfObject(item.getType()).cast(item.getItem()).setStyle("");
+			if (!showBorders.isSelected()) {
+				getClassOfObject(item.getType()).cast(item.getItem()).setStyle("");
+			} else {
+				getClassOfObject(item.getType()).cast(item.getItem()).setStyle("-fx-border-color: black;-fx-border-style: solid;");
+			}
 			getClassOfObject(item.getType()).cast(item.getItem()).setEffect(null);
 		}
 	}
@@ -1172,8 +1178,47 @@ public class TemplateCtrl {
 				}
 			}
 		});
+
+		showBorders.setOnAction(event -> {
+			ObservableList<Node> children = paneSave.getPane().getChildren();
+			if (showBorders.isSelected()) {
+				setBorderToAll(children);
+				showBorders.setStyle("-fx-background-color: -fx-shadow-highlight-color," +
+						"linear-gradient(to bottom, derive(-fx-color,-90%) 0%, derive(-fx-color,-60%) 100%)," +
+						"linear-gradient(to bottom, derive(-fx-color,-60%) 0%, derive(-fx-color,-35%) 50%, derive(-fx-color,-30%) 98%, derive(-fx-color,-50%) 100%)," +
+						"linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 10%, rgba(0,0,0,0) 90%, rgba(0,0,0,0.3) 100%);" +
+						"-fx-background-insets: 0 0 -1 0, 0, 1, 1;" +
+						"-fx-text-fill: -fx-light-text-color;" +
+						"-fx-alignment: center;");
+			} else {
+				deleteBorderFromAll(children);
+				showBorders.setStyle("-fx-background-color: #ffff;" +
+						"-fx-alignment: center;");
+			}
+		});
 	}
 
+	private void setBorderToAll(ObservableList<Node> nodes) {
+		nodes.forEach(this::setBorder);
+	}
+
+	private void deleteBorderFromAll(ObservableList<Node> nodes) {
+		nodes.forEach(this::deleteBorder);
+	}
+
+	private void setBorder(Node node) {
+		node.setStyle("-fx-border-color: black;-fx-border-style: solid;");
+	}
+
+	private void deleteBorder(Node node) {
+		node.setStyle("");
+	}
+
+	/**
+	 * Will return class depending on string
+	 * @param type string which describes type of object
+	 * @return class for given type
+	 */
 	private Class<? extends Node> getClassOfObject(String type) {
 		switch (type) {
 			case "barcode":

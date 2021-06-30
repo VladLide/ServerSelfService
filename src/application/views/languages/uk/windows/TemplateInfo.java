@@ -8,8 +8,8 @@ import java.util.Map;
 
 public class TemplateInfo {
 	public static TemplateInfo inst = null;
-	public static ObservableList<String> templateInfo = FXCollections.observableArrayList("№", "Назва", "Ширина",
-			"Висота");
+	public static ObservableList<String> templateInfo = FXCollections.observableArrayList(
+			"№", "Назва", "Ширина", "Висота");
 	public Map<String, ObservableList<String[]>> columnsContent = new HashMap<String, ObservableList<String[]>>();
 	public static ObservableList<String[]> ItemsTemplate = FXCollections.observableArrayList(
 			new String[] { "namePLU", "Назва товару", "Назва товару" },
