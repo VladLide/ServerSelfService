@@ -427,7 +427,7 @@ public class ContentCtrl {
 					if (value.isSelected()) {
 						Goods item = (Goods) value.getObject();
 						item.setId_sections(sections.getId());
-						item.save(MainCtrl.getDB());
+						item.save(getDbInSelectNode());
 					}
 				});
 			}
@@ -441,7 +441,7 @@ public class ContentCtrl {
 					if (itemContent.isSelected()) {
 						Goods item = (Goods) itemContent.getObject();
 						item.setId_barcodes(code.getId());
-						item.save(MainCtrl.getDB());
+						item.save(getDbInSelectNode());
 					}
 				});
 			}
@@ -455,7 +455,7 @@ public class ContentCtrl {
 					if (value.isSelected()) {
 						Goods item = (Goods) value.getObject();
 						item.setId_templates(template.getId());
-						item.save(MainCtrl.getDB());
+						item.save(getDbInSelectNode());
 					}
 				});
 			}
