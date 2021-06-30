@@ -144,6 +144,8 @@ public class CodeCtrl {
 	}
 
 	private void continion() {
+		boolean clear = true;
+
 		if (mask.getText().length() == 12) {
 			Boolean f = true;
 			for (String value : barcodesName) {
@@ -232,14 +234,17 @@ public class CodeCtrl {
 							TextBox.alertOpenDialog(AlertType.WARNING, "editBarcodeNo");
 						}
 					}
+					clear = false;
 				} catch (Exception e) {
 					logger.error(e.getMessage(), e);
 				}
 			} else
 				TextBox.alertOpenDialog(AlertType.WARNING, "warningName");
-		} else
+		} else {
 			TextBox.alertOpenDialog(AlertType.ERROR, "editBarcodeNo");
-		this.update();
+			clear = false;
+		}
+		this.update(clear);
 	}
 
 	public void loadBarcode() {
@@ -267,11 +272,12 @@ public class CodeCtrl {
 		clear();
 	}
 
-	public void update() {
+	public void update(boolean clear) {
 		this.barcodes = Codes.getList(0, "", db);
 		save.setDisable(true);
 		dataTable.setItems(this.barcodes);
-		clear();
+		if (clear)
+			clear();
 	}
 
 	public void clear() {
@@ -313,7 +319,7 @@ public class CodeCtrl {
 										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                                         OperationStatus.SUCCESS)
 						);
-						update();
+						update(true);
 	            	}else{
                         MainWindowCtrl.setLog(
                                 Helper.formatOutput(
