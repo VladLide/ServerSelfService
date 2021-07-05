@@ -36,9 +36,9 @@ public class MainCtrl {
 	private ObservableList<ScaleItemMenu> scales = FXCollections.observableArrayList();
 	private ObservableList<PackageSend> packs = FXCollections.observableArrayList();
 	private static MainCtrl instance = null;
-	private final static Logger logger = LogManager.getLogger(MainCtrl.class);
-	private final static String separatorKey = "separator";
 	private static Map<String, String> mainSys;
+	private static final Logger logger = LogManager.getLogger(MainCtrl.class);
+	private static final String separatorKey = "separator";
 
 	public MainCtrl(/* Stage mainStage */) {
 		super();
@@ -76,7 +76,9 @@ public class MainCtrl {
 			@Override
 			public void run() {
 				if (timeout.get() % 60000 == 0) {
+					loadFiles();
 					distribute.update();
+
 					timeout.set(0);
 				}
 
@@ -149,51 +151,72 @@ public class MainCtrl {
 	public static void loadFiles() {
 		String pathLoad = Configs.getItemStr("path_load");
 		LoadFrom from = getInstance().getLoadFrom(pathLoad);
-		String path = pathLoad.substring(pathLoad.indexOf(":") + 1);
+		String pathWithoutLoadIdentifier = pathLoad.substring(pathLoad.indexOf(":") + 1);
 		List<LoadConfigFile> configs = getInstance().loadConfigs();
-		mainSys = configs
-				.stream()
-				.filter(configFile -> configFile.getType() == null)
-				.findFirst()
-				.orElseThrow(() -> new NullPointerException("Was not able to find main.sys file"))
-				.getMap();
-
-		assert configs != null;
+		getMainSys(configs);
 
 		switch (from) {
 			case FTP:
-				loadFromFtp(path);
+				loadFromFtp(pathWithoutLoadIdentifier);
 				break;
 			case LOCAL:
-				loadFromLocal(path, configs);
+				loadFromLocal(pathWithoutLoadIdentifier, configs);
 				break;
 			default:
 				throw new IllegalArgumentException("Wrong loadFrom type");
 		}
 	}
 
+	/**
+	 * Set value for global map variable mainSys
+	 *
+	 * @param configs is list with configs from "import" folder
+	 */
+	private static void getMainSys(List<LoadConfigFile> configs) {
+		mainSys = configs
+				.stream()
+				.filter(configFile -> configFile.getType() == null)
+				.findFirst()
+				.orElseThrow(() -> new NullPointerException("Was not able to find main.sys file"))
+				.getMap();
+	}
+
+	/**
+	 * Load data to database from local files
+	 *
+	 * @param path    path where to find data in csv format
+	 * @param configs list with config data for data
+	 */
+
 	private static void loadFromLocal(String path, List<LoadConfigFile> configs) {
 		try {
 			//load from given path
 			File folder = new File(path);
 			File[] files = folder.listFiles();
-
+      
+			//if path is correct and files were found
 			if (files != null) {
 				for (File file : files) {
+					//in load folder will be also images folder, so we need to skip it
 					if (file.isDirectory()) continue;
 
 					String fileName = file.getName();
+					//get to which table in database we need to load values
 					TableType type = TableType.get(fileName.substring(0, fileName.lastIndexOf(".")));
+					//get config file for such table
 					LoadConfigFile configForFile = configs
 							.stream()
 							.filter(config -> config.getType() == type)
 							.findFirst()
 							.orElseThrow(() -> new NullPointerException("Was not able to find config file for type " + type));
-					String fileInsides = getInstance().readFile(file)
+
+					String fileData = getInstance().readFile(file)
 							.orElseThrow(() -> new IOException("Was not able to get lines from file " + file.getAbsolutePath()));
-					String[] lines = fileInsides.replace("\n", "")
+					String[] lines = fileData
+							.replace("\n", "")
 							.split(mainSys.get(separatorKey));
 
+					//each line from file is object which is needed to be saved to database
 					for (String line : lines) {
 						getInstance().saveObjectFromLine(configForFile, line, path);
 					}
@@ -206,6 +229,11 @@ public class MainCtrl {
 		}
 	}
 
+	/**
+	 * Load data to database from files from ftp
+	 *
+	 * @param path
+	 */
 	private static void loadFromFtp(String path) {
 		//get host, port, user and pass
 		String host = Configs.getItemStr("ftpHost");
@@ -224,18 +252,34 @@ public class MainCtrl {
 		}
 	}
 
-	private LoadFrom getLoadFrom(String path) {
-		String indicator = path.substring(0, path.indexOf(":"));
+
+	/**
+	 * Get location from which we need to get data
+	 * Local or FTP files
+	 *
+	 * @param pathWithIdentifier string which contains path and identifier of place where to get files
+	 * @return LoadFrom enum with place where to get files
+	 */
+	private LoadFrom getLoadFrom(String pathWithIdentifier) {
+		String indicator = pathWithIdentifier.substring(0, pathWithIdentifier.indexOf(":"));
 		switch (indicator.toLowerCase(Locale.ROOT)) {
 			case "ftp":
 				return LoadFrom.FTP;
 			case "local":
 				return LoadFrom.LOCAL;
 			default:
-				throw new IllegalArgumentException("Wrong indicator in path " + path);
+				throw new IllegalArgumentException("Wrong indicator in path " + pathWithIdentifier);
 		}
 	}
 
+	/**
+	 * Get configs for csv data file, in configs described how to get data for table column
+	 * Each file must be written in such way:
+	 * key=value
+	 * key1=value1
+	 *
+	 * @return list of config files
+	 */
 	private List<LoadConfigFile> loadConfigs() {
 		List<LoadConfigFile> list = new ArrayList<>();
 		String path = System.getProperty("user.dir") + "/resources/system/import";
@@ -260,7 +304,12 @@ public class MainCtrl {
 
 				String nameWithExtension = file.getName();
 				String name = nameWithExtension.substring(0, nameWithExtension.lastIndexOf("."));
-				list.add(new LoadConfigFile(TableType.get(name), map));
+
+				//get type of table which this config describes
+				TableType type = TableType.get(name);
+				//create config instance for give table type
+				LoadConfigFile config = new LoadConfigFile(type, map);
+				list.add(config);
 			}
 			return list;
 		} catch (NullPointerException | IOException e) {
@@ -269,6 +318,12 @@ public class MainCtrl {
 		}
 	}
 
+	/**
+	 * Read given file object to one string
+	 *
+	 * @param file object from which we will read strings
+	 * @return string which contains all data from file
+	 */
 	private Optional<String> readFile(File file) {
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			StringBuilder builder = new StringBuilder();
@@ -285,10 +340,21 @@ public class MainCtrl {
 		}
 	}
 
+	/**
+	 * Save object of given type to database table
+	 *
+	 * @param configFile contains table type and map to map data from line to database table column
+	 * @param line       string which contains data of object
+	 * @param path       string which contains path to folder where lays files with data and "images" folder
+	 * @throws SQLException if was not able to convert file to BLOB
+	 * @throws IOException if was not able to open/find folder/file
+	 * @throws NullPointerException if was not able to find file/data
+	 */
 	private void saveObjectFromLine(LoadConfigFile configFile, String line, String path)
-			throws SQLException, IOException {
-		String[] params = line.split(",");
-		Map<String, String> paramsMap = configFile.getMap();
+			throws SQLException, IOException, NullPointerException {
+		String[] params = line.split(",");//split line to individual parameters
+		Map<String, String> paramsMap = configFile.getMap();//get hashMap which maps data in params to database columns
+		MiniHelper miniHelper = new MiniHelper(params, paramsMap);
 
 		switch (configFile.getType()) {
 			case SCALES: {
@@ -297,14 +363,14 @@ public class MainCtrl {
 			}
 			case SECTIONS: {
 				Sections sections = new Sections();
-				int id = getInt(params, paramsMap, "id");
-				int id_up = getInt(params, paramsMap, "id_up");
-				int level = getInt(params, paramsMap, "level");
-				String name = getString(params, paramsMap, "name");
-				Blob img_data = getBlob(params, paramsMap, "img_data", path);
-				String description = getString(params, paramsMap, "description");
-				int number_s = getInt(params, paramsMap, "number_s");
-				int number_po = getInt(params, paramsMap, "number_po");
+				int id = miniHelper.getInt("id");
+				int id_up = miniHelper.getInt("id_up");
+				int level = miniHelper.getInt("level");
+				String name = miniHelper.getString("name");
+				Blob img_data = miniHelper.getBlob("img_data", path);
+				String description = miniHelper.getString("description");
+				int number_s = miniHelper.getInt("number_s");
+				int number_po = miniHelper.getInt("number_po");
 
 				sections.setId(id);
 				sections.setId_up(id_up);
@@ -315,37 +381,44 @@ public class MainCtrl {
 				sections.setNumber_s(number_s);
 				sections.setNumber_po(number_po);
 
-				logger.info("Savingn sections with id {}", sections.save(db));
+				logger.info("Sections save result id {}", sections.save(db));
+
 				break;
 			}
 			case GOODS: {
 				Map<String, String> map = new HashMap<>();
 				for (Map.Entry<String, String> entry : paramsMap.entrySet()) {
-					map.put(entry.getKey(), getString(params, paramsMap, entry.getKey()));
+
+					map.put(entry.getKey(), miniHelper.getString(entry.getKey()));
 				}
 
 				Goods goods = new Goods(map, new int[]{0, 0});
-				Blob data = getBlob(params, paramsMap, "data", path);
+				Blob data = miniHelper.getBlob("data", path);
 				goods.setDataBlob(data);
 				logger.info("Goods save result id {}", goods.save(db));
 				break;
 			}
 			case TEMPLATES: {
-//				int id = getInt(params, paramsMap, "id");
-//				String name = getString(params, paramsMap, "name");
-//				File idName = new File(path + "/templates/" + (id + "-" + name + ".tmpl"));
-//
-//				if (idName.exists()) {
-//					Templates templates = new Templates(id, name, null);
-//					templates.readObjFile(new TemplatePanelCtrl(), db, idName);
-//				} else {
-//					//save error to error folder
-//				}
-
+				int id = miniHelper.getInt("id");
+				String name = miniHelper.getString("name");
+				Templates templates = new Templates(id, name, null);
+				File templateImage = new File(path + "/templates/" + (id + "-" + name + ".templ"));
+				if (templateImage.exists()) {
+					templates.readObjFile(new TemplatePanelCtrl(), db, templateImage);
+				} else {
+					//log error to error file
+					logError(configFile.getType(), path, "Was not able to get file " + templateImage.getAbsolutePath());
+				}
 				break;
 			}
 			case CODES: {
+				int id = miniHelper.getInt("id");
+				String name = miniHelper.getString("name");
+				String prefix_val = miniHelper.getString("prefix_val");
+				String mask = miniHelper.getString("mask");
 
+				Codes codes = new Codes(id, name, prefix_val, mask);
+				codes.save(db);
 				break;
 			}
 			case USERS:
@@ -367,70 +440,90 @@ public class MainCtrl {
 				//todo fill
 				break;
 			case DISTRIBUTE: {
-				int id = getInt(params, paramsMap, "id");
-				int id_command = getInt(params, paramsMap, "id_command");
-				int id_type_table = getInt(params, paramsMap, "id_type_table");
-				int unique_item = getInt(params, paramsMap, "unique_item");
-				int id_scales = getInt(params, paramsMap, "id_scales");
-				int id_condition = getInt(params, paramsMap, "id_condition");
-				int id_templates = getInt(params, paramsMap, "id_templates");
-				int id_barcodes = getInt(params, paramsMap, "id_barcodes");
-				float price = getFloat(params, paramsMap, "price");
-				String description = getString(params, paramsMap, "description");
-				int batch = getInt(params, paramsMap, "batch");
+				int id = miniHelper.getInt("id");
+				int id_command = miniHelper.getInt("id_command");
+				int id_type_table = miniHelper.getInt("id_type_table");
+				int unique_item = miniHelper.getInt("unique_item");
+				int id_scales = miniHelper.getInt("id_scales");
+				int id_condition = miniHelper.getInt("id_condition");
+				int id_templates = miniHelper.getInt("id_templates");
+				int id_barcodes = miniHelper.getInt("id_barcodes");
+				float price = miniHelper.getFloat("price");
+				String description = miniHelper.getString("description");
+				int batch = miniHelper.getInt("batch");
 
 				Distribute distribute = new Distribute(
 						id, id_command, id_type_table,
 						unique_item, id_scales, id_condition,
 						id_templates, id_barcodes, price,
 						description, batch);
-				distribute.save(db);
+				logger.info("Distribute save result id {}", distribute.save(db));
 				break;
 			}
 		}
 	}
 
-	private String getString(String[] params, Map<String, String> map, String name) {
-		return params[Integer.parseInt(map.get(name)) - 1];
+	private void logError(TableType type, String path, String message) throws IOException {
+		File errorFolder = new File(path + "/errors");
+		if (!errorFolder.mkdir()) throw new IOException("Was not able to create folder " + errorFolder.getAbsolutePath());
+
+		File errorFile = new File(path + "/errors/" + type.name().toLowerCase(Locale.ROOT) + ".txt");
+		if (!errorFile.exists() && !errorFile.createNewFile())
+			throw new IOException("Was not able to create file " + errorFile.getAbsolutePath());
+
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(errorFile, true))) {
+			writer.write(message);
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+		}
 	}
 
-	private int getInt(String[] params, Map<String, String> map, String name) {
-		return Integer.parseInt(params[Integer.parseInt(map.get(name)) - 1]);
-	}
+	/**
+	 * Class contains methods that are frequently used in method saveObjectFromLine
+	 * and inner variables params and paramsMap,
+	 * it is made for passing less parameters to each method and better readability
+	 */
+	private static class MiniHelper {
+		private final String[] params;
+		private final Map<String, String> paramsMap;
 
-	private float getFloat(String[] params, Map<String, String> map, String name) {
-		return Float.parseFloat(params[Integer.parseInt(map.get(name)) - 1]);
-	}
-
-	private Blob getBlob(String[] params, Map<String, String> map, String name, String path)
-			throws NullPointerException, IOException, SQLException {
-		String pathToImages = path + "/images";
-		File[] files = new File(pathToImages).listFiles();
-		String fileName = getString(params, map, name);
-
-		if (files == null) throw new NullPointerException("Was not able to get images from path " + pathToImages);
-		for (File file : files) {
-			if (removeExtension(file.getName()).equals(fileName)) {
-				return Helper.fileToBlob(file);
-			}
+		public MiniHelper(String[] params, Map<String, String> paramsMap) {
+			this.params = params;
+			this.paramsMap = paramsMap;
 		}
 
-		return null;
-	}
+		public String getString(String name) {
+			return params[Integer.parseInt(paramsMap.get(name)) - 1];
+		}
 
-	private String removeExtension(String fileName) {
-		return fileName.substring(0, fileName.lastIndexOf("."));
-	}
+		public int getInt(String name) {
+			return Integer.parseInt(params[Integer.parseInt(paramsMap.get(name)) - 1]);
+		}
 
-//	private void logError(TableType type, String path, String message) throws IOException {
-//		File errorFolder = new File(path + "/errors");
-//		if (!errorFolder.mkdir()) throw new IOException("Was not able to create folder " + errorFolder.getAbsolutePath());
-//
-//		File errorFile = new File(path + "/errors/" + type.name().toLowerCase(Locale.ROOT) + ".txt");
-//		if (!errorFile.exists() && !errorFile.createNewFile())
-//			throw new IOException("Was not able to create file " + errorFile.getAbsolutePath());
-//		BufferedWriter writer = new BufferedWriter(new FileWriter(errorFile), );
-//	}
+		public float getFloat(String name) {
+			return Float.parseFloat(params[Integer.parseInt(paramsMap.get(name)) - 1]);
+		}
+
+		public Blob getBlob(String name, String path)
+				throws NullPointerException, IOException, SQLException {
+			String pathToImages = path + "/images";
+			File[] files = new File(pathToImages).listFiles();
+			String fileName = getString(name);
+
+			if (files == null) throw new NullPointerException("Was not able to get images from path " + pathToImages);
+			for (File file : files) {
+				if (removeExtension(file.getName()).equals(fileName)) {
+					return Helper.fileToBlob(file);
+				}
+			}
+
+			return null;
+		}
+
+		private String removeExtension(String fileName) {
+			return fileName.substring(0, fileName.lastIndexOf("."));
+		}
+	}
 
 	private enum LoadFrom {
 		FTP,

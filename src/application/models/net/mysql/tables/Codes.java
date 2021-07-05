@@ -60,6 +60,29 @@ public class Codes {
 		this.mask = mask;
 	}
 
+	public Codes(int id, String name, String prefix_val, String mask) {
+		this.id = id;
+		this.name = name;
+		this.prefix = 0;
+		this.code = 0;
+		this.unit = 0;
+		this.prefix_val = prefix_val;
+		this.mask = mask;
+		for (char symbol : mask.toCharArray()) {
+			switch (symbol) {
+				case 'P':
+					prefix++;
+					break;
+				case 'C':
+					code++;
+					break;
+				case 'U':
+					unit++;
+					break;
+			}
+		}
+	}
+
 	public static String getTable() {
 		String table = "barcodes";
 		return table;

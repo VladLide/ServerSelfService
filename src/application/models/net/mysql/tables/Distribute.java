@@ -534,11 +534,11 @@ public class Distribute {
 		return values;
 	}
 
-	public void save(MySQL db) {
+	public int save(MySQL db) {
 		String[] fields = getFields().toArray(new String[0]);
 		PackingDBValue[] values = getPackingDbValue();
 
-		db.insert(table, fields, values);
+		return db.insert(table, fields, values);
 	}
 
 	private enum Command {
