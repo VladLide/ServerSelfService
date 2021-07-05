@@ -429,6 +429,10 @@ public class Sections {
 		this.level = level;
 	}
 
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
 	public int getId_up() {
 		return id_up;
 	}

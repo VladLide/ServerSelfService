@@ -8,6 +8,7 @@ import application.models.net.mysql.SqlQueryBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -24,7 +25,6 @@ public class Distribute {
 	private float price = 0.0F;
 	private String description = "";
 	private boolean batch = false;
-	private Timer refreshTimer;
 	private static final String table = "distribute";
 	private static final String orderByColumn = "id_type_table";
 	private static final Logger logger = LogManager.getLogger(Distribute.class);
@@ -41,6 +41,57 @@ public class Distribute {
 		this.unique_item = unique_item;
 		this.id_scales = id_scales;
 
+		init();
+	}
+
+	public Distribute(ResultSet res) {
+		try {
+			this.id = res.getInt(1);
+			this.id_command = res.getInt(2);
+			this.id_type_table = res.getInt(3);
+			this.unique_item = res.getInt(4);
+			this.id_scales = res.getInt(5);
+			this.id_condition = res.getInt(6);
+			this.id_templates = res.getInt(7);
+			this.id_barcodes = res.getInt(8);
+			this.price = res.getFloat(9);
+			this.description = res.getString(10);
+			//in database column is tinyInt, so 0 -> false, non-zero -> true
+			this.batch = res.getInt(11) != 0;
+
+			init();
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
+
+	public Distribute(int id,
+	                  int id_command,
+	                  int id_type_table,
+	                  Integer unique_item,
+	                  int id_scales, int
+			                  id_condition,
+	                  int id_templates,
+	                  int id_barcodes,
+	                  float price,
+	                  String description,
+	                  int batch) {
+		this.id = id;
+		this.id_command = id_command;
+		this.id_type_table = id_type_table;
+		this.unique_item = unique_item;
+		this.id_scales = id_scales;
+		this.id_condition = id_condition;
+		this.id_templates = id_templates;
+		this.id_barcodes = id_barcodes;
+		this.price = price;
+		this.description = description;
+		this.batch = batch != 0;
+
+		init();
+	}
+
+	private void init() {
 		//fill intCommand hashMap
 		intCommandMap.put(1, Command.CREATE);
 		intCommandMap.put(2, Command.UPDATE);
@@ -58,39 +109,6 @@ public class Distribute {
 		intTypeTableMap.put(9, TypeTable.OBJECTS_TARA);
 		intTypeTableMap.put(10, TypeTable.BOTS_TELEGRAM);
 		intTypeTableMap.put(11, TypeTable.USERS_TELEGRAM);
-	}
-
-	public Distribute(ResultSet res) {
-		try {
-			this.id = res.getInt(1);
-			this.id_command = res.getInt(2);
-			this.id_type_table = res.getInt(3);
-			this.unique_item = res.getInt(4);
-			this.id_scales = res.getInt(5);
-			this.id_condition = res.getInt(6);
-			this.id_templates = res.getInt(7);
-			this.id_barcodes = res.getInt(8);
-			this.price = res.getFloat(9);
-			this.description = res.getString(10);
-			//in database column is tinyInt, so 0 -> false, non-zero -> true
-			this.batch = res.getInt(11) != 0;
-		} catch (SQLException e) {
-			logger.error(e.getMessage(), e);
-		}
-	}
-
-	public void start() {
-		if (refreshTimer == null) {
-			refreshTimer = new Timer();
-		}
-
-		refreshTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				logger.info("Starting a timer");
-				update();
-			}
-		}, 0, 1000);
 	}
 
 	public void update() {
@@ -166,7 +184,7 @@ public class Distribute {
 					}
 				}
 
-				MainCtrl.getDB().delete("distribute", distribute.getId());
+				MainCtrl.getDB().delete(table, distribute.getId());
 			}
 		}
 	}
@@ -483,6 +501,46 @@ public class Distribute {
 		}
 	}
 
+	public List<String> getFields() {
+		List<String> fields = new ArrayList<>();
+		fields.add(String.format("%s.%s", table, "id"));
+		fields.add(String.format("%s.%s", table, "id_command"));
+		fields.add(String.format("%s.%s", table, "id_type_table"));
+		fields.add(String.format("%s.%s", table, "unique_item"));
+		fields.add(String.format("%s.%s", table, "id_scales"));
+		fields.add(String.format("%s.%s", table, "id_condition"));
+		fields.add(String.format("%s.%s", table, "id_templates"));
+		fields.add(String.format("%s.%s", table, "id_barcodes"));
+		fields.add(String.format("%s.%s", table, "price"));
+		fields.add(String.format("%s.%s", table, "description"));
+		fields.add(String.format("%s.%s", table, "batch"));
+
+		return fields;
+	}
+
+	private PackingDBValue[] getPackingDbValue() {
+		PackingDBValue[] values = new PackingDBValue[11];
+		values[0] = new PackingDBValue("id", "I", this.id);
+		values[1] = new PackingDBValue("id_command", "I", this.id_command);
+		values[2] = new PackingDBValue("id_type_table", "I", this.id_type_table);
+		values[3] = new PackingDBValue("unique_item", "I", this.unique_item);
+		values[4] = new PackingDBValue("id_scales", "I", this.id_scales);
+		values[5] = new PackingDBValue("id_condition", "I", this.id_condition);
+		values[6] = new PackingDBValue("id_templates", "I", this.id_templates);
+		values[7] = new PackingDBValue("id_barcodes", "I", this.id_barcodes);
+		values[8] = new PackingDBValue("price", "F", this.price);
+		values[9] = new PackingDBValue("description", "S", this.description);
+		values[10] = new PackingDBValue("batch", "BL", this.batch);
+		return values;
+	}
+
+	public void save(MySQL db) {
+		String[] fields = getFields().toArray(new String[0]);
+		PackingDBValue[] values = getPackingDbValue();
+
+		db.insert(table, fields, values);
+	}
+
 	private enum Command {
 		CREATE,
 		UPDATE,
@@ -522,7 +580,6 @@ public class Distribute {
 				", price=" + price +
 				", description='" + description + '\'' +
 				", batch=" + batch +
-				", refreshTimer=" + refreshTimer +
 				'}';
 	}
 }

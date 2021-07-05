@@ -185,6 +185,11 @@ public class MySQL {
 						pstm.setBlob(index++, (Blob) string.data);
 					break;
 				}
+				case "BL":{
+					if(string.data==null) { pstm.setBoolean(index++, false);}
+					else pstm.setBoolean(index++, (Boolean)string.data);
+					break;
+				}
 				case "DT": {
 					if (string.data == null) {
 						pstm.setTimestamp(index++,

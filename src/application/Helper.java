@@ -14,6 +14,11 @@ import javafx.scene.control.TableView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.sql.rowset.serial.SerialBlob;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -192,6 +197,11 @@ public final class Helper {
 		} catch (NumberFormatException e) {
 			return false;
 		}
+	}
+
+	public static Blob fileToBlob(File file) throws IOException, SQLException {
+		byte[] bytes = Files.readAllBytes(file.toPath());
+		return new SerialBlob(bytes);
 	}
 }
 
