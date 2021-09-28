@@ -1,11 +1,11 @@
-package application.models.net.mysql.interface_tables;
+package application.models.net.database.mysql.interface_tables;
 
 import application.enums.ScaleStatus;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Scales;
 import application.controllers.MainCtrl;
 import application.controllers.windows.MainWindowCtrl;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Scales;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

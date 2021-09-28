@@ -4,7 +4,7 @@ import application.enums.CurrentItemSendTo;
 import application.controllers.MainCtrl;
 import application.models.Configs;
 import application.models.Utils;
-import application.models.net.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.database.mysql.interface_tables.ScaleItemMenu;
 import application.models.objectinfo.ItemContent;
 import application.views.languages.uk.parts.ContentInfo;
 import javafx.collections.FXCollections;

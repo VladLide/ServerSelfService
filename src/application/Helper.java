@@ -1,12 +1,12 @@
 package application;
 
 import application.enums.*;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.SqlQueryBuilder;
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Sections;
-import application.models.net.mysql.tables.Templates;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.SqlQueryBuilder;
+import application.models.net.database.mysql.tables.Codes;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Sections;
+import application.models.net.database.mysql.tables.Templates;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollBar;

@@ -18,7 +18,7 @@ public class TemplatePanelCtrl {
 	private ResourceBundle resources;
 
 	@FXML
-	private URL location = getClass().getResource(Utils.getView("forms", "TemplatePanel"));
+	private URL location = getClass().getResource(Utils.getView("part", "TemplatePanel"));
 
 	@FXML
 	private AnchorPane template;

@@ -1,11 +1,12 @@
 package application.models.template;
 
-import application.models.net.mysql.tables.Codes;
 import org.krysalis.barcode4j.BarcodeDimension;
 import org.krysalis.barcode4j.HumanReadablePlacement;
 import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
 import org.krysalis.barcode4j.impl.upcean.EAN13Bean;
 import org.krysalis.barcode4j.output.java2d.Java2DCanvasProvider;
+
+import application.models.net.database.mysql.tables.Codes;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

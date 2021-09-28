@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import application.models.net.mysql.MySQL;
+import application.models.net.database.mysql.MySQL;
 
 public class ControllerData {
 	public static void setValue(ResultSet res, Object obj) {

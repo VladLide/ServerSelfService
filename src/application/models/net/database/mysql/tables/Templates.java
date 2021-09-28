@@ -1,10 +1,10 @@
-package application.models.net.mysql.tables;
+package application.models.net.database.mysql.tables;
 
 import application.controllers.parts.TemplatePanelCtrl;
 import application.controllers.windows.TemplateCtrl;
 import application.models.TextBox;
 import application.models.net.PackingDBValue;
-import application.models.net.mysql.MySQL;
+import application.models.net.database.mysql.MySQL;
 import application.models.template.*;
 import application.views.languages.uk.windows.TemplateInfo;
 import com.google.zxing.WriterException;

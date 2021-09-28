@@ -2,9 +2,10 @@ package application.models.net;
 
 import application.Helper;
 import application.models.Utils;
-import application.models.net.mysql.tables.Distribute;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Scales;
+import application.models.net.database.mysql.tables.Distribute;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Scales;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.logging.log4j.LogManager;

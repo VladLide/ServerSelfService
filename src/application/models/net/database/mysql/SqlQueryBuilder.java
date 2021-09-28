@@ -1,4 +1,4 @@
-package application.models.net.mysql;
+package application.models.net.database.mysql;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -1,4 +1,4 @@
-package application.models.net.mysql.tables;
+package application.models.net.database.mysql.tables;
 
 public class Const {
 	public static final String SECTION_TABLE = "sections";

@@ -1,10 +1,11 @@
-package application.models.net.mysql.tables;
+package application.models.net.database.mysql.tables;
 
 import application.Converter;
 import application.controllers.MainCtrl;
 import application.models.net.PackingDBValue;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.SqlQueryBuilder;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.SqlQueryBuilder;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -503,7 +504,7 @@ public class Distribute {
 
 	public List<String> getFields() {
 		List<String> fields = new ArrayList<>();
-		fields.add(String.format("%s.%s", table, "id"));
+		if (id > 0) fields.add(String.format("%s.%s", table, "id"));
 		fields.add(String.format("%s.%s", table, "id_command"));
 		fields.add(String.format("%s.%s", table, "id_type_table"));
 		fields.add(String.format("%s.%s", table, "unique_item"));
@@ -520,7 +521,7 @@ public class Distribute {
 
 	private PackingDBValue[] getPackingDbValue() {
 		PackingDBValue[] values = new PackingDBValue[11];
-		values[0] = new PackingDBValue("id", "I", this.id);
+		if (id > 0) values[0] = new PackingDBValue("id", "I", this.id);
 		values[1] = new PackingDBValue("id_command", "I", this.id_command);
 		values[2] = new PackingDBValue("id_type_table", "I", this.id_type_table);
 		values[3] = new PackingDBValue("unique_item", "I", this.unique_item);

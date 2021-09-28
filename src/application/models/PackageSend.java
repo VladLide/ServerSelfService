@@ -1,6 +1,6 @@
 package application.models;
 
-import application.models.net.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.database.mysql.interface_tables.ScaleItemMenu;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 

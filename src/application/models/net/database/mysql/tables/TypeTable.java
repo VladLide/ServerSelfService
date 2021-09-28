@@ -1,49 +1,49 @@
-package application.models.net.mysql.tables;
+package application.models.net.database.mysql.tables;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import application.models.net.PackingDBValue;
 import application.models.net.UtilsNet;
-import application.models.net.mysql.MySQL;
+import application.models.net.database.mysql.MySQL;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public class Command {
+public class TypeTable {
 	private int id = 1;
+	private String type = "";
 	private String name = "";
-	private String description = "";
 
 	public static String getTable() {
 		String table = "type_table";
 		return table;
 	}
 
-	public Command() {}
+	public TypeTable() {}
 
-	public Command(int id, String name, String description) {
+	public TypeTable(int id, String type, String name) {
 		super();
 		this.id = id;
+		this.type = type;
 		this.name = name;
-		this.description = description;
 	}
 
-	public Command(ResultSet res) {
+	public TypeTable(ResultSet res) {
 		super();
 		UtilsNet.setValue(res, this, getClass().getDeclaredFields());
 	}
 
-	public static Command get(int id, String name, MySQL db) {
-		ObservableList<Command> result = Command.getList(id, name, db);
+	public static TypeTable get(int id, String type, String name, MySQL db) {
+		ObservableList<TypeTable> result = TypeTable.getList(id, type, name, db);
 		return result.isEmpty() ? null : result.get(0);
 	}
 
-	public static ObservableList<Command> getList(int id, String name, MySQL db) {
-		ResultSet resul = db.getSelect(Command.getSql(id, name));
-		ObservableList<Command> rows = FXCollections.observableArrayList();
+	public static ObservableList<TypeTable> getList(int id, String type, String name, MySQL db) {
+		ResultSet resul = db.getSelect(TypeTable.getSql(id, type, name));
+		ObservableList<TypeTable> rows = FXCollections.observableArrayList();
 		try {
 			while (resul.next()) {
-				rows.add(new Command(resul));
+				rows.add(new TypeTable(resul));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -51,12 +51,12 @@ public class Command {
 		return rows;
 	}
 
-	public static ObservableList<Object> getListObj(int id, String name, MySQL db) {
-		ResultSet resul = db.getSelect(Command.getSql(id, name));
+	public static ObservableList<Object> getListObj(int id, String type, String name, MySQL db) {
+		ResultSet resul = db.getSelect(TypeTable.getSql(id, type, name));
 		ObservableList<Object> rows = FXCollections.observableArrayList();
 		try {
 			while (resul.next()) {
-				rows.add(new Command(resul));
+				rows.add(new TypeTable(resul));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -64,14 +64,18 @@ public class Command {
 		return rows;
 	}
 
-	public static String getSql(int id, String name) {
+	public static String getSql(int id, String type, String name) {
 		String table = getTable();
 		String sql = "SELECT * FROM " + table;
-		if (id > 0 || !name.isEmpty())
+		if (id > 0 || !type.isEmpty() || !name.isEmpty())
 			sql += " WHERE ";
 		if (id > 0)
 			sql += table + ".id = " + id;
-		if (id > 0 && !name.isEmpty())
+		if (id > 0 && (!type.isEmpty() || !name.isEmpty()))
+			sql += " AND ";
+		if (!type.isEmpty())
+			sql += table + ".type = '" + type + "'";
+		if (!type.isEmpty() && !name.isEmpty())
 			sql += " AND ";
 		if (!name.isEmpty())
 			sql += table + ".name = '" + name + "'";
@@ -81,7 +85,7 @@ public class Command {
 
 	public int save(MySQL db) {
 		String table = getTable();
-		Command isNew = Command.get(id, "", db);
+		TypeTable isNew = TypeTable.get(id, "", "", db);
 		String[] fields = UtilsNet.getFields(table, getClass().getDeclaredFields()).toArray(new String[0]);
 		PackingDBValue[] values = UtilsNet.getValues(getClass().getDeclaredFields(), this);
 		if (isNew == null) {
@@ -94,21 +98,21 @@ public class Command {
 
 	public void updateId(int id, MySQL db) {
 		String table = getTable();
-		Command isNew = Command.get(id, "", db);
+		TypeTable isNew = TypeTable.get(id, "", "", db);
 		if (isNew == null)
 			db.update(table, new String[] {(table + ".id")},
 					PackingDBValue.get(new String[] {"int"}, new Object[] {id}),
 					new String[] { table + ".id = " + getId() });
-		if (Command.get(id, "", db) != null)
+		if (TypeTable.get(id, "", "", db) != null)
 			this.setId(id);
 	}
 
 	public boolean delete(MySQL db) {
 		String table = getTable();
-		if (Command.get(id, "", db) != null) {
+		if (TypeTable.get(id, "", "", db) != null) {
 			db.delete(table, new String[] {table + ".id ='" + id + "'"});
 		}
-		return Command.get(id, "", db) == null;
+		return TypeTable.get(id, "", "", db) == null;
 	}
 
 	public int getId() {
@@ -119,20 +123,20 @@ public class Command {
 		this.id = id;
 	}
 
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
 	public String getName() {
 		return name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
 	}
 
 }

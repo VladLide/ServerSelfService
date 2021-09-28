@@ -1,4 +1,4 @@
-package application.models.net.mysql.interface_tables;
+package application.models.net.database.mysql.interface_tables;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,12 +15,12 @@ import java.sql.SQLException;
 import javax.sql.rowset.serial.SerialBlob;
 import javax.sql.rowset.serial.SerialException;
 
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Sections;
-import application.models.net.mysql.tables.Stocks;
-import application.models.net.mysql.tables.Templates;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.tables.Codes;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Sections;
+import application.models.net.database.mysql.tables.Stocks;
+import application.models.net.database.mysql.tables.Templates;
 import application.views.languages.uk.windows.ProductInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

@@ -1,11 +1,11 @@
 package application;
 
-import application.models.net.mysql.tables.*;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import application.models.net.database.mysql.tables.*;
 
 public final class Converter {
 

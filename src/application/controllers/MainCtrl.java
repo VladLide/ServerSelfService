@@ -8,10 +8,10 @@ import application.enums.TableType;
 import application.models.Configs;
 import application.models.PackageSend;
 import application.models.net.ConfigNet;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.database.mysql.tables.*;
 import application.models.net.ftp.FTP;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.mysql.tables.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -89,7 +89,7 @@ public class MainCtrl {
 					});
 				}
 
-				loadFiles();
+				//loadFiles();
 
 				timeout.incrementAndGet();
 			}
@@ -213,12 +213,13 @@ public class MainCtrl {
 					String fileData = getInstance().readFile(file)
 							.orElseThrow(() -> new IOException("Was not able to get lines from file " + file.getAbsolutePath()));
 					String[] lines = fileData
-							.replace("\n", "")
-							.split(mainSys.get(separatorKey));
+							//.replace("\n", "")
+							.split(System.lineSeparator());//mainSys.get(separatorKey));
 
 					//each line from file is object which is needed to be saved to database
 					for (String line : lines) {
-						getInstance().saveObjectFromLine(configForFile, line, path);
+						if (!line.startsWith("#"))
+							getInstance().saveObjectFromLine(configForFile, line, path);
 					}
 				}
 			} else {
@@ -294,12 +295,13 @@ public class MainCtrl {
 				Map<String, String> map = new HashMap<>();
 				String fileInsides = readFile(file)
 						.orElseThrow(() -> new IOException("Was not able to read file " + file.getAbsolutePath()));
-				String[] lines = fileInsides.split("\n");
+				String[] lines = fileInsides.split(System.lineSeparator()/*"\n"*/);
 
 				for (String line : lines) {
 					String[] keyValue = line.split("=");
-
-					map.put(keyValue[0], keyValue[1]);
+					if (keyValue.length > 1) {
+						map.put(keyValue[0], keyValue[1]);
+					}
 				}
 
 				String nameWithExtension = file.getName();
@@ -352,7 +354,7 @@ public class MainCtrl {
 	 */
 	private void saveObjectFromLine(LoadConfigFile configFile, String line, String path)
 			throws SQLException, IOException, NullPointerException {
-		String[] params = line.split(",");//split line to individual parameters
+		String[] params = line.split(mainSys.get(separatorKey)/*","*/);//split line to individual parameters
 		Map<String, String> paramsMap = configFile.getMap();//get hashMap which maps data in params to database columns
 		MiniHelper miniHelper = new MiniHelper(params, paramsMap);
 
@@ -388,8 +390,11 @@ public class MainCtrl {
 			case GOODS: {
 				Map<String, String> map = new HashMap<>();
 				for (Map.Entry<String, String> entry : paramsMap.entrySet()) {
-
-					map.put(entry.getKey(), miniHelper.getString(entry.getKey()));
+					try {
+						map.put(entry.getKey(), miniHelper.getString(entry.getKey()));
+					}catch (Exception e) {
+						logger.error(e.getMessage(), e);
+					}
 				}
 
 				Goods goods = new Goods(map, new int[]{0, 0});
@@ -497,7 +502,11 @@ public class MainCtrl {
 		}
 
 		public int getInt(String name) {
-			return Integer.parseInt(params[Integer.parseInt(paramsMap.get(name)) - 1]);
+			try {
+				return Integer.parseInt(params[Integer.parseInt(paramsMap.get(name)) - 1]);
+			}catch (Exception e) {
+				return 0;
+			}
 		}
 
 		public float getFloat(String name) {

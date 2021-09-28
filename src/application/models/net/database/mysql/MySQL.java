@@ -1,4 +1,4 @@
-package application.models.net.mysql;
+package application.models.net.database.mysql;
 
 import application.models.TextBox;
 import application.models.net.ConfigNet;

@@ -1,4 +1,4 @@
-package application.models.net.mysql.tables;
+package application.models.net.database.mysql.tables;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
@@ -12,7 +12,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import application.models.net.PackingDBValue;
-import application.models.net.mysql.MySQL;
+import application.models.net.database.mysql.MySQL;
 import application.models.objectinfo.Info2Col;
 import application.models.PasswordGenerator;
 import javafx.collections.FXCollections;

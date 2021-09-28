@@ -1,7 +1,7 @@
-package application.models.net.mysql.tables;
+package application.models.net.database.mysql.tables;
 
 import application.models.net.PackingDBValue;
-import application.models.net.mysql.MySQL;
+import application.models.net.database.mysql.MySQL;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;

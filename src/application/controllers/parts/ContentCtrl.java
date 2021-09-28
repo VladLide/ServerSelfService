@@ -9,10 +9,10 @@ import application.enums.*;
 import application.models.Configs;
 import application.models.PackageSend;
 import application.models.Utils;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.SqlQueryBuilder;
-import application.models.net.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.mysql.tables.*;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.SqlQueryBuilder;
+import application.models.net.database.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.database.mysql.tables.*;
 import application.models.objectinfo.ItemContent;
 import application.models.objectinfo.NodeTree;
 import application.views.languages.uk.parts.ContentInfo;
@@ -560,7 +560,7 @@ public class ContentCtrl {
 	 * @param scrollBar object at which we will set new block position
 	 */
 	private void addAtTheEnd(ScrollBar scrollBar) {
-		if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize
+		/*if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize
 				|| databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP) {
 			double targetValue = scrollBar.getValue() * showList.size();
 			int limit = STEP;
@@ -575,6 +575,43 @@ public class ContentCtrl {
 			// doesn't do anything but, if we load more than delete we will need this
 			double value = targetValue / showList.size();
 			scrollBar.setValue(value);
+		} else {
+			tableHasMore = false;
+		}*/
+		if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize) {
+			double targetValue = scrollBar.getValue() * showList.size();
+			int limit = STEP;
+			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
+			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
+			logger.info("Limit {}, offset {}, initialIndex {}", limit, offset, initialIndex);
+
+			showList.addAll(ItemContent
+					.get(FXCollections.observableArrayList(
+							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
+							initialIndex));
+			//we are setting value, but later after deletion items we reset it to another, so this part at this time
+			// doesn't do anything but, if we load more than delete we will need this
+			double value = targetValue / showList.size();
+			logger.debug("Setting value {}", value);
+			scrollBar.setValue(value);
+		} else if (databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP) {
+			//todo fix code repeating
+			double targetValue = scrollBar.getValue() * showList.size();
+			int limit = STEP;
+			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
+			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
+			logger.info("Limit {}, offset {}, initialIndex {}", limit, offset, initialIndex);
+
+			showList.addAll(ItemContent
+					.get(FXCollections.observableArrayList(
+							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
+							initialIndex));
+			//we are setting value, but later after deletion items we reset it to another, so this part at this time
+			// doesn't do anything but, if we load more than delete we will need this
+			double value = targetValue / showList.size();
+			logger.debug("Setting value {}", value);
+			scrollBar.setValue(value);
+			tableHasMore = false;
 		} else {
 			tableHasMore = false;
 		}

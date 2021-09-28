@@ -1,4 +1,4 @@
-package application.models.net.mysql.tables;
+package application.models.net.database.mysql.tables;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,50 +18,49 @@ import javax.sql.rowset.serial.SerialBlob;
 import javax.sql.rowset.serial.SerialException;
 
 import application.models.net.PackingDBValue;
-import application.models.net.mysql.MySQL;
+import application.models.net.database.mysql.MySQL;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BackgroundSize;
 
-public class ObjectsTara {
+public class Sections {
 	private int id = 0;
+	private int id_up = 0;
+	private int level = 0;
 	private String name = "";
-	private String description = "";
-	private float tara = 0;
 	private Blob img_data = null;
+	private String description = "";
+	private int number_s = 0;
+	private int number_po = 0;
 
 	public static String getTable() {
-		String table = "objects_tara";
+		String table = "sections";
 		return table;
 	}
 
 	public List<String> getFields() {
-		ObjectsTara me = this;
+		Sections me = this;
 		String table = getTable();
 		List<String> fields = new ArrayList<String>();
 		try {
 			for (Field f : me.getClass().getDeclaredFields()) {
-				if (f.getName() == "inst" || f.getName() == "db")
-					continue;
 				System.out.println(table + "." + f.getName());
 				fields.add(table + "." + f.getName());
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println(getTable() + ": " + e.getMessage());
 		}
 		return fields;
 	}
 
 	public PackingDBValue[] getValues() {
-		ObjectsTara me = this;
+		Sections me = this;
 		PackingDBValue[] values = new PackingDBValue[me.getClass().getDeclaredFields().length];
 		int i = 0;
 		for (Field f : me.getClass().getDeclaredFields()) {
 			try {
-				if (f.getName() == "inst" || f.getName() == "db")
-					continue;
 				String type = f.getType().getTypeName().replace(".", " ");
 				if (type.split(" ").length > 0) {
 					String[] typ = type.split(" ");
@@ -87,24 +86,31 @@ public class ObjectsTara {
 					System.out.println(getTable() + ": type was not found " + f.getName() + ":" + f.getType());
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				System.out.println(getTable() + ": " + e.getMessage());
 			}
 		}
 		return values;
 	}
 
-	public ObjectsTara(ResultSet res, MySQL db) {
+	public Sections() {}
+
+	public Sections(int id, String name) {
 		super();
-		// inst = this;
+		this.id = id;
+		this.name = name;
+	}
+
+	public Sections(ResultSet res, boolean img) {
+		super();
 		for (Field f : getClass().getDeclaredFields()) {
 			try {
-				if (f.getName() == "inst")
-					continue;
 				String type = f.getType().getTypeName().replace(".", " ");
 				if (type.split(" ").length > 0) {
 					String[] typ = type.split(" ");
 					type = typ[typ.length - 1];
 				}
+				if (!img && type.compareTo("Blob") == 0)
+					continue;
 				switch (type) {
 				case "int":
 					f.set(this, res.getInt(res.findColumn(f.getName())));
@@ -125,163 +131,177 @@ public class ObjectsTara {
 					System.out.println(getTable() + ": type was not found " + f.getName() + ":" + f.getType());
 				}
 			} catch (Exception e) {
-				System.out.println(getTable() + ": " + e);
+				System.out.println(getTable() + ": " + e.getMessage());
 			}
 		}
 	}
 
-	public ObjectsTara() {}
-
-	public static ObjectsTara get(int sort, int id, String name, MySQL db) {
-		ResultSet resul = db.getSelect(ObjectsTara.getSql(sort, id, name));
-		ObjectsTara row = null;
+	public static Sections get(int id, int id_up, int level, String name, boolean img, MySQL db) {
+		ResultSet resul = db.getSelect(Sections.getSql(id, id_up, level, name, img));
+		Sections res = null;
 		try {
 			while (resul.next()) {
-				row = new ObjectsTara(resul, db);
+				res = new Sections(resul, img);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println(getTable() + ": " + e.getMessage());
+		}
+		return res;
+	}
+
+	public static ObservableList<Sections> getList(int id, int id_up, int level, String name, boolean img, MySQL db) {
+		ResultSet resul = db.getSelect(Sections.getSql(id, id_up, level, name, img));
+		ObservableList<Sections> row = FXCollections.observableArrayList();
+		try {
+			while (resul.next()) {
+				row.add(new Sections(resul, img));
+			}
+		} catch (SQLException e) {
+			System.out.println(getTable() + ": " + e.getMessage());
 		}
 		return row;
 	}
 
-	public static ObservableList<ObjectsTara> getList(int sort, int id, String name, MySQL db) {
-		ResultSet resul = db.getSelect(ObjectsTara.getSql(sort, id, name));
-		ObservableList<ObjectsTara> row = FXCollections.observableArrayList();
-		try {
-			while (resul.next()) {
-				row.add(new ObjectsTara(resul, db));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return row;
-	}
-
-	public static ObservableList<Object> getListObj(int sort, int id, String name, MySQL db) {
-		ResultSet resul = db.getSelect(ObjectsTara.getSql(sort, id, name));
+	public static ObservableList<Object> getListObj(int id, int id_up, int level, String name, boolean img, MySQL db) {
+		ResultSet resul = db.getSelect(Sections.getSql(id, id_up, level, name, img));
 		ObservableList<Object> row = FXCollections.observableArrayList();
 		try {
 			while (resul.next()) {
-				row.add(new ObjectsTara(resul, db));
+				row.add(new Sections(resul, img));
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println(getTable() + ": " + e.getMessage());
 		}
 		return row;
 	}
 
-	public static ObservableList<ObjectsTara> getInfo(int sort, int id, String name, MySQL db) {
-		ResultSet resul = db.getSelect(ObjectsTara.getSqlInfo(sort, id, name));
-		ObservableList<ObjectsTara> row = FXCollections.observableArrayList();
+	public static ObservableList<String> getLName(MySQL db) {
+		ResultSet resul = db.getSelect(Sections.getSql(0, -1, 0, "", false));
+		ObservableList<String> row = FXCollections.observableArrayList();
 		try {
 			while (resul.next()) {
-				row.add(new ObjectsTara(resul, db));
+				row.add(resul.getString("name"));
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println(getTable() + ": " + e.getMessage());
 		}
 		return row;
 	}
 
-	public static String getSql(int sort, int id, String name) {
-		String table = getTable();
-		String sql = "SELECT * FROM " + table;
-		if ((id > 0) || (name.length() > 0))
-			sql += " WHERE ";
-		if ((id > 0))
-			sql += table + ".id = " + id;
-		if ((id > 0) && (name.length() > 0))
-			sql += " AND ";
-		if ((name.length() > 0))
-			sql += table + ".name = '" + name + "'";
-		switch (sort) {
-		case 0:
-			sql += " ORDER BY " + table + ".id";
-			break;
+	public static String getSqlHeader(int type) {
+		String sql = "*";
+		switch (type) {
 		case 1:
-			sql += " ORDER BY " + table + ".name";
+			sql = "id, id_up, level, name, description, number_s, number_po";
 			break;
-		case 2:
-			sql += " ORDER BY " + table + ".tara";
-			break;
+
 		default:
-			sql += " ORDER BY " + table + ".id";
 			break;
 		}
 		return sql;
 	}
 
-	public static String getSqlInfo(int sort, int id, String name) {
+	public static String getSql(int id, int id_up, int level, String name, boolean img) {
 		String table = getTable();
-		String sql = "SELECT id, name, description, tara FROM " + table;
-		if ((id > 0) || (name.length() > 0))
+		String sql = "SELECT " + getSqlHeader(img ? 0 : 1) + " FROM " + table;
+		if (id > 0 || id_up >= 0 || level > 0 || name.length() > 0)
 			sql += " WHERE ";
-		if ((id > 0))
+		if (id > 0)
 			sql += table + ".id = " + id;
-		if ((id > 0) && (name.length() > 0))
+		if (id > 0 && (id_up >= 0 || level > 0 || name.length() > 0))
 			sql += " AND ";
-		if ((name.length() > 0))
+		if (id_up >= 0)
+			sql += table + ".id_up = " + id_up;
+		if (id_up >= 0 && (level > 0 || name.length() > 0))
+			sql += " AND ";
+		if (level > 0)
+			sql += table + ".level = " + level;
+		if (level > 0 && name.length() > 0)
+			sql += " AND ";
+		if (name.length() > 0)
 			sql += table + ".name = '" + name + "'";
-		switch (sort) {
-		case 0:
-			sql += " ORDER BY " + table + ".id";
-			break;
-		case 1:
-			sql += " ORDER BY " + table + ".name";
-			break;
-		case 2:
-			sql += " ORDER BY " + table + ".tara";
-			break;
-		default:
-			sql += " ORDER BY " + table + ".id";
-			break;
-		}
 		return sql;
 	}
 
 	public int save(MySQL db) {
 		String table = getTable();
-		ObjectsTara isNew = ObjectsTara.get(0, id, "", db);
+		Sections isNew = Sections.get(0, -1, 0, name, false, db);
 		String[] fields = getFields().toArray(new String[0]);
-		PackingDBValue[] values = getValues();
 		if (isNew == null) {
-			db.insert(table, fields, values);
+			db.insert(table, fields, getValues());
 		} else {
-			db.update(table, fields, values, new String[] { table + ".id =" + isNew.getId() });
+			db.update(table, fields, getValues(), new String[] { table + ".id =" + isNew.getId() });
 		}
-		ObjectsTara tmp = ObjectsTara.get(0, id, "", db);
+		Sections tmp = Sections.get(0, -1, 0, name, false, db);
 		id = tmp != null ? tmp.getId() : -1;
 		return id;
 	}
 
-	public boolean updateId(int id, MySQL db) {
+	public void updateId(int id, MySQL db) {
 		String table = getTable();
-		ObjectsTara isNew = ObjectsTara.get(0, id, "", db);
-		if (isNew == null)
+		ObservableList<Sections> down = Sections.getList(0, this.id, 0, "", false, db);
+		if (Sections.get(id, -1, 0, "", false, db) == null) {
 			db.update(table, new String[] { (table + ".id") },
 					PackingDBValue.get(new String[] { "int" }, new Object[] { id }),
 					new String[] { table + ".id = " + this.id });
-		isNew = ObjectsTara.get(0, id, "", db);
-		if (isNew != null)
-			this.id = id;
-		return isNew != null;
-	}
-	/*public boolean updateName(String name,MySQL db) {
-		String table = getTable();
-		ObjectsTara isNew = ObjectsTara.get(0,0,name,db);
-		if(isNew==null)db.update(table,new String[]{(table+".name")}, PackingDBValue.get(new String[] {"String"}, new Object[] {name}), new String[]{table+".name = '"+this.name+"'"});
-		isNew = ObjectsTara.get(0,0,name,db);
-		if(isNew!=null)this.name = name;
-		return isNew!=null;
-	}*/
-	public boolean delete(MySQL db) {
-		String table = getTable();
-		if (id > 0) {
-			db.delete(table, new String[] { table + ".id ='" + id + "'" });
+			Sections isNew = Sections.get(id, -1, 0, "", false, db);
+			if (isNew != null) {
+				this.setId(id);
+				down.forEach((v) -> {
+					v.setId_up(id);
+					v.setLevel(isNew.getLevel() + 1, db);
+					v.save(db);
+				});
+			}
 		}
-		ObjectsTara old = ObjectsTara.get(0, id, "", db);
-		return old == null;
+	}
+
+	public void updateName(String name, MySQL db) {
+		Sections me = this;
+		String table = getTable();
+		Sections isNew = Sections.get(0, -1, 0, name, false, db);
+		if (isNew == null)
+			db.update(table, new String[] { (table + ".name") },
+					PackingDBValue.get(new String[] { "String" }, new Object[] { name }),
+					new String[] { table + ".name = '" + me.getName() + "'" });
+		if (Sections.get(0, -1, 0, name, false, db) != null)
+			this.setName(name);
+	}
+
+	public boolean delete(boolean delDownId, MySQL db) {
+		if (delDownId) {
+			ObservableList<Sections> down = Sections.getList(0, this.id, 0, "", false, db);
+			down.forEach((v) -> {
+				v.delete(true, db);
+			});
+			String table = getTable();
+			if (id > 0) {
+				db.delete(table, new String[] { table + ".name ='" + name + "'" });
+			}
+		} else {
+			Sections up = Sections.get(this.id_up, -1, 0, "", false, db);
+			ObservableList<Sections> down = Sections.getList(0, this.id, 0, "", false, db);
+			down.forEach((v) -> {
+				if (up != null) {
+					v.setLevel(up.getLevel() + 1, db);
+					v.setId_up(up.getId());
+				} else {
+					v.setLevel(0, db);
+					v.setId_up(0);
+				}
+				v.save(db);
+			});
+			String table = getTable();
+			if (id > 0) {
+				db.delete(table, new String[] { table + ".name ='" + name + "'" });
+			}
+		}
+		return (Sections.get(0, -1, 0, name, false, db) == null) ? true : false;
+	}
+
+	@Override
+	public String toString() {
+		return name;
 	}
 
 	public Image getImage(AnchorPane panel) {
@@ -356,6 +376,22 @@ public class ObjectsTara {
 		this.name = name;
 	}
 
+	public int getNumber_s() {
+		return number_s;
+	}
+
+	public void setNumber_s(int number_s) {
+		this.number_s = number_s;
+	}
+
+	public int getNumber_po() {
+		return number_po;
+	}
+
+	public void setNumber_po(int number_po) {
+		this.number_po = number_po;
+	}
+
 	public int getId() {
 		return id;
 	}
@@ -380,19 +416,28 @@ public class ObjectsTara {
 		this.description = description;
 	}
 
-	public float getTara() {
-		return tara;
+	public int getLevel() {
+		return level;
 	}
 
-	public String getStringTara() {
-		String realT = tara + "";
-		while ((realT.length() - 1 - realT.indexOf(".")) < 3) {
-			realT += "0";
-		}
-		return realT;
+	public void setLevel(int level, MySQL db) {
+		ObservableList<Sections> down = Sections.getList(0, this.id, 0, "", false, db);
+		down.forEach((v) -> {
+			v.setLevel(level + 1, db);
+			v.save(db);
+		});
+		this.level = level;
 	}
 
-	public void setTara(float tara) {
-		this.tara = tara;
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	public int getId_up() {
+		return id_up;
+	}
+
+	public void setId_up(int id_up) {
+		this.id_up = id_up;
 	}
 }

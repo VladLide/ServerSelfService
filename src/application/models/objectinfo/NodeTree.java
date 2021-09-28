@@ -1,6 +1,6 @@
 package application.models.objectinfo;
 
-import application.models.net.mysql.tables.Sections;
+import application.models.net.database.mysql.tables.Sections;
 import javafx.geometry.Insets;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;

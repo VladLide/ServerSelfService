@@ -1,12 +1,12 @@
 package application.models.objectinfo;
 
 import application.controllers.windows.MainWindowCtrl;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Sections;
-import application.models.net.mysql.tables.Templates;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.database.mysql.tables.Codes;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Sections;
+import application.models.net.database.mysql.tables.Templates;
 import application.views.languages.uk.windows.ProductInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -145,7 +145,11 @@ public class ItemContent {
 	}
 
 	public String getType() {
-		return ProductInfo.unit.get(type);
+		try {
+			return ProductInfo.unit.get(type);
+		} catch (Exception e) {
+			return type+"";
+		}
 	}
 
 	public void setType(int type) {

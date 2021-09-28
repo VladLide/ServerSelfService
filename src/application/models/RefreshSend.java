@@ -1,8 +1,8 @@
 package application.models;
 
 import application.controllers.MainCtrl;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.tables.*;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.tables.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 

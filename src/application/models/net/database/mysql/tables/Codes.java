@@ -1,4 +1,4 @@
-package application.models.net.mysql.tables;
+package application.models.net.database.mysql.tables;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import application.models.net.PackingDBValue;
-import application.models.net.mysql.MySQL;
+import application.models.net.database.mysql.MySQL;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
