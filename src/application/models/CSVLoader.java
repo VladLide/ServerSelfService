@@ -15,10 +15,11 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Scales;
-import au.com.bytecode.opencsv.CSVReader;
+import com.opencsv.CSVReader;
+
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Scales;
 
 /**
  * 

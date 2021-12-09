@@ -2,14 +2,15 @@ package application.controllers.windows;
 
 import application.*;
 import application.controllers.MainCtrl;
+import application.controllers.parts.ContentCtrl;
 import application.enums.Operation;
 import application.enums.OperationStatus;
 import application.enums.PlaceType;
 import application.enums.SectionType;
 import application.models.*;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Templates;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.tables.Codes;
+import application.models.net.database.mysql.tables.Templates;
 import application.models.objectinfo.ItemTemplate;
 import application.models.template.*;
 import application.views.languages.uk.windows.TemplateInfo;
@@ -71,7 +72,7 @@ public class TemplateCtrl {
 	private String ipAddress;
 	private PlaceType placeType;
 	private final Logger logger = LogManager.getLogger(TemplateCtrl.class);
-
+	private ContentCtrl contentController = null;
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Template");
 	@FXML
@@ -116,6 +117,8 @@ public class TemplateCtrl {
 	private Button delBackground;
 	@FXML
 	private Button testPrint;
+	@FXML
+	private ToggleButton showBorders;
 	@FXML
 	private MenuBar topMenu;
 	@FXML
@@ -166,6 +169,11 @@ public class TemplateCtrl {
 		load();
 	}
 
+	public void setContentController(ContentCtrl contentController) {
+		this.contentController = contentController;
+	}
+	
+	
 	public void show() {
 		stage.getScene().setOnKeyPressed(event -> {
 			if (event.getCode() == KeyCode.DELETE)
@@ -230,7 +238,11 @@ public class TemplateCtrl {
 
 	public void removeBorder(Item item) {
 		if (item != null) {
-			getClassOfObject(item.getType()).cast(item.getItem()).setStyle("");
+			if (!showBorders.isSelected()) {
+				getClassOfObject(item.getType()).cast(item.getItem()).setStyle("");
+			} else {
+				getClassOfObject(item.getType()).cast(item.getItem()).setStyle("-fx-border-color: black;-fx-border-style: solid;");
+			}
 			getClassOfObject(item.getType()).cast(item.getItem()).setEffect(null);
 		}
 	}
@@ -748,7 +760,10 @@ public class TemplateCtrl {
 			paneSave.setId(0);
 			paneSave.setName("");
 			close();
-
+			if(contentController != null)
+			{
+				contentController.updateTableContent();
+			}
 			MainWindowCtrl.setLog(Helper.formatOutput(newItem ? Operation.CREATE : Operation.UPDATE, placeType,
 					ipAddress, SectionType.TEMPLATE, objTemplate.getName(),
 					LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), OperationStatus.SUCCESS));
@@ -980,9 +995,11 @@ public class TemplateCtrl {
 						x = 0.0;
 					}
 
-					getClassOfObject(currentItem.getType())
-							.cast(currentItem.getItem())
-							.setTranslateX(x);
+					Node cast = getClassOfObject(currentItem.getType())
+							.cast(currentItem.getItem());
+					cast.setTranslateX(x);
+					currentItem.setPosition(new Point(cast.getTranslateX(), cast.getTranslateY()));
+
 					break;
 				}
 				case 15: {
@@ -994,9 +1011,10 @@ public class TemplateCtrl {
 						y = 0.0;
 					}
 
-					getClassOfObject(currentItem.getType())
-							.cast(currentItem.getItem())
-							.setTranslateY(y);
+					Node cast = getClassOfObject(currentItem.getType())
+							.cast(currentItem.getItem());
+					cast.setTranslateY(y);
+					currentItem.setPosition(new Point(cast.getTranslateX(), cast.getTranslateY()));
 					break;
 				}
 			}
@@ -1169,8 +1187,47 @@ public class TemplateCtrl {
 				}
 			}
 		});
+
+		showBorders.setOnAction(event -> {
+			ObservableList<Node> children = paneSave.getPane().getChildren();
+			if (showBorders.isSelected()) {
+				setBorderToAll(children);
+				showBorders.setStyle("-fx-background-color: -fx-shadow-highlight-color," +
+						"linear-gradient(to bottom, derive(-fx-color,-90%) 0%, derive(-fx-color,-60%) 100%)," +
+						"linear-gradient(to bottom, derive(-fx-color,-60%) 0%, derive(-fx-color,-35%) 50%, derive(-fx-color,-30%) 98%, derive(-fx-color,-50%) 100%)," +
+						"linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 10%, rgba(0,0,0,0) 90%, rgba(0,0,0,0.3) 100%);" +
+						"-fx-background-insets: 0 0 -1 0, 0, 1, 1;" +
+						"-fx-text-fill: -fx-light-text-color;" +
+						"-fx-alignment: center;");
+			} else {
+				deleteBorderFromAll(children);
+				showBorders.setStyle("-fx-background-color: #ffff;" +
+						"-fx-alignment: center;");
+			}
+		});
 	}
 
+	private void setBorderToAll(ObservableList<Node> nodes) {
+		nodes.forEach(this::setBorder);
+	}
+
+	private void deleteBorderFromAll(ObservableList<Node> nodes) {
+		nodes.forEach(this::deleteBorder);
+	}
+
+	private void setBorder(Node node) {
+		node.setStyle("-fx-border-color: black;-fx-border-style: solid;");
+	}
+
+	private void deleteBorder(Node node) {
+		node.setStyle("");
+	}
+
+	/**
+	 * Will return class depending on string
+	 * @param type string which describes type of object
+	 * @return class for given type
+	 */
 	private Class<? extends Node> getClassOfObject(String type) {
 		switch (type) {
 			case "barcode":

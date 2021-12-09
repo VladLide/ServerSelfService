@@ -1,17 +1,20 @@
 package application.models.objectinfo;
 
-import application.models.net.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Sections;
-import application.models.net.mysql.tables.Templates;
+import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import application.controllers.windows.MainWindowCtrl;
+import application.models.Info2Col;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.database.mysql.tables.Codes;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Sections;
+import application.models.net.database.mysql.tables.Templates;
 import application.views.languages.uk.windows.ProductInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBox;
-
-import java.time.LocalDateTime;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ItemContent {
 	private int number = 0;
@@ -20,6 +23,7 @@ public class ItemContent {
 	private Object object = null;
 	private int id = 0;
 	private int code = 0;
+	private String value = "";
 	private String name = "";
 	private String full_name = "";
 	private String name_s = "";
@@ -35,7 +39,7 @@ public class ItemContent {
 	}
 
 	public static ObservableList<ItemContent> get(ObservableList<Object> array) {
-		return get(array,1);
+		return get(array, 1);
 	}
 
 	public static ObservableList<ItemContent> get(ObservableList<Object> array, int initialIndex) {
@@ -46,38 +50,54 @@ public class ItemContent {
 			item.setObject(value);
 			item.setNumber(i.getAndIncrement());
 			switch (item.getTypeOdject()) {
-				case "Sections": {
-					Sections val = (Sections) item.getObject();
-					item.setId(val.getId());
-					item.setName(val.getName());
-					item.setName_s(val.getNumber_s() + "");
-					item.setName_t(val.getNumber_po() + "");
-					item.setIngredients(val.getDescription());
-					break;
-				}
-				case "Templates": {
-					Templates val = (Templates) item.getObject();
-					item.setId(val.getId());
-					item.setName(val.getName());
-					item.setIngredients(val.getDescription());
-					break;
-				}
-				case "Codes": {
-					Codes val = (Codes) item.getObject();
-					item.setId(val.getId());
-					item.setName(val.getName());
-					item.setIngredients(val.getMask());
-					break;
-				}
-				case "Goods": {
-					Goods val = (Goods) item.getObject();
-					item.setId(val.getNumber());
-					item.setCode(val.getPre_code());
-					item.setName(val.getName());
-					item.setPrice(val.getPrice());
-					item.setType(val.getType());
-					break;
-				}
+			case "Sections": {
+				Sections val = (Sections) item.getObject();
+				item.setId(val.getId());
+				item.setCode(val.getId_up());
+				item.setName(val.getName());
+				item.setName_s(val.getNumber_s() + "");
+				item.setName_t(val.getNumber_po() + "");
+				item.setIngredients(val.getDescription());
+				break;
+			}
+			case "Templates": {
+				Templates val = (Templates) item.getObject();
+				item.setId(val.getId());
+				item.setName(val.getName());
+				item.setIngredients(val.getDescription());
+				break;
+			}
+			case "Codes": {
+				Codes val = (Codes) item.getObject();
+				item.setId(val.getId());
+				item.setName(val.getName());
+				item.setIngredients(val.getMask());
+				break;
+			}
+			case "Goods": {
+				Goods val = (Goods) item.getObject();
+				item.setId(val.getNumber());
+				item.setCode(val.getPre_code());
+				item.setName(val.getName());
+				item.setPrice(val.getPrice());
+				item.setType(val.getType());
+				MySQL db = MainWindowCtrl.getContentCtrl().getDbInSelectNode();
+				Sections sections = (val.getId_sections() > 0)
+						? Sections.get(val.getId_sections(), -1, 0, "", false, db)
+						: null;
+				item.setName_s((sections != null) ? sections.getName() : "");
+				Templates templates = (val.getId_templates() > 0) ? Templates.get(val.getId_templates(), "", false, db)
+						: null;
+				item.setName_t((templates != null) ? templates.getName() : "");
+				Codes codes = (val.getId_barcodes() > 0) ? Codes.get(val.getId_barcodes(), "", db) : null;
+				item.setName_b((codes != null) ? codes.getName() : "");
+				break;
+			}
+			case "Info2Col":
+				Info2Col val = (Info2Col) item.getObject();
+				item.setName(val.getName());
+				item.setValue(val.getValue());
+				break;
 			}
 			result.add(item);
 		});
@@ -129,7 +149,11 @@ public class ItemContent {
 	}
 
 	public String getType() {
-		return ProductInfo.unit.get(type);
+		try {
+			return ProductInfo.unit.get(type);
+		} catch (Exception e) {
+			return type + "";
+		}
 	}
 
 	public void setType(int type) {
@@ -202,6 +226,14 @@ public class ItemContent {
 
 	public float getPrice() {
 		return price;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	public String getValue() {
+		return value;
 	}
 
 	public void setPrice(float price) {

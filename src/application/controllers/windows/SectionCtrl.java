@@ -1,6 +1,7 @@
 package application.controllers.windows;
 
 import application.*;
+import application.controllers.parts.ContentCtrl;
 import application.enums.Operation;
 import application.enums.OperationStatus;
 import application.enums.PlaceType;
@@ -8,8 +9,8 @@ import application.enums.SectionType;
 import application.models.Configs;
 import application.models.TextBox;
 import application.models.Utils;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.tables.Sections;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.tables.Sections;
 import application.models.objectinfo.NodeTree;
 import application.views.languages.uk.windows.SectionInfo;
 import javafx.application.Platform;
@@ -45,7 +46,8 @@ public class SectionCtrl {
 	private MySQL db = null;
 	private String ipAddress;
 	private PlaceType placeType;
-
+    private ContentCtrl contentController = null;
+	
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Section");
 	@FXML
@@ -92,7 +94,6 @@ public class SectionCtrl {
 	}
 
 	public void show() {
-		load();
 		this.stage.show();
 	}
 
@@ -100,6 +101,10 @@ public class SectionCtrl {
 		this.stage.close();
 	}
 
+	public void setContentController(ContentCtrl contentController) {
+		this.contentController = contentController;
+	}
+	
 	public ObservableList<TreeTableColumn<NodeTree, ?>> loadDataTable(ObservableList<String[]> colInfo) {
 		ObservableList<TreeTableColumn<NodeTree, ?>> col = FXCollections.observableArrayList();
 		colInfo.forEach((v) -> {
@@ -223,7 +228,6 @@ public class SectionCtrl {
 									)
 							);
 							TextBox.alertOpenDialog(AlertType.INFORMATION, "addSectionYes");
-							load();
 						} else {
 							MainWindowCtrl.setLog(
 									Helper.formatOutput(
@@ -254,7 +258,6 @@ public class SectionCtrl {
 											OperationStatus.SUCCESS
 									)
 							);
-							this.load();
 						} else {
 							MainWindowCtrl.setLog(
 									Helper.formatOutput(
@@ -270,6 +273,7 @@ public class SectionCtrl {
 							TextBox.alertOpenDialog(AlertType.WARNING, "editSectionNo");
 						}
 					}
+					update();
 				} catch (Exception e) {
 					logger.error(e.getMessage(), e);
 				}
@@ -277,6 +281,10 @@ public class SectionCtrl {
 				TextBox.alertOpenDialog(AlertType.WARNING, "warningName");
 		} else
 			TextBox.alertOpenDialog(AlertType.ERROR, "editSectionNo");
+		if(contentController != null)
+		{
+			contentController.updateTableContent();
+		}
 	}
 
 	public void clearLoad() {
@@ -295,6 +303,15 @@ public class SectionCtrl {
 	public void load() {
 		if (item == null) clearLoad();
 		dataTreeTable.getColumns().addAll(loadDataTable(SectionInfo.getColumns("sections")));
+		loadData();
+		ObservableList<String> upSections = FXCollections.observableArrayList();
+		upSections.add(0, "");
+		upSections.addAll(Sections.getLName(db));
+		up.setItems(upSections);
+	}
+
+	public void update() {
+		if (item == null) clearLoad();
 		loadData();
 		ObservableList<String> upSections = FXCollections.observableArrayList();
 		upSections.add(0, "");
@@ -359,7 +376,7 @@ public class SectionCtrl {
 										OperationStatus.SUCCESS
 								)
 						);
-						this.load();
+						update();
 					} else {
 						MainWindowCtrl.setLog(
 								Helper.formatOutput(

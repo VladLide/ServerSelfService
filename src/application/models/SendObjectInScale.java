@@ -3,12 +3,12 @@ package application.models;
 import java.util.Locale;
 
 import application.controllers.windows.MainWindowCtrl;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Sections;
-import application.models.net.mysql.tables.Templates;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.database.mysql.tables.Codes;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Sections;
+import application.models.net.database.mysql.tables.Templates;
 import application.views.languages.uk.parts.LogInfo;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;

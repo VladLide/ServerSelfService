@@ -15,8 +15,8 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import application.controllers.windows.MainWindowCtrl;
-import application.models.net.mysql.interface_tables.ProductItem;
-import application.models.net.mysql.tables.Scales;
+import application.models.net.database.mysql.interface_tables.ProductItem;
+import application.models.net.database.mysql.tables.Scales;
 
 public class QRCode {
 	private String qrCodeText = "https://www.journaldev.com|chfhfhgjhgkj";

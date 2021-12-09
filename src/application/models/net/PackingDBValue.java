@@ -2,8 +2,10 @@ package application.models.net;
 
 import application.Helper;
 import application.models.Utils;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Scales;
+import application.models.net.database.mysql.tables.Distribute;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Scales;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -62,10 +64,15 @@ public class PackingDBValue {
 			Class<?> clazz = Helper.getClassByFullName(fullClassName)
 					.orElseThrow(() -> new NullPointerException("No class for name " + fullClassName + " was found"));
 			Field[] fields = clazz.cast(object).getClass().getDeclaredFields();
-			PackingDBValue[] values = new PackingDBValue[
-					Class.forName(fullClassName).equals(Scales.class) || Class.forName(fullClassName).equals(Goods.class)
-							? fields.length - 1 : fields.length
-					];
+
+			int size;
+			if (Class.forName(fullClassName).equals(Scales.class) || Class.forName(fullClassName).equals(Goods.class)) {
+				size = fields.length - 1;
+			} else {
+				size = fields.length;
+			}
+
+			PackingDBValue[] values = new PackingDBValue[size];
 			int i = 0;
 
 			for (Field field : fields) {

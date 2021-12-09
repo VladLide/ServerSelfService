@@ -9,7 +9,7 @@ import java.util.List;
 import application.controllers.MainCtrl;
 import application.models.Configs;
 import application.models.Utils;
-import application.models.net.mysql.MySQL;
+import application.models.net.database.mysql.MySQL;
 
 public class ConfigNet {
 	protected Integer id_scales = 0;

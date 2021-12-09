@@ -1,15 +1,16 @@
 package application.controllers.windows;
 
 import application.Helper;
+import application.controllers.parts.ContentCtrl;
 import application.enums.*;
 import application.models.Configs;
 import application.models.TextBox;
 import application.models.Utils;
-import application.models.net.mysql.MySQL;
-import application.models.net.mysql.tables.Codes;
-import application.models.net.mysql.tables.Goods;
-import application.models.net.mysql.tables.Sections;
-import application.models.net.mysql.tables.Templates;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.tables.Codes;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Sections;
+import application.models.net.database.mysql.tables.Templates;
 import application.views.languages.uk.windows.ProductInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -63,7 +64,7 @@ public class ProductCtrl {
 	private static final int STEP = 200;
 	private static final int commonObjectsBetweenPages = 5;
 	private static final ObjectType type = ObjectType.PRODUCTS;
-
+	private ContentCtrl contentController=null;
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Product");
 	@FXML
@@ -132,6 +133,10 @@ public class ProductCtrl {
 		this.stage.close();
 	}
 
+	public void setContentController(ContentCtrl contentController) {
+		this.contentController = contentController;
+	}
+	
 	public ObservableList<TableColumn<Goods, ?>> loadDataTable(ObservableList<String[]> colInfo) {
 		ObservableList<TableColumn<Goods, ?>> col = FXCollections.observableArrayList();
 		colInfo.forEach(v -> {
@@ -152,7 +157,7 @@ public class ProductCtrl {
 						BackgroundSize.DEFAULT.getWidth(),
 						BackgroundSize.DEFAULT.getHeight(),
 						true,
-						false,
+						true,
 						true,
 						false);
 				BackgroundImage backgroundImage = new BackgroundImage(image,
@@ -181,7 +186,7 @@ public class ProductCtrl {
 										BackgroundSize.DEFAULT.getWidth(),
 										BackgroundSize.DEFAULT.getHeight(),
 										true,
-										false,
+										true,
 										true,
 										false))));
 			} catch (Exception e) {
@@ -287,6 +292,10 @@ public class ProductCtrl {
 						);
 					}
 				}
+				if(contentController != null)
+				{
+					contentController.updateTableContent();
+				}
 				update();
 			}
 		} catch (Exception e) {
@@ -316,14 +325,14 @@ public class ProductCtrl {
 	public void load() {
 		clearLoad();
 		dataTable.getColumns().addAll(loadDataTable(ProductInfo.dataTableColums));
-		showList.addAll(FXCollections.observableArrayList(
+		showList.setAll(FXCollections.observableArrayList(
 				Helper.getGoods(db, STEP, 0, type)
 						.orElseThrow(type::getNullPointerException)));
 		dataTable.setItems(showList);
 
 		template.setItems(Templates.getList(0, "", true, db));
 		code.setItems(Codes.getList(0, "", db));
-		section.setItems(Sections.getList(0, 0, -1, "", false, db));
+		section.setItems(Sections.getList(0, -1, 0, "", false, db));
 
 		name.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
 		number.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
@@ -339,7 +348,7 @@ public class ProductCtrl {
 
 	public void update() {
 		clearLoad();
-		showList.addAll(FXCollections.observableArrayList(
+		showList.setAll(FXCollections.observableArrayList(
 				Helper.getGoods(db, STEP, 0, type)
 						.orElseThrow(type::getNullPointerException)));
 		dataTable.setItems(showList);
@@ -482,7 +491,7 @@ public class ProductCtrl {
 		ObservableList<Goods> items = Goods.getList(0, 0, "", 0, 0, db);
 		if (!text.trim().isEmpty()) {
 			List<Goods> collect;
-			if (isNumeric(text)) {
+			if (Helper.isNumeric(text)) {
 				int integer = Integer.parseInt(text);
 				collect = items
 						.stream()
@@ -527,7 +536,7 @@ public class ProductCtrl {
 	private void deleteGoods() {
 		Goods goods = dataTable.getSelectionModel().getSelectedItem();
 		ButtonType buttonType = TextBox
-				.alertOpenDialog(AlertType.CONFIRMATION, "deleteBarcode?", goods.getName())
+				.alertOpenDialog(AlertType.CONFIRMATION, "deleteGoods?", goods.getName())
 				.orElseThrow(() -> new NullPointerException("ButtonType is null"));
 		boolean deleteGoods = ButtonType.OK.equals(buttonType);
 		boolean goodsIsDeleted = false;
@@ -537,7 +546,7 @@ public class ProductCtrl {
 		}
 
 		if (deleteGoods && goodsIsDeleted) {
-			TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteBarcodeYes");
+			TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteGoodsYes");
 			MainWindowCtrl.setLog(
 					Helper.formatOutput(
 							Operation.DELETE,
@@ -551,7 +560,7 @@ public class ProductCtrl {
 			);
 			clearLoad();
 		} else if (deleteGoods) {
-			TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");
+			TextBox.alertOpenDialog(AlertType.WARNING, "deleteGoodsNo");
 
 			MainWindowCtrl.setLog(
 					Helper.formatOutput(
@@ -565,6 +574,7 @@ public class ProductCtrl {
 					)
 			);
 		}
+		update();
 	}
 
 	public void setItem(Goods product) {
@@ -572,21 +582,22 @@ public class ProductCtrl {
 		unit.setItems(ProductInfo.unit);
 		if (product != null) {
 			name.setText(item.getName());
-			section.setValue((item.getId_sections() > 0) ? Sections.get(item.getId_sections(), 0, -1, "", false, db) : null);
+			section.setValue((item.getId_sections() > 0) ? Sections.get(item.getId_sections(), -1, 0, "", false, db) : null);
 			number.setText(item.getNumber() + "");
 			pre_code.setText(item.getPre_code() + "");
 			ingredients.setText(item.getIngredients());
 			price.setText(Float.toString(item.getPrice()));
 			unit.setValue(ProductInfo.unit.get(item.getType()));
 			expirationDate.setText(Integer.toString(item.getBefore_validity()));
-			template.setValue((item.getId_templates() > 0) ? Templates.get(item.getId_templates(), "", false, db) : null);
+			template.setValue((item.getId_templates() > 0) ? Templates.get(item.getId_templates(), "", true, db) : null);
 			code.setValue(Codes.get(item.getId_barcodes(), "", db));
 			loadImage(img, "img");
 			loadImage(imgTemplate, "tpl");
+			newItem = false;
 		}
-		save.setDisable(true);
 		if (!newItem)
 			dataTable.getSelectionModel().select(item);
+		save.setDisable(true);
 	}
 
 	public Goods getItem() {
@@ -636,17 +647,8 @@ public class ProductCtrl {
 		}
 	}
 
-	private boolean isNumeric(String string) {
-		try {
-			Integer.parseInt(string);
-			return true;
-		} catch (NumberFormatException e) {
-			return false;
-		}
-	}
-
 	private int getNumberForGoods() {
-		if (isNumeric(number.getText())) {
+		if (Helper.isNumeric(number.getText())) {
 			return Integer.parseInt(number.getText());
 		} else {
 			if (item != null) {

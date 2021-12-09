@@ -1,6 +1,6 @@
 package application.enums;
 
-import application.models.net.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.database.mysql.interface_tables.ScaleItemMenu;
 
 /**
  * Contains places to which items can be send
