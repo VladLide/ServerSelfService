@@ -2,6 +2,7 @@ package application.controllers.windows;
 
 import application.*;
 import application.controllers.MainCtrl;
+import application.controllers.parts.ContentCtrl;
 import application.enums.Operation;
 import application.enums.OperationStatus;
 import application.enums.PlaceType;
@@ -71,7 +72,7 @@ public class TemplateCtrl {
 	private String ipAddress;
 	private PlaceType placeType;
 	private final Logger logger = LogManager.getLogger(TemplateCtrl.class);
-
+	private ContentCtrl contentController = null;
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Template");
 	@FXML
@@ -168,6 +169,11 @@ public class TemplateCtrl {
 		load();
 	}
 
+	public void setContentController(ContentCtrl contentController) {
+		this.contentController = contentController;
+	}
+	
+	
 	public void show() {
 		stage.getScene().setOnKeyPressed(event -> {
 			if (event.getCode() == KeyCode.DELETE)
@@ -754,7 +760,10 @@ public class TemplateCtrl {
 			paneSave.setId(0);
 			paneSave.setName("");
 			close();
-
+			if(contentController != null)
+			{
+				contentController.updateTableContent();
+			}
 			MainWindowCtrl.setLog(Helper.formatOutput(newItem ? Operation.CREATE : Operation.UPDATE, placeType,
 					ipAddress, SectionType.TEMPLATE, objTemplate.getName(),
 					LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), OperationStatus.SUCCESS));

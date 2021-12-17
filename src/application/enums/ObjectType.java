@@ -4,7 +4,8 @@ public enum ObjectType {
 	PRODUCTS("goods", "code"),
 	SECTIONS("sections", "id"),
 	TEMPLATES("templates", "id"),
-	TEMPLATES_CODES("barcodes", "id");
+	TEMPLATES_CODES("barcodes", "id"),
+	SETTINGS("scales","id");
 
 	private final String tableName;
 	private final String orderByColumn;

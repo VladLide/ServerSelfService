@@ -117,16 +117,18 @@ public class MainWindowCtrl {
 		}
 	}
 
-	public TemplateCtrl openTemplate(Templates item, MySQL db, String ipAddress, PlaceType placeType) {
+	public TemplateCtrl openTemplate(Templates item, MySQL db, String ipAddress, PlaceType placeType,ContentCtrl contentController) {
 		TemplateCtrl template = new TemplateCtrl(item, db);
+		template.setContentController(contentController);
 		template.setIpAddress(ipAddress);
 		template.setPlaceType(placeType);
 		template.show();
 		return template;
 	}
 
-	public ProductCtrl openPlu(Goods item, String source, MySQL db, String ipAddress, PlaceType placeType) {
+	public ProductCtrl openPlu(Goods item, String source, MySQL db, String ipAddress, PlaceType placeType,ContentCtrl contentController) {
 		ProductCtrl plu = new ProductCtrl(db);
+		plu.setContentController(contentController);
 		plu.setSource(source);
 		plu.setIpAddress(ipAddress);
 		plu.setPlaceType(placeType);
@@ -135,8 +137,9 @@ public class MainWindowCtrl {
 		return plu;
 	}
 
-	public CodeCtrl openCode(Codes item, String source, MySQL db, String ipAddress, PlaceType placeType) {
+	public CodeCtrl openCode(Codes item, String source, MySQL db, String ipAddress, PlaceType placeType,ContentCtrl contentController) {
 		CodeCtrl code = new CodeCtrl(db);
+		code.setContentController(contentController);
 		code.setItem(item);
 		code.setSource(source);
 		code.setIpAddress(ipAddress);
@@ -145,8 +148,9 @@ public class MainWindowCtrl {
 		return code;
 	}
 
-	public SectionCtrl openSection(Sections item, String source, MySQL db, String ipAddress, PlaceType placeType) {
+	public SectionCtrl openSection(Sections item, String source, MySQL db, String ipAddress, PlaceType placeType,ContentCtrl contentController) {
 		SectionCtrl section = new SectionCtrl(db);
+		section.setContentController(contentController);
 		section.setSource(source);
 		section.setIpAddress(ipAddress);
 		section.setPlaceType(placeType);
@@ -168,6 +172,7 @@ public class MainWindowCtrl {
 			mw.sidebarCtrl.addItemMenu(new ScaleItemMenu(scale));
 		else
 			mw.sidebarCtrl.updateItemMenu(scale);
+		
 	}
 
 	public static String getLog() {

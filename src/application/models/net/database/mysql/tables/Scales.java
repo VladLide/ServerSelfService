@@ -1,11 +1,5 @@
 package application.models.net.database.mysql.tables;
 
-import application.models.TextBox;
-import application.models.net.PackingDBValue;
-import application.models.net.database.mysql.MySQL;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,6 +10,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import application.models.Info2Col;
+import application.models.TextBox;
+import application.models.net.PackingDBValue;
+import application.models.net.database.mysql.MySQL;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 public class Scales {
 	private int id = 0;
 	private String name = null;
@@ -25,10 +26,21 @@ public class Scales {
 	private LocalDateTime date_update = LocalDateTime.parse("2000-01-01T00:00:00");
 	private String data = null;
 	private Map<String, String> config = new HashMap<String, String>();
-	// private static Scales inst;
 
 	public Scales() {
 		super();
+	}
+
+	public ObservableList<Object> getColumsInfo() {
+		ObservableList<Object> info = FXCollections.observableArrayList();
+		for (String key : config.keySet()) {
+			info.add(new Info2Col(key, config.get(key)));
+		}
+		return info;
+	}
+
+	public void replace(Info2Col info) {
+		config.replace(info.getName(), info.getValue());
 	}
 
 	public Scales(int id, String name, String ip_adrress, String ip_adrress_server) {

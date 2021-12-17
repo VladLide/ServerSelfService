@@ -50,6 +50,8 @@ public class ContentInfo {
 						new String[] { "String", "Шаблон", "ingredients" }));
 		columnsContent.put("send", FXCollections.observableArrayList(new String[] { "CheckBox", "", "checkBox" },
 				new String[] { "Integer", "Номер", "id" }, new String[] { "String", "Назва", "name" }));
+		columnsContent.put("settings", FXCollections.observableArrayList(new String[] { "CheckBox", "", "checkBox" },
+				new String[] { "String", "Параметр", "name" }, new String[] { "String", "Значення", "value" }));
     }
 
 	public static ContentInfo getInstance() {

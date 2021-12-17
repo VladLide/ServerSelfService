@@ -5,7 +5,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import application.models.net.database.mysql.tables.*;
+import application.models.net.database.mysql.tables.Codes;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Scales;
+import application.models.net.database.mysql.tables.Sections;
+import application.models.net.database.mysql.tables.Templates;
 
 public final class Converter {
 
@@ -72,11 +76,9 @@ public final class Converter {
 
 	public static List<Scales> fromResultSetToScalesList(ResultSet set) throws SQLException {
 		List<Scales> scalesList = new ArrayList<>();
-
 		while (set.next()) {
 			scalesList.add(new Scales(set));
 		}
-
 		return scalesList;
 	}
 }

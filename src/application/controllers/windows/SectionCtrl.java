@@ -1,6 +1,7 @@
 package application.controllers.windows;
 
 import application.*;
+import application.controllers.parts.ContentCtrl;
 import application.enums.Operation;
 import application.enums.OperationStatus;
 import application.enums.PlaceType;
@@ -45,7 +46,8 @@ public class SectionCtrl {
 	private MySQL db = null;
 	private String ipAddress;
 	private PlaceType placeType;
-
+    private ContentCtrl contentController = null;
+	
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Section");
 	@FXML
@@ -99,6 +101,10 @@ public class SectionCtrl {
 		this.stage.close();
 	}
 
+	public void setContentController(ContentCtrl contentController) {
+		this.contentController = contentController;
+	}
+	
 	public ObservableList<TreeTableColumn<NodeTree, ?>> loadDataTable(ObservableList<String[]> colInfo) {
 		ObservableList<TreeTableColumn<NodeTree, ?>> col = FXCollections.observableArrayList();
 		colInfo.forEach((v) -> {
@@ -275,6 +281,10 @@ public class SectionCtrl {
 				TextBox.alertOpenDialog(AlertType.WARNING, "warningName");
 		} else
 			TextBox.alertOpenDialog(AlertType.ERROR, "editSectionNo");
+		if(contentController != null)
+		{
+			contentController.updateTableContent();
+		}
 	}
 
 	public void clearLoad() {

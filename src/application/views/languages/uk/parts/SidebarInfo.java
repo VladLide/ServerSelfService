@@ -27,7 +27,8 @@ public class SidebarInfo {
 			new String[] { "stocks", "Знижки" },
 			new String[] { "sections", "Категорії" },
 			new String[] { "templates", "Шаблони етикетки" },
-			new String[] { "templateCodes", "Шаблони кодів" }
+			new String[] { "templateCodes", "Шаблони кодів" },
+			new String[] { "settings", "Налаштування" }
 	);
 
 	public static ObservableList<String[]> filter = FXCollections.observableArrayList(

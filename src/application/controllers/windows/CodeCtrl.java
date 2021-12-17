@@ -1,6 +1,21 @@
 package application.controllers.windows;
 
-import application.*;
+import java.io.IOException;
+import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.ResourceBundle;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import application.Helper;
+import application.controllers.parts.ContentCtrl;
 import application.enums.Operation;
 import application.enums.OperationStatus;
 import application.enums.PlaceType;
@@ -19,23 +34,16 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.IOException;
-import java.net.URL;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.ResourceBundle;
 
 public class CodeCtrl {
 	private Stage stage;
@@ -47,6 +55,7 @@ public class CodeCtrl {
 	private PlaceType placeType;
 	private Logger logger = LogManager.getLogger(CodeCtrl.class);
 	private boolean newItem = true;
+	private ContentCtrl contentController = null;
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Code");
@@ -93,12 +102,16 @@ public class CodeCtrl {
 		}
 	}
 
-    public void show() {
-        this.stage.showAndWait();
-    }
+	public void show() {
+		this.stage.showAndWait();
+	}
 
 	public void close() {
 		this.stage.close();
+	}
+
+	public void setContentController(ContentCtrl contentController) {
+		this.contentController = contentController;
 	}
 
 	public ObservableList<TableColumn<Codes, ?>> loadDataTable(ObservableList<String[]> colInfo) {
@@ -175,29 +188,17 @@ public class CodeCtrl {
 					if (newItem) {
 						temp.setId(id);
 						if (temp.save(db) > 0) {
-                            MainWindowCtrl.setLog(
-                                    Helper.formatOutput(
-                                            Operation.CREATE,
-                                            placeType,
-                                            ipAddress,
-                                            SectionType.CODE,
-                                            temp.getName(),
-                                            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            OperationStatus.SUCCESS)
-                            );
+							MainWindowCtrl.setLog(Helper.formatOutput(Operation.CREATE, placeType, ipAddress,
+									SectionType.CODE, temp.getName(),
+									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+									OperationStatus.SUCCESS));
 
 							TextBox.alertOpenDialog(AlertType.INFORMATION, "addBarcodeYes");
 						} else {
-                            MainWindowCtrl.setLog(
-                                    Helper.formatOutput(
-                                            Operation.CREATE,
-                                            placeType,
-                                            ipAddress,
-                                            SectionType.CODE,
-                                            temp.getName(),
-                                            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            OperationStatus.FAILURE)
-                            );
+							MainWindowCtrl.setLog(Helper.formatOutput(Operation.CREATE, placeType, ipAddress,
+									SectionType.CODE, temp.getName(),
+									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+									OperationStatus.FAILURE));
 
 							TextBox.alertOpenDialog(AlertType.WARNING, "addBarcodeNot");
 						}
@@ -209,28 +210,16 @@ public class CodeCtrl {
 						if (this.item.getName().compareToIgnoreCase(name.getText()) != 0)
 							temp.updateName(name.getText(), db);
 						if (temp.save(db) > -1) {
-							MainWindowCtrl.setLog(
-									Helper.formatOutput(
-											Operation.UPDATE,
-											placeType,
-											ipAddress,
-											SectionType.CODE,
-											item.getName(),
-											LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            OperationStatus.SUCCESS)
-                            );
+							MainWindowCtrl.setLog(Helper.formatOutput(Operation.UPDATE, placeType, ipAddress,
+									SectionType.CODE, item.getName(),
+									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+									OperationStatus.SUCCESS));
 							TextBox.alertOpenDialog(AlertType.INFORMATION, "editBarcodeYes");
 						} else {
-							MainWindowCtrl.setLog(
-									Helper.formatOutput(
-											Operation.UPDATE,
-											placeType,
-											ipAddress,
-											SectionType.CODE,
-											item.getName(),
-											LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                            OperationStatus.FAILURE)
-							);
+							MainWindowCtrl.setLog(Helper.formatOutput(Operation.UPDATE, placeType, ipAddress,
+									SectionType.CODE, item.getName(),
+									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+									OperationStatus.FAILURE));
 							TextBox.alertOpenDialog(AlertType.WARNING, "editBarcodeNo");
 						}
 					}
@@ -245,6 +234,7 @@ public class CodeCtrl {
 			clear = false;
 		}
 		this.update(clear);
+		contentController.updateTableContent();
 	}
 
 	public void loadBarcode() {
@@ -291,98 +281,88 @@ public class CodeCtrl {
 	}
 
 	@FXML
-    void initialize() {
-    	this.load();
-    	stage.setOnCloseRequest(event->close());
-    	save.setOnAction(event->continion());
-    	deleteField.setOnAction(event ->mask.setText((String)mask.getText().subSequence(0, mask.getText().length()-1)));
-    	clearField.setOnAction(event ->mask.setText(""));
-    	number.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-    	name.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-    	prefixValue.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-    	mask.textProperty().addListener((obs, oldText, newText) ->save.setDisable(false));
-    	delete.setOnAction(event ->{
-    		try {
-    			int index = dataTable.getSelectionModel().getSelectedIndex();
-    			Optional<ButtonType> buttonType = TextBox.alertOpenDialog(AlertType.CONFIRMATION, "deleteBarcode?", item.getName());
-			 	if (buttonType.orElseThrow(() -> new NullPointerException("ButtonType is null")) == ButtonType.OK
-                        && index > -1) {
-	    			if(this.item.delete(db)) {
+	void initialize() {
+		this.load();
+		stage.setOnCloseRequest(event -> close());
+		save.setOnAction(event -> continion());
+		deleteField.setOnAction(
+				event -> mask.setText((String) mask.getText().subSequence(0, mask.getText().length() - 1)));
+		clearField.setOnAction(event -> mask.setText(""));
+		number.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+		name.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+		prefixValue.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+		mask.textProperty().addListener((obs, oldText, newText) -> save.setDisable(false));
+		delete.setOnAction(event -> {
+			try {
+				int index = dataTable.getSelectionModel().getSelectedIndex();
+				Optional<ButtonType> buttonType = TextBox.alertOpenDialog(AlertType.CONFIRMATION, "deleteBarcode?",
+						item.getName());
+				if (buttonType.orElseThrow(() -> new NullPointerException("ButtonType is null")) == ButtonType.OK
+						&& index > -1) {
+					if (this.item.delete(db)) {
 						TextBox.alertOpenDialog(AlertType.INFORMATION, "deleteBarcodeYes");
-						MainWindowCtrl.setLog(
-								Helper.formatOutput(
-										Operation.DELETE,
-										placeType,
-										ipAddress,
-										SectionType.CODE,
-										item.getName(),
-										LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        OperationStatus.SUCCESS)
-						);
+						MainWindowCtrl.setLog(Helper.formatOutput(Operation.DELETE, placeType, ipAddress,
+								SectionType.CODE, item.getName(),
+								LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+								OperationStatus.SUCCESS));
 						update(true);
-	            	}else{
-                        MainWindowCtrl.setLog(
-                                Helper.formatOutput(
-                                        Operation.DELETE,
-                                        placeType,
-                                        ipAddress,
-                                        SectionType.CODE,
-                                        item.getName(),
-                                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                                        OperationStatus.FAILURE)
-                        );
+					} else {
+						MainWindowCtrl.setLog(Helper.formatOutput(Operation.DELETE, placeType, ipAddress,
+								SectionType.CODE, item.getName(),
+								LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+								OperationStatus.FAILURE));
 
-	            		TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");
-	            	}
-	    		}
-            } catch (NullPointerException | NoSuchElementException e) {
-                logger.error(e.getMessage(), e);
-            }
-    	});
-    	clear.setOnAction(event -> {
-    	    clear();
-    	});
-    	itemsTable.setOnMouseClicked(event -> {
-    		int index = itemsTable.getSelectionModel().selectedIndexProperty().get();
-			String str = mask.getText();
-			String[] barcodeSymbol = {"P", "C", "U"};
-	    	if (mask.getText().length() < 12) {
-				switch (index) {
-					case 0: {
-						if (str.length() < 3) {
-							mask.setText(str + barcodeSymbol[index]);
-						}
-						break;
-					}
-					case 1:{
-						if((0 < str.length() && str.length() <= 12)
-								&& (str.indexOf("C") < 0 ||str.lastIndexOf("C") == str.length()-1)) {
-							mask.setText(str+barcodeSymbol[index]);
-						}
-						break;
-					}
-					case 2:{
-						if((0 < str.length() && str.length() <= 12)
-								&& (str.indexOf("U") < 0 || str.lastIndexOf("U") == str.length()-1)) {
-							mask.setText(str+barcodeSymbol[index]);
-						}
-						break;
+						TextBox.alertOpenDialog(AlertType.WARNING, "deleteBarcodeNo");
 					}
 				}
-	    	}
+			} catch (NullPointerException | NoSuchElementException e) {
+				logger.error(e.getMessage(), e);
+			}
 		});
-    	dataTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-    		if (newSelection != null) {
-    			newItem = false;
+		clear.setOnAction(event -> {
+			clear();
+		});
+		itemsTable.setOnMouseClicked(event -> {
+			int index = itemsTable.getSelectionModel().selectedIndexProperty().get();
+			String str = mask.getText();
+			String[] barcodeSymbol = { "P", "C", "U" };
+			if (mask.getText().length() < 12) {
+				switch (index) {
+				case 0: {
+					if (str.length() < 3) {
+						mask.setText(str + barcodeSymbol[index]);
+					}
+					break;
+				}
+				case 1: {
+					if ((0 < str.length() && str.length() <= 12)
+							&& (str.indexOf("C") < 0 || str.lastIndexOf("C") == str.length() - 1)) {
+						mask.setText(str + barcodeSymbol[index]);
+					}
+					break;
+				}
+				case 2: {
+					if ((0 < str.length() && str.length() <= 12)
+							&& (str.indexOf("U") < 0 || str.lastIndexOf("U") == str.length() - 1)) {
+						mask.setText(str + barcodeSymbol[index]);
+					}
+					break;
+				}
+				}
+			}
+		});
+		dataTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+			if (newSelection != null) {
+				newItem = false;
 				this.item = newSelection;
-			    number.setText(newSelection.getId() + "");
-			    prefixValue.setText(newSelection.getPrefix_val());
-    			name.setText(newSelection.getName());
-        	    mask.setText(newSelection.getMask());
-        	    save.setDisable(true);
-    		}
-		} );
-    }
+				number.setText(newSelection.getId() + "");
+				prefixValue.setText(newSelection.getPrefix_val());
+				name.setText(newSelection.getName());
+				mask.setText(newSelection.getMask());
+				save.setDisable(true);
+			}
+		});
+	}
 
 	public Codes getItem() {
 		return item;

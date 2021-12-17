@@ -1,6 +1,7 @@
 package application.controllers.windows;
 
 import application.Helper;
+import application.controllers.parts.ContentCtrl;
 import application.enums.*;
 import application.models.Configs;
 import application.models.TextBox;
@@ -63,7 +64,7 @@ public class ProductCtrl {
 	private static final int STEP = 200;
 	private static final int commonObjectsBetweenPages = 5;
 	private static final ObjectType type = ObjectType.PRODUCTS;
-
+	private ContentCtrl contentController=null;
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "window", "Product");
 	@FXML
@@ -132,6 +133,10 @@ public class ProductCtrl {
 		this.stage.close();
 	}
 
+	public void setContentController(ContentCtrl contentController) {
+		this.contentController = contentController;
+	}
+	
 	public ObservableList<TableColumn<Goods, ?>> loadDataTable(ObservableList<String[]> colInfo) {
 		ObservableList<TableColumn<Goods, ?>> col = FXCollections.observableArrayList();
 		colInfo.forEach(v -> {
@@ -286,6 +291,10 @@ public class ProductCtrl {
 								)
 						);
 					}
+				}
+				if(contentController != null)
+				{
+					contentController.updateTableContent();
 				}
 				update();
 			}

@@ -1,36 +1,5 @@
 package application.controllers.parts;
 
-import application.Helper;
-import application.controllers.MainCtrl;
-import application.controllers.windows.ChooseCtrl;
-import application.controllers.windows.ChooseSendCtrl;
-import application.controllers.windows.MainWindowCtrl;
-import application.enums.*;
-import application.models.Configs;
-import application.models.PackageSend;
-import application.models.Utils;
-import application.models.net.database.mysql.MySQL;
-import application.models.net.database.mysql.SqlQueryBuilder;
-import application.models.net.database.mysql.interface_tables.ScaleItemMenu;
-import application.models.net.database.mysql.tables.*;
-import application.models.objectinfo.ItemContent;
-import application.models.objectinfo.NodeTree;
-import application.views.languages.uk.parts.ContentInfo;
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.AnchorPane;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.IOException;
 import java.net.URL;
 import java.sql.ResultSet;
@@ -41,22 +10,72 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import application.Helper;
+import application.controllers.MainCtrl;
+import application.controllers.windows.ChooseCtrl;
+import application.controllers.windows.ChooseSendCtrl;
+import application.controllers.windows.MainWindowCtrl;
+import application.enums.CurrentItemSendTo;
+import application.enums.ObjectType;
+import application.enums.Operation;
+import application.enums.OperationStatus;
+import application.enums.PlaceType;
+import application.enums.SectionType;
+import application.models.Configs;
+import application.models.PackageSend;
+import application.models.Utils;
+import application.models.net.database.mysql.MySQL;
+import application.models.net.database.mysql.SqlQueryBuilder;
+import application.models.net.database.mysql.interface_tables.ScaleItemMenu;
+import application.models.net.database.mysql.tables.Codes;
+import application.models.net.database.mysql.tables.Goods;
+import application.models.net.database.mysql.tables.Scales;
+import application.models.net.database.mysql.tables.Sections;
+import application.models.net.database.mysql.tables.Templates;
+import application.models.objectinfo.ItemContent;
+import application.models.objectinfo.NodeTree;
+import application.views.languages.uk.parts.ContentInfo;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellEditEvent;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.AnchorPane;
+
 public class ContentCtrl {
 	private final ObservableList<ItemContent> showList = FXCollections.observableArrayList();
 	private final Logger logger = LogManager.getLogger(ContentCtrl.class);
 	private final EventHandler<MouseEvent> consumeMouseDragEvent = Event::consume;
 	private static final int commonObjectsBetweenPages = 5;
 	private static final int STEP = 200;
+	private int offset = 0;
 	private int databaseTableSize;
 	private boolean addMore = true;
-	private boolean beenDeleted = false;
-	private boolean firstPass = true;
 	private boolean tableHasMore = true;
 	private AnchorPane content;
 	private NodeTree node = null;
 	private PackageSend pack = null;
 	private MySQL db;
 	private ObjectType type;
+	private ScaleItemMenu sim = null;
 
 	@FXML
 	private final ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Content");
@@ -114,76 +133,93 @@ public class ContentCtrl {
 
 	public void showTableRedactorData(NodeTree node) {
 		this.node = node;
+
 		dataTable.getItems().clear();
 		dataTable.getColumns().clear();
-
+		dataTable.setEditable(true);
 		switch (node.getType()) {
-			case "products": {
-				type = ObjectType.PRODUCTS;
-				db = getDbDependingOnNode(node).orElse(null);
+		case "products": {
+			type = ObjectType.PRODUCTS;
+			db = getDbDependingOnNode(node).orElse(null);
 
-				if (db != null) {
-					showList.addAll(
-							ItemContent.get(FXCollections.observableArrayList(
-									Helper.getData(db, STEP, 0, type)
-											.orElseThrow(type::getNullPointerException)
-									)));
-				}
-				break;
+			if (db != null) {
+				showList.addAll(ItemContent.get(FXCollections.observableArrayList(
+						Helper.getData(db, STEP, 0, type).orElseThrow(type::getNullPointerException))));
 			}
-			case "sections": {
-				type = ObjectType.SECTIONS;
-				db = getDbDependingOnNode(node).orElse(null);
+			break;
+		}
+		case "sections": {
+			type = ObjectType.SECTIONS;
+			db = getDbDependingOnNode(node).orElse(null);
 
-				if (db != null) {
-					showList.addAll(
-							ItemContent.get(FXCollections.observableArrayList(
-									Helper.getData(db, STEP, 0, type)
-											.orElseThrow(type::getNullPointerException)
-							)));
-				}
-				break;
+			if (db != null) {
+				showList.addAll(ItemContent.get(FXCollections.observableArrayList(
+						Helper.getData(db, STEP, 0, type).orElseThrow(type::getNullPointerException))));
 			}
-			case "templates": {
-				type = ObjectType.TEMPLATES;
-				db = getDbDependingOnNode(node).orElse(null);
+			break;
+		}
+		case "templates": {
+			type = ObjectType.TEMPLATES;
+			db = getDbDependingOnNode(node).orElse(null);
 
-				if (db != null) {
-					showList.addAll(
-							ItemContent.get(FXCollections.observableArrayList(
-									Helper.getData(db, STEP, 0, type)
-											.orElseThrow(type::getNullPointerException)
-							)));
-				}
+			if (db != null) {
+				showList.addAll(ItemContent.get(FXCollections.observableArrayList(
+						Helper.getData(db, STEP, 0, type).orElseThrow(type::getNullPointerException))));
+			}
 
-				break;
+			break;
+		}
+		case "templateCodes": {
+			type = ObjectType.TEMPLATES_CODES;
+			db = getDbDependingOnNode(node).orElse(null);
+			if (db != null) {
+				showList.addAll(ItemContent.get(FXCollections.observableArrayList(
+						Helper.getData(db, STEP, 0, type).orElseThrow(type::getNullPointerException))));
 			}
-			case "templateCodes": {
-				type = ObjectType.TEMPLATES_CODES;
-				db = getDbDependingOnNode(node).orElse(null);
-				if (db != null) {
-					showList.addAll(
-							ItemContent.get(FXCollections.observableArrayList(
-									Helper.getData(db, STEP, 0, type)
-											.orElseThrow(type::getNullPointerException)
-							)));
-				}
 
-				break;
+			break;
+		}
+		case "settings": {
+			type = ObjectType.SETTINGS;
+			db = getDbDependingOnNode(node).orElse(null);
+			if (db != null) {
+				showList.addAll(ItemContent.get(FXCollections.observableArrayList(
+						Helper.getData(db, STEP, 0, type).orElseThrow(type::getNullPointerException))));
 			}
-			case "settings": {
-				break;
-			}
-			default:
-				break;
+			break;
+		}
+		default:
+			break;
 		}
 
-		//if we have any data from database load it to the table
-		if(!showList.isEmpty()) {
-			//line below must be in if cause if we just click on scale it tries to load some data and crashes,
+		// if we have any data from database load it to the table
+		if (!showList.isEmpty()) {
+			// line below must be in if cause if we just click on scale it tries to load
+			// some data and crashes,
 			// so load it only if we got data from database
 			dataTable.getColumns().addAll(loadTable(ContentInfo.getInstance().columnsContent.get(node.getType())));
 			dataTable.setItems(showList);
+			if (node.getType() == "settings") {
+
+				ObservableList<TableColumn<ItemContent, ?>> columns = dataTable.getColumns();
+				TableColumn<ItemContent, String> valuesColumn = (TableColumn<ItemContent, String>) columns.get(2);
+				valuesColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+				valuesColumn.setOnEditCommit(new EventHandler<CellEditEvent<ItemContent, String>>() {
+					@Override
+					public void handle(CellEditEvent<ItemContent, String> t) {
+						ItemContent item = (ItemContent) t.getTableView().getItems().get(t.getTablePosition().getRow());
+						item.setValue(t.getNewValue());
+						if (node.getLevel() == 2)
+							MainCtrl.setSettings(item.getName(), item.getValue());
+						else {
+							Scales scale = ((ScaleItemMenu) node.getUpObject().getObject()).getScale();
+							scale.setConfigItem(item.getName(), item.getValue());
+							scale.save(db);
+						}
+					}
+				});
+
+			}
 		}
 
 		setUpScrollBar();
@@ -193,12 +229,11 @@ public class ContentCtrl {
 	public void operationsData(ItemContent item, boolean del) {
 		MainWindowCtrl mainWindowCtrl = MainWindowCtrl.getInstance();
 		String source = "";
-		ScaleItemMenu sim = null;
 
 		if (node.getLevel() == 2) {
 			source = "Server (localhost)";
 		} else {
-			sim = (ScaleItemMenu) node.getUpObject().getObject();
+
 			source = sim.getName() + " - " + sim.getId() + " (" + sim.getScale().getIp_address() + ")";
 		}
 
@@ -206,127 +241,77 @@ public class ContentCtrl {
 		PlaceType placeType = sim != null ? PlaceType.SCALE : PlaceType.SERVER;
 
 		switch (node.getType()) {
-			case "products": {
-				if (item != null && del) {
-					Goods goods = (Goods) item.getObject();
-					goods.delete(db);
+		case "products": {
+			if (item != null && del) {
+				Goods goods = (Goods) item.getObject();
+				goods.delete(db);
 
-					// logging context menu deletion of goods
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.DELETE,
-									placeType,
-									ipAddress,
-									SectionType.PRODUCT,
-									goods.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.SUCCESS
-							)
-					);
-				} else {
-					mainWindowCtrl.openPlu(
-							(item != null) ? (Goods) item.getObject() : null,
-							source,
-							db,
-							ipAddress,
-							placeType
-					);
-				}
-				break;
+				// logging context menu deletion of goods
+				MainWindowCtrl.setLog(Helper.formatOutput(Operation.DELETE, placeType, ipAddress, SectionType.PRODUCT,
+						goods.getName(), LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+						OperationStatus.SUCCESS));
+			} else {
+				mainWindowCtrl.openPlu((item != null) ? (Goods) item.getObject() : null, source, db, ipAddress,
+						placeType, this);
 			}
-			case "sections": {
-				if (item != null && del) {
-					Sections sections = (Sections) item.getObject();
-					sections.delete(false, db);
+			break;
+		}
+		case "sections": {
+			if (item != null && del) {
+				Sections sections = (Sections) item.getObject();
+				sections.delete(false, db);
 
-					// logging context menu deletion of section
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.DELETE,
-									placeType,
-									ipAddress,
-									SectionType.SECTION,
-									sections.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.SUCCESS
-							)
-					);
+				// logging context menu deletion of section
+				MainWindowCtrl.setLog(Helper.formatOutput(Operation.DELETE, placeType, ipAddress, SectionType.SECTION,
+						sections.getName(), LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+						OperationStatus.SUCCESS));
+			} else {
+				Sections sectionsWithImage;
+				if (item == null) {
+					sectionsWithImage = null;
 				} else {
-					Sections sectionsWithImage;
-					if (item == null) {
-						sectionsWithImage = null;
-					} else {
-						sectionsWithImage = Sections.get(item.getId(), 0, -1, "", true, db);
-					}
-					mainWindowCtrl.openSection(
-							sectionsWithImage,
-							source,
-							db,
-							ipAddress,
-							placeType
-					);
+					sectionsWithImage = Sections.get(item.getId(), 0, -1, "", true, db);
 				}
-				break;
+				mainWindowCtrl.openSection(sectionsWithImage, source, db, ipAddress, placeType, this);
 			}
-			case "templates": {
-				if (item != null && del) {
-					Templates templates = (Templates) item.getObject();
-					templates.delete(db);
+			break;
+		}
+		case "templates": {
+			if (item != null && del) {
+				Templates templates = (Templates) item.getObject();
+				templates.delete(db);
 
-					// logging context menu deletion of template
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.DELETE,
-									placeType,
-									ipAddress,
-									SectionType.TEMPLATE,
-									templates.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.SUCCESS
-							)
-					);
-				} else {
-					mainWindowCtrl.openTemplate(
-							(item != null) ? (Templates) item.getObject() : null,
-							db,
-							ipAddress,
-							placeType);
-				}
-				break;
+				// logging context menu deletion of template
+				MainWindowCtrl.setLog(Helper.formatOutput(Operation.DELETE, placeType, ipAddress, SectionType.TEMPLATE,
+						templates.getName(), LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+						OperationStatus.SUCCESS));
+			} else {
+				mainWindowCtrl.openTemplate((item != null) ? (Templates) item.getObject() : null, db, ipAddress,
+						placeType, this);
 			}
-			case "templateCodes": {
-				if (item != null && del) {
-					Codes codes = (Codes) item.getObject();
-					codes.delete(db);
+			break;
+		}
+		case "templateCodes": {
+			if (item != null && del) {
+				Codes codes = (Codes) item.getObject();
+				codes.delete(db);
 
-					// logging context menu deletion of templateCodes
-					MainWindowCtrl.setLog(
-							Helper.formatOutput(
-									Operation.DELETE,
-									placeType,
-									ipAddress,
-									SectionType.CODE,
-									codes.getName(),
-									LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-									OperationStatus.SUCCESS
-							)
-					);
-				} else {
-					mainWindowCtrl.openCode(
-							(item != null) ? (Codes) item.getObject() : null,
-							source,
-							db,
-							ipAddress,
-							placeType);
-				}
-				break;
+				// logging context menu deletion of templateCodes
+				MainWindowCtrl.setLog(Helper.formatOutput(Operation.DELETE, placeType, ipAddress, SectionType.CODE,
+						codes.getName(), LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+						OperationStatus.SUCCESS));
+			} else {
+				mainWindowCtrl.openCode((item != null) ? (Codes) item.getObject() : null, source, db, ipAddress,
+						placeType, this);
 			}
-			case "settings": {
-				// todo fix empty settings
-				break;
-			}
-			default:
-				break;
+			break;
+		}
+		case "settings": {
+			// todo fix empty settings
+			break;
+		}
+		default:
+			break;
 		}
 		dataTable.refresh();
 	}
@@ -399,14 +384,13 @@ public class ContentCtrl {
 			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
 			operationsData(item, false);
 		});
-		delete.setOnAction(event -> dataTable.getItems()
-				.stream()
-				.filter(itemContent -> itemContent.getCheckBox().isSelected())
-				.forEach(itemContent -> Platform.runLater(() -> {
-					operationsData(itemContent, true);
-					dataTable.getItems().remove(itemContent);
-					dataTable.refresh();
-				})));
+		delete.setOnAction(
+				event -> dataTable.getItems().stream().filter(itemContent -> itemContent.getCheckBox().isSelected())
+						.forEach(itemContent -> Platform.runLater(() -> {
+							operationsData(itemContent, true);
+							dataTable.getItems().remove(itemContent);
+							dataTable.refresh();
+						})));
 		createCM.setOnAction(event -> operationsData(null, false));
 		editCM.setOnAction(event -> {
 			ItemContent item = dataTable.getSelectionModel().getSelectedItem();
@@ -472,15 +456,7 @@ public class ContentCtrl {
 		return pack;
 	}
 
-	/**
-	 * Set up scrollbar functions
-	 * On scrollbar reaching end current items will be deleted and new added to the table, position of block
-	 * on scroll bar will be set to 0
-	 * If any items were deleted we can load them if scrollbar block reach 0.05 of scrollbar length and it
-	 * moved further than 0.1, before loading old items new one will be deleted
-	 */
 	private void setUpScrollBar() {
-		int numberOfItemsToContain = STEP;
 		ScrollBar scrollBar = Helper.getDataTableScrollBar(dataTable)
 				.orElseThrow(() -> new NullPointerException("Was not able to obtain ScrollBar from TableView"));
 
@@ -489,139 +465,35 @@ public class ContentCtrl {
 			scrollBar.removeEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
 		});
 
-		//will work only if scroll using mouse wheel or touchpad but not by clicking on scrollbar and dragging it
-		dataTable.addEventFilter(ScrollEvent.ANY, event -> addMore = true);
+		// will work only if scroll using mouse wheel or touchpad but not by clicking on
+		// scrollbar and dragging it
+		dataTable.addEventFilter(ScrollEvent.SCROLL_FINISHED, event -> addMore = true);
 
 		scrollBar.valueProperty().addListener((observable, oldValue, newValue) -> {
-			double position = scrollBar.getValue();
-
-			/*
-			if block is at the and addMore and table has more -> add more items
-			else if block is at the beginning and addMore and we have scrolled to the end before and we have scrolled further
-				than 10% -> delete current items and add items which were before them
-			else if block is further than 10% and addMore and we have scrolled to the end before -> we can now add
-				item that were before
-			 */
-			if (position == scrollBar.getMax() && addMore && tableHasMore) {
-				//stop mouse from moving scrollbar block until mouse release it
-				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
-
-				addAtTheEnd(scrollBar);
-
-				if (showList.size() > numberOfItemsToContain) {
-					firstPass = true;
-					beenDeleted = true;
-					showList.remove(0, showList.size() - numberOfItemsToContain);
-					scrollBar.setValue(0);
+			if (newValue.doubleValue() >= scrollBar.getMax() && addMore && tableHasMore) {
+				// stop mouse from moving scrollbar block until mouse release it
+				scrollBar.addEventFilter(MouseEvent.ANY, consumeMouseDragEvent);
+				if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize) {
+					loadTableContent();
+				} else if (databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP) {
+					loadTableContent();
+					tableHasMore = false;
+				} else {
+					tableHasMore = false;
 				}
 
-				addMore = false;
-			} else if (position <= 0.05 && addMore && beenDeleted && !firstPass) {
-				scrollBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, consumeMouseDragEvent);
-
-				addAtTheBeginning(scrollBar);
-
-				if (showList.size() > numberOfItemsToContain) {
-					showList.remove(numberOfItemsToContain, showList.size());
-					scrollBar.setValue(0.99);//if set to 1.0 it will trigger adding items at the end
-				}
-
-			} else if (position >= 0.1 && addMore && beenDeleted) {
-				firstPass = false;
 			}
+
 		});
 	}
 
 	/**
-	 * Will add items which were on before we added new
-	 * or if showList.get(0).getNumber() - STEP + commonObjectsBetweenPages < 0 don't add any
-	 * @param scrollBar object at which we will set new block position
-	 */
-	private void addAtTheBeginning(ScrollBar scrollBar) {
-		if (showList.get(0).getNumber() - STEP + commonObjectsBetweenPages >= 0) {
-			int limit = STEP;
-			int offset = showList.get(0).getNumber() - STEP + commonObjectsBetweenPages;
-			int initialIndex = showList.get(0).getNumber() - STEP + commonObjectsBetweenPages;
-			showList.addAll(0, ItemContent
-					.get(FXCollections.observableArrayList(
-							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
-							initialIndex));
-			double value = (1.0 / showList.size()) * STEP;
-			logger.debug("Setting value to {}", value);
-			scrollBar.setValue(value);
-		} else {
-			beenDeleted = false;
-		}
-	}
-
-	/**
-	 * Will add new items
-	 * or if there are no items to add don't add any
-	 * @param scrollBar object at which we will set new block position
-	 */
-	private void addAtTheEnd(ScrollBar scrollBar) {
-		/*if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize
-				|| databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP) {
-			double targetValue = scrollBar.getValue() * showList.size();
-			int limit = STEP;
-			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
-			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
-
-			showList.addAll(ItemContent
-					.get(FXCollections.observableArrayList(
-							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
-							initialIndex));
-			//we are setting value, but later after deletion items we reset it to another, so this part at this time
-			// doesn't do anything but, if we load more than delete we will need this
-			double value = targetValue / showList.size();
-			scrollBar.setValue(value);
-		} else {
-			tableHasMore = false;
-		}*/
-		if (showList.get(showList.size() - 1).getNumber() + STEP <= databaseTableSize) {
-			double targetValue = scrollBar.getValue() * showList.size();
-			int limit = STEP;
-			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
-			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
-			logger.info("Limit {}, offset {}, initialIndex {}", limit, offset, initialIndex);
-
-			showList.addAll(ItemContent
-					.get(FXCollections.observableArrayList(
-							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
-							initialIndex));
-			//we are setting value, but later after deletion items we reset it to another, so this part at this time
-			// doesn't do anything but, if we load more than delete we will need this
-			double value = targetValue / showList.size();
-			logger.debug("Setting value {}", value);
-			scrollBar.setValue(value);
-		} else if (databaseTableSize - showList.get(showList.size() - 1).getNumber() < STEP) {
-			//todo fix code repeating
-			double targetValue = scrollBar.getValue() * showList.size();
-			int limit = STEP;
-			int offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
-			int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
-			logger.info("Limit {}, offset {}, initialIndex {}", limit, offset, initialIndex);
-
-			showList.addAll(ItemContent
-					.get(FXCollections.observableArrayList(
-							Helper.getData(db, limit, offset, type).orElseThrow(type::getNullPointerException)),
-							initialIndex));
-			//we are setting value, but later after deletion items we reset it to another, so this part at this time
-			// doesn't do anything but, if we load more than delete we will need this
-			double value = targetValue / showList.size();
-			logger.debug("Setting value {}", value);
-			scrollBar.setValue(value);
-			tableHasMore = false;
-		} else {
-			tableHasMore = false;
-		}
-	}
-
-	/**
-	 * Get database, if node level is 2 we will get db from MainCtrl,
-	 * else convert node to the scaleItemMenu and get its db
+	 * Get database, if node level is 2 we will get db from MainCtrl, else convert
+	 * node to the scaleItemMenu and get its db
+	 * 
 	 * @param node is item depending on which we will get db
-	 * @return db or if not is not on level 2 and were not able to get it from scaleItemMenu return null
+	 * @return db or if not is not on level 2 and were not able to get it from
+	 *         scaleItemMenu return null
 	 */
 	private Optional<MySQL> getDbDependingOnNode(NodeTree node) {
 		if (node != null) {
@@ -639,16 +511,17 @@ public class ContentCtrl {
 	}
 
 	/**
-	 * Will get number of item is table so later we won't try to load more item than we have in table
+	 * Will get number of item is table so later we won't try to load more item than
+	 * we have in table
 	 */
 	private void getNumberOfItemsInTable() {
 		if (db != null) {
 			SqlQueryBuilder builder = new SqlQueryBuilder(db, type.getTableName());
 			tableHasMore = true;
 			try {
-				//select count(*) from tableName;
+				// select count(*) from tableName;
 				ResultSet set = builder.select("").count("*").from(type.getTableName()).execute();
-				//get number of items from result set
+				// get number of items from result set
 				while (set.next()) {
 					databaseTableSize = set.getInt(1);
 				}
@@ -667,8 +540,26 @@ public class ContentCtrl {
 		return type;
 	}
 
+	private void loadTableContent() {
+
+		offset = showList.get(showList.size() - 1).getNumber() - commonObjectsBetweenPages;
+		int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
+		showList.addAll(ItemContent.get(
+				FXCollections.observableArrayList(
+						Helper.getData(db, STEP, offset, type).orElseThrow(type::getNullPointerException)),
+				initialIndex));
+	}
+
+	public void updateTableContent() {
+		int initialIndex = showList.get(showList.size() - 1).getNumber() + 1 - commonObjectsBetweenPages;
+		showList.setAll(
+				ItemContent.get(
+						FXCollections.observableArrayList(
+								Helper.getData(db, STEP, 0, type).orElseThrow(type::getNullPointerException)),
+						initialIndex));
+	}
+
 	public void setShowList(List<Object> list) {
 		showList.setAll(ItemContent.get(FXCollections.observableArrayList(list)));
 	}
 }
-

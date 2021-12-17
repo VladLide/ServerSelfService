@@ -119,6 +119,8 @@ public class ScaleCtrl {
 		} else {
 			TextBox.alertOpenDialog(AlertType.WARNING, "editGoodsNo");
 		}
+		
+		
 	}
 
 	public void loadItem() {
