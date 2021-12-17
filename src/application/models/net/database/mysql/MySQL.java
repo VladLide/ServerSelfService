@@ -1,19 +1,27 @@
 package application.models.net.database.mysql;
 
-import application.models.TextBox;
-import application.models.net.ConfigNet;
-import application.models.net.PackingDBValue;
-import javafx.scene.control.Alert.AlertType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.sql.*;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import application.models.TextBox;
+import application.models.net.ConfigNet;
+import application.models.net.PackingDBValue;
+import javafx.scene.control.Alert.AlertType;
 
 public class MySQL {
 	public Connection dbConnection = null;
@@ -59,7 +67,8 @@ public class MySQL {
 		try {
 			config = new ConfigNet(id);
 			Connection connection = getDBConnection();
-			if (connection != null) connection.close();
+			if (connection != null)
+				connection.close();
 			this.dbConnection = null;
 			getDBConnection();
 		} catch (SQLException e) {
@@ -78,31 +87,31 @@ public class MySQL {
 	public static String Query(String tableName, String[] columns, String type) {
 		String query = "";
 		switch (type) {
-			case "insert": {
-				String questionmarks = StringUtils.repeat("?,", columns.length);
-				questionmarks = (String) questionmarks.subSequence(0, questionmarks.length() - 1);
-				query = SQL_INSERT.replaceFirst(TABLE_REGEX, tableName);
-				query = query.replaceFirst(KEYS_REGEX, StringUtils.join(columns, ","));
-				query = query.replaceFirst(VALUES_REGEX, questionmarks);
-				query = query + " ON DUPLICATE KEY UPDATE " + StringUtils.join(columns, " = ? , ") + " = ?";
-				break;
-			}
-			case "update": {
-				String questionmarks = StringUtils.join(columns, " = ?, ") + " = ? ";
-				questionmarks = (String) questionmarks.subSequence(0, questionmarks.length());
-				query = SQL_UPDATE.replaceFirst(TABLE_REGEX, tableName);
-				query = query.replaceFirst(VALUES_REGEX, questionmarks);
-				break;
-			}
-			case "select": {
-				break;
-			}
-			case "delete": {
-				break;
-			}
-			default: {
-				System.out.println("Query: type was not found: " + type);
-			}
+		case "insert": {
+			String questionmarks = StringUtils.repeat("?,", columns.length);
+			questionmarks = (String) questionmarks.subSequence(0, questionmarks.length() - 1);
+			query = SQL_INSERT.replaceFirst(TABLE_REGEX, tableName);
+			query = query.replaceFirst(KEYS_REGEX, StringUtils.join(columns, ","));
+			query = query.replaceFirst(VALUES_REGEX, questionmarks);
+			query = query + " ON DUPLICATE KEY UPDATE " + StringUtils.join(columns, " = ? , ") + " = ?";
+			break;
+		}
+		case "update": {
+			String questionmarks = StringUtils.join(columns, " = ?, ") + " = ? ";
+			questionmarks = (String) questionmarks.subSequence(0, questionmarks.length());
+			query = SQL_UPDATE.replaceFirst(TABLE_REGEX, tableName);
+			query = query.replaceFirst(VALUES_REGEX, questionmarks);
+			break;
+		}
+		case "select": {
+			break;
+		}
+		case "delete": {
+			break;
+		}
+		default: {
+			System.out.println("Query: type was not found: " + type);
+		}
 		}
 		// System.out.println("Query: " + query);
 		return query;
@@ -121,83 +130,74 @@ public class MySQL {
 				} while (index < count);
 				result = pstm.executeUpdate();
 			}
-			/*int key = 0;
-			try (ResultSet generatedKeys = pstm.getGeneratedKeys()) {
-	            if (generatedKeys.next()) {
-	            	result = generatedKeys.getInt(1);
-	            }
-	            else {
-	                System.out.println("Creating user failed, no ID obtained.");
-	            }
-	        }finally {
-	        	result = (key==0)?result:key;
-			}*/
+			/*
+			 * int key = 0; try (ResultSet generatedKeys = pstm.getGeneratedKeys()) { if
+			 * (generatedKeys.next()) { result = generatedKeys.getInt(1); } else {
+			 * System.out.println("Creating user failed, no ID obtained."); } }finally {
+			 * result = (key==0)?result:key; }
+			 */
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}/*finally {
-			try {
-	            if (this.dbConnection != null) {
-	            	this.dbConnection.close();
-	            }
-	        } catch (Exception e) {
-	        	e.printStackTrace();
-	        }
-		}*/
+		} /*
+			 * finally { try { if (this.dbConnection != null) { this.dbConnection.close(); }
+			 * } catch (Exception e) { e.printStackTrace(); } }
+			 */
 		return result;
 	}
 
 	private int fillPstm(PackingDBValue[] value, PreparedStatement pstm, int index) throws SQLException {
 		for (PackingDBValue string : value) {
 			switch (string.type) {
-				case "I": {
-					if (string.data == null)
-						pstm.setInt(index++, 0);
-					else
-						pstm.setInt(index++, (int) string.data);
-					break;
-				}
-				case "S": {
-					if (string.data == null)
-						pstm.setString(index++, "NULL");
-					else
-						pstm.setString(index++, (String) string.data);
-					break;
-				}
-				case "F": {
-					if (string.data == null)
-						pstm.setFloat(index++, 0);
-					else
-						pstm.setFloat(index++, (Float) string.data);
-					break;
-				}
-				case "D": {
-					if (string.data == null)
-						pstm.setDouble(index++, 0);
-					else
-						pstm.setDouble(index++, (Double) string.data);
-					break;
-				}
-				case "B": {
-					if (string.data == null) {
-						pstm.setBlob(index++, (Blob) null);
-					} else
-						pstm.setBlob(index++, (Blob) string.data);
-					break;
-				}
-				case "BL":{
-					if(string.data==null) { pstm.setBoolean(index++, false);}
-					else pstm.setBoolean(index++, (Boolean)string.data);
-					break;
-				}
-				case "DT": {
-					if (string.data == null) {
-						pstm.setTimestamp(index++,
-								Timestamp.valueOf(LocalDateTime.parse("2000-01-01T00:00:00")));
-					} else
-						pstm.setTimestamp(index++, Timestamp.valueOf((LocalDateTime) string.data));
-					break;
-				}
+			case "I": {
+				if (string.data == null)
+					pstm.setInt(index++, 0);
+				else
+					pstm.setInt(index++, (int) string.data);
+				break;
+			}
+			case "S": {
+				if (string.data == null)
+					pstm.setString(index++, "NULL");
+				else
+					pstm.setString(index++, (String) string.data);
+				break;
+			}
+			case "F": {
+				if (string.data == null)
+					pstm.setFloat(index++, 0);
+				else
+					pstm.setFloat(index++, (Float) string.data);
+				break;
+			}
+			case "D": {
+				if (string.data == null)
+					pstm.setDouble(index++, 0);
+				else
+					pstm.setDouble(index++, (Double) string.data);
+				break;
+			}
+			case "B": {
+				if (string.data == null) {
+					pstm.setBlob(index++, (Blob) null);
+				} else
+					pstm.setBlob(index++, (Blob) string.data);
+				break;
+			}
+			case "BL": {
+				if (string.data == null) {
+					pstm.setBoolean(index++, false);
+				} else
+					pstm.setBoolean(index++, (Boolean) string.data);
+				break;
+			}
+			case "DT": {
+				if (string.data == null) {
+					pstm.setTimestamp(index++, Timestamp.valueOf(LocalDateTime.parse("2000-01-01T00:00:00")));
+				} else
+					pstm.setTimestamp(index++, Timestamp.valueOf((LocalDateTime) string.data));
+				break;
+			}
 			}
 		}
 		return index;
@@ -233,15 +233,11 @@ public class MySQL {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}/*finally {
-			try {
-	            if (this.dbConnection != null) {
-	            	this.dbConnection.close();
-	            }
-	        } catch (Exception e) {
-				System.out.println("DBHandler-All: error close "+e.getMessage());
-	        }
-		}*/
+		} /*
+			 * finally { try { if (this.dbConnection != null) { this.dbConnection.close(); }
+			 * } catch (Exception e) {
+			 * System.out.println("DBHandler-All: error close "+e.getMessage()); } }
+			 */
 		return result;
 	}
 
@@ -258,7 +254,7 @@ public class MySQL {
 
 	public int[] insertAll(String table, String[] columns, List<PackingDBValue[]> value) {
 		int[] result = {};
-		//todo fix if comparison
+		// todo fix if comparison
 //		if (columns.length != value.get(0).length) {
 //			return result;
 //		}
@@ -283,10 +279,7 @@ public class MySQL {
 		return result;
 	}
 
-	public int[] updateAll(String table,
-	                       String[] columns,
-	                       List<PackingDBValue[]> values,
-	                       String[] where) {
+	public int[] updateAll(String table, String[] columns, List<PackingDBValue[]> values, String[] where) {
 		String sql = MySQL.Query(table, columns, "update");
 		if (where.length != 0)
 			sql += "WHERE " + StringUtils.join(where, ",");

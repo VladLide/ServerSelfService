@@ -26,28 +26,34 @@ public class ConfigNet {
 			id_scales = id;
 			ResultSet res = (id > 0) ? MainCtrl.getDB().getSelect(getSql(id)) : null;
 			if (res != null)
-				res.first();
+				try {
+					res.first();
+				} catch (SQLException e) {
+					res.next();
+				}
 			for (Field f : getClass().getDeclaredFields()) {
 				try {
 					if (f.getName() == "table")
 						continue;
 					String type = f.getType().getTypeName().replace(".", " ");
-					if(type.split(" ").length>0) {
+					if (type.split(" ").length > 0) {
 						String[] typ = type.split(" ");
-						type = typ[typ.length-1];
+						type = typ[typ.length - 1];
 					}
-					switch(type) {
-						case "Integer":
-							f.set(this,(id > 0) ? res.getInt(res.findColumn(f.getName())) : Configs.getItemInt(f.getName()));
+					switch (type) {
+					case "Integer":
+						f.set(this,
+								(id > 0) ? res.getInt(res.findColumn(f.getName())) : Configs.getItemInt(f.getName()));
 						break;
-						case "String":
-							f.set(this,(id > 0) ? res.getString(res.findColumn(f.getName())) : Configs.getItemObj(f.getName()));
+					case "String":
+						f.set(this, (id > 0) ? res.getString(res.findColumn(f.getName()))
+								: Configs.getItemObj(f.getName()));
 						break;
-						default:
-							System.out.println(table+": type was not found " + f.getName()+":"+f.getType());
+					default:
+						System.out.println(table + ": type was not found " + f.getName() + ":" + f.getType());
 					}
 				} catch (Exception e) {
-					System.out.println(table+": "+e.getMessage());
+					System.out.println(table + ": " + e.getMessage());
 				}
 			}
 		}
