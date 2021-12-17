@@ -56,6 +56,7 @@ public class SidebarCtrl {
 	private Marquee marquee;
 	private Thread labelThread;
 	private TreeItem<NodeTree> selectedItem;
+	private ScaleItemMenu sim = null;
 
 	@FXML
 	private ResourceBundle resources = Utils.getResource(Configs.getItemStr("language"), "part", "Sidebar");
@@ -456,10 +457,14 @@ public class SidebarCtrl {
 	 */
 	private void setStatusToScaleStatus(TreeItem<NodeTree> node) {
 		ScaleItemMenu scale = (ScaleItemMenu) node.getValue().getObject();
+		sim = scale;
 		setStatus(String.format("%s-%d - %s", scale.getName(), scale.getId(), scale.getStatus().getMessage()));
 	}
 
 	public static TreeItem<NodeTree> getSelectedItem() {
 		return getInstance().selectedItem;
+	}
+	public static ScaleItemMenu getSIM() {
+		return getInstance().sim;
 	}
 }

@@ -229,11 +229,11 @@ public class ContentCtrl {
 	public void operationsData(ItemContent item, boolean del) {
 		MainWindowCtrl mainWindowCtrl = MainWindowCtrl.getInstance();
 		String source = "";
-
+		sim = SidebarCtrl.getSIM();
 		if (node.getLevel() == 2) {
 			source = "Server (localhost)";
 		} else {
-
+			
 			source = sim.getName() + " - " + sim.getId() + " (" + sim.getScale().getIp_address() + ")";
 		}
 
@@ -361,7 +361,7 @@ public class ContentCtrl {
 		assert check != null : "fx:id=\"check\" was not injected: check your FXML file 'Content.fxml'.";
 		assert dataTable != null : "fx:id=\"viewTreeTable\" was not injected: check your FXML file 'Content.fxml'.";
 		assert delete != null : "fx:id=\"delete\" was not injected: check your FXML file 'Content.fxml'.";
-
+		
 		delete.setDisable(false);
 
 		dataTable.setOnContextMenuRequested(event -> {

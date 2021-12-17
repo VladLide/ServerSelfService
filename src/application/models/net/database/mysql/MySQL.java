@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import application.models.TextBox;
 import application.models.net.ConfigNet;
 import application.models.net.PackingDBValue;
+import javafx.application.Platform;
 import javafx.scene.control.Alert.AlertType;
 
 public class MySQL {
@@ -50,14 +51,20 @@ public class MySQL {
 						+ config.getName() + "?useUnicode=yes&characterEncoding=UTF-8&serverTimezone="
 						+ TimeZone.getDefault().getID();
 				Class.forName("com.mysql.cj.jdbc.Driver");
-
+				System.out.println(connectionString);
 				dbConnection = DriverManager.getConnection(connectionString, config.getLogin(), config.getPass());
 			} catch (SQLException e) {
 				logger.error("Error obtaining database", e);
-				TextBox.alertOpenDialogException(AlertType.INFORMATION, "connectNoBD", e.getMessage());
+				if(config.isServer())
+				Platform.runLater(()->{
+					TextBox.alertOpenDialogException(AlertType.INFORMATION, "connectNoBD", e.getMessage());
+				});
 			} catch (ClassNotFoundException e) {
 				logger.error("Error obtaining database driver", e);
-				TextBox.alertOpenDialogException(AlertType.INFORMATION, "connectNoDriverBD", e.getMessage());
+				if(config.isServer())
+				Platform.runLater(()->{
+					TextBox.alertOpenDialogException(AlertType.INFORMATION, "connectNoDriverBD", e.getMessage());
+				});
 			}
 		}
 		return dbConnection;

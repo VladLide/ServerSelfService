@@ -234,7 +234,7 @@ public class MainCtrl {
 					}
 				}
 			} else {
-				throw new NullPointerException("Was not able to get files from path " + path);
+				logger.warn("Was not able to get files from path " + path);
 			}
 		} catch (IOException | NullPointerException | SQLException e) {
 			logger.error(e.getMessage(), e);

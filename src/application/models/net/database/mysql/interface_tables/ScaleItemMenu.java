@@ -109,9 +109,9 @@ public class ScaleItemMenu {
 	}
 
 	public void connect() {
-		if (!scale.getIp_address().matches("([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})")
+		if (/*!scale.getIp_address().matches("([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})")
 				|| scale.getIp_address().matches("(localhost)|(127\\.0\\.0\\.1)")
-				|| scale.getIp_address().length() < 7) {
+				||*/ scale.getIp_address().length() < 7) {
 			scale.setUpdate(-3);
 			img.setImage(status(scale.getUpdate(), 0));
 		} else {

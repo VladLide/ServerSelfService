@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<project name="ServerSelfService" default="do-deploy" basedir="."  xmlns:fx="javafx:com.sun.javafx.tools.ant">
+	<target name="init-fx-tasks">
+		<path id="fxant">
+			<filelist>
+				<file name="${java.home}\..\lib\ant-javafx.jar"/>
+				<file name="${java.home}\lib\jfxrt.jar"/>
+			</filelist>
+		</path>
+	
+		<taskdef resource="com/sun/javafx/tools/ant/antlib.xml"
+			uri="javafx:com.sun.javafx.tools.ant"
+			classpathref="fxant"/>
+	</target>
+	<target name="setup-staging-area">
+		<delete dir="externalLibs" />
+		<delete dir="project" />
+		<delete dir="projectRefs" />
+	
+		<mkdir dir="externalLibs" />
+	
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/javafx-sdk-17.0.1/lib">
+				<filename name="javafx.fxml.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/ServerSelfService/lib">
+				<filename name="commons-lang3-3.8.1.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/ServerSelfService/lib">
+				<filename name="ojdbc15-11.1.0.6.0.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/javafx-sdk-17.0.1/lib">
+				<filename name="javafx.graphics.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/javafx-sdk-17.0.1/lib">
+				<filename name="javafx.swing.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/javafx-sdk-17.0.1/lib">
+				<filename name="javafx-swt.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/commons-net-3.8.0">
+				<filename name="commons-net-3.8.0.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/javafx-sdk-17.0.1/lib">
+				<filename name="javafx.base.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/ServerSelfService/lib">
+				<filename name="opencsv-2.3.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/ServerSelfService/lib">
+				<filename name="commons-codec-1.13.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/ServerSelfService/lib">
+				<filename name="zxing-2.1.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/ServerSelfService/lib">
+				<filename name="mysql-connector-java-8.0.17.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/ServerSelfService/lib">
+				<filename name="commons-lang-2.4.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/ServerSelfService/lib">
+				<filename name="barcode4j.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/javafx-sdk-17.0.1/lib">
+				<filename name="javafx.controls.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/javafx-sdk-17.0.1/lib">
+				<filename name="javafx.web.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/ServerSelfService/lib">
+				<filename name="log4j-api-2.14.1.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/javafx-sdk-17.0.1/lib">
+				<filename name="javafx.media.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="externalLibs">
+			<fileset dir="/home/cx9ps3/ServerSelfService/lib">
+				<filename name="log4j-core-2.14.1.jar"/>
+			</fileset>
+		</copy>
+	
+		<mkdir dir="project" />
+		<copy todir="project">
+			<fileset dir="/home/cx9ps3/ServerSelfService">
+				<include name="src/**" />
+			</fileset>
+		</copy>
+	
+		<mkdir dir="projectRefs" />
+	</target>
+	<target name='do-compile'>
+		<delete dir="build" />
+		<mkdir dir="build/src" />
+		<mkdir dir="build/libs" />
+		<mkdir dir="build/classes" />
+	
+		<!-- Copy project-libs references -->
+		<copy todir="build/libs">
+			<fileset dir="externalLibs">
+				<include name="javafx-swt.jar"/>
+				<include name="javafx.fxml.jar"/>
+				<include name="log4j-core-2.14.1.jar"/>
+				<include name="commons-lang3-3.8.1.jar"/>
+				<include name="javafx.web.jar"/>
+				<include name="commons-lang-2.4.jar"/>
+				<include name="ojdbc15-11.1.0.6.0.jar"/>
+				<include name="javafx.controls.jar"/>
+				<include name="javafx.media.jar"/>
+				<include name="commons-net-3.8.0.jar"/>
+				<include name="opencsv-2.3.jar"/>
+				<include name="log4j-api-2.14.1.jar"/>
+				<include name="zxing-2.1.jar"/>
+				<include name="barcode4j.jar"/>
+				<include name="mysql-connector-java-8.0.17.jar"/>
+				<include name="javafx.swing.jar"/>
+				<include name="commons-codec-1.13.jar"/>
+				<include name="javafx.graphics.jar"/>
+				<include name="javafx.base.jar"/>
+			</fileset>
+		</copy>
+	
+		<!-- Copy project references -->
+	
+		<!-- Copy project sources itself -->
+		<copy todir="build/src">
+			<fileset dir="project/src">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+	
+		<javac includeantruntime="false" source="16" target="16" srcdir="build/src" destdir="build/classes" encoding="UTF-8">
+			<classpath>
+				<fileset dir="build/libs">
+					<include name="*"/>
+				</fileset>
+			</classpath>
+		</javac>
+	
+		<!-- Copy over none Java-Files -->
+		<copy todir="build/classes">
+		<fileset dir="project/src">
+			<exclude name="**/*.java"/>
+		</fileset>
+		</copy>
+	
+	
+	</target>
+	<target name="do-deploy" depends="setup-staging-area, do-compile, init-fx-tasks">
+		<delete file="dist"/>
+		<delete file="deploy" />
+	
+		<mkdir dir="dist" />
+		<mkdir dir="dist/libs" />
+	
+		<copy todir="dist/libs">
+			<fileset dir="externalLibs">
+				<include name="*" />
+			</fileset>
+		</copy>
+	
+	
+		<fx:resources id="appRes">
+			<fx:fileset dir="dist" includes="ServerSelfService.jar"/>
+			<fx:fileset dir="dist" includes="libs/*"/>
+		</fx:resources>
+	
+		<fx:application id="fxApplication"
+			name="Server SelfService"
+			mainClass="application.Main"
+		/>
+	
+		<mkdir dir="build/classes/META-INF" />
+	
+	
+	
+		<fx:jar destfile="dist/ServerSelfService.jar">
+			<fx:application refid="fxApplication"/>
+			<fileset dir="build/classes">
+			</fileset>
+			<fx:resources refid="appRes"/>
+	
+			<manifest>
+				<attribute name="Implementation-Vendor" value="vtne"/>
+				<attribute name="Implementation-Title" value="Server SelfService"/>
+				<attribute name="Implementation-Version" value="1.0.0.0"/>
+				<attribute name="JavaFX-Feature-Proxy" value="None"/>
+			</manifest>
+		</fx:jar>
+	
+	
+	
+	
+	</target>
+</project>

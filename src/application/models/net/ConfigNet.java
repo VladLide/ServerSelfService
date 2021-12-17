@@ -140,6 +140,10 @@ public class ConfigNet {
 		return get(id_scales) != null;
 	}
 
+	public boolean isServer() {
+		return id_scales<1;
+	}
+
 	public int getId_scales() {
 		return id_scales;
 	}
